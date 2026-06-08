@@ -88,6 +88,7 @@ export async function boot() {
   // Stage 1 — Lenis + reveals + Vault Blur
   await load(!reduced, () => import('./scroll.js'), (m) => m.initScroll());
   await load(f.reveals, () => import('./reveals.js'), (m) => m.initReveals());
+  await load(f.heroEntrance, () => import('./hero-entrance.js'), (m) => m.initHeroEntrance());
   await load(f.vaultBlur, () => import('./vault-blur.js'), (m) => m.initVaultBlur(reduced));
   // Stage 2 — pulse (Heartbeat governor-exempt; First Breath + Scanline one-shots)
   await load(f.heartbeat, () => import('./heartbeat.js'), (m) => m.initHeartbeat(config));

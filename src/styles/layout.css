@@ -146,10 +146,12 @@ main { flex: 1 0 auto; }
 }
 .hero__h1line { display: block; }
 /* the route threads BETWEEN the two H1 lines — full-bleed, never across letters (§3.2) */
-.hero__routeband { position: relative; display: block; height: 0.07em; z-index: var(--z-route); }
+/* a real, clear gap between the name block and the role line — the route threads
+   this air at every breakpoint, never across letters even when the name wraps (§3.2) */
+.hero__routeband { position: relative; display: block; height: 0.55em; z-index: var(--z-route); }
 .hero__routeband svg {
-  position: absolute; left: 50%; top: 50%;
-  width: 100vw; height: 30px; margin-top: -15px;
+  position: absolute; left: 50%; top: 0;
+  width: 100vw; height: 100%;
   transform: translateX(-50%);
   pointer-events: none; overflow: visible;
 }
@@ -255,7 +257,7 @@ main { flex: 1 0 auto; }
 .footer__scanline { position: relative; height: 1px; background: var(--hairline); margin-top: var(--space-12); overflow: hidden; }
 /* static honest state: a 64px pulse segment sits at the footer's left edge */
 /* static honest state: the 64px pulse segment sits at the footer's left edge (§5.11) */
-.footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 64px; height: 1px; background: var(--pulse); opacity: 0.4; will-change: transform; }
+.footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 64px; height: 1px; background: var(--pulse); opacity: 0.4; }
 .footer__col + .footer__col { }
 
 /* ============ PROJECT PAGE (§3.20 / §4.3) ============ */
@@ -310,6 +312,10 @@ main { flex: 1 0 auto; }
 .filter:hover::after { transform: scaleX(1); }
 .filter[aria-pressed="true"] { color: var(--ink); }
 .filter[aria-pressed="true"]::after { transform: scaleX(1); }
+/* §3.9 filter dissolve — opacity only (never slide); grid reflows under the fade */
+[data-grid] .wn-card { transition: transform var(--dur-180) var(--ease-react), background-color var(--dur-180) var(--ease-react), box-shadow var(--dur-180) var(--ease-react), opacity var(--dur-240) var(--ease-run); }
+.wn-card.is-filtered-out { opacity: 0; pointer-events: none; }
+.filter-empty { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: var(--ink-ghost); margin-top: var(--space-8); }
 
 .nextup { margin-top: var(--space-16); }
 .nextup__head { display: flex; align-items: center; gap: var(--space-6); margin-bottom: var(--space-8); }

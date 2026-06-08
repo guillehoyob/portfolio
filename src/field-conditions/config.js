@@ -22,6 +22,7 @@ export const config = {
   flags: {
     // Stage 1 — Lenis + GSAP base
     reveals: true,        // Forward-landing scroll reveals
+    heroEntrance: true,   // hero type Forward-land + H1 SplitText masked reveal (§3.2)
     vaultBlur: true,      // cross-document View Transitions page blur (§5.10)
     // Stage 2 — pulse
     heartbeat: true,      // 6s dot breathe (§5.6) — governor-exempt

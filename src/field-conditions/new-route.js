@@ -8,7 +8,7 @@
  * engine), disarm the CSS fail-safe, and draw it once (900ms, the page's single
  * sanctioned >600ms gesture). Only the path varies — never grid, type or palette.
  */
-import { gsap } from 'gsap';
+import { setupGsap } from './gsap-setup.js';
 import routes from './routes.json';
 
 export function initNewRoute() {
@@ -25,12 +25,14 @@ export function initNewRoute() {
   const armed = document.documentElement.classList.contains('fc-route');
   if (!armed) return; // reduced motion / no-motion: the chosen line is already drawn complete
 
-  // disarm the CSS fail-safe draw, then draw via GSAP after the 120ms breath
+  // disarm the CSS fail-safe draw, then draw via GSAP after the 120ms breath,
+  // on the signature 'run' ease (not expo.out — one curve everywhere, craft §1)
   document.documentElement.classList.add('fc-route-drawn');
+  const gsap = setupGsap();
   const paths = [dPath, mPath].filter(Boolean);
   gsap.fromTo(
     paths,
     { strokeDasharray: 3000, strokeDashoffset: 3000 },
-    { strokeDashoffset: 0, duration: 0.9, ease: 'expo.out', delay: 0.12 }
+    { strokeDashoffset: 0, duration: 0.9, ease: 'run', delay: 0.12 }
   );
 }

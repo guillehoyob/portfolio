@@ -317,6 +317,9 @@
 }
 .wn-void__crack { height: 1px; background: var(--signal); border: none; width: 100%; margin: var(--space-8) 0; }
 .wn-void__body { font-family: var(--font-body); font-size: var(--text-body); line-height: var(--lh-body); color: var(--washi); max-width: 55ch; }
+/* the collab grid (3 columns) must not be trapped by the 55ch prose cap — let it
+   breathe to the full band; each column stays ≤~34ch internally (§3.15) */
+.wn-void__body:has(.collab) { max-width: 980px; }
 .wn-void__body p { margin: 0 0 var(--space-4); }
 .wn-void__body p:last-child { margin-bottom: 0; }
 .wn-void .wn-signal-link { color: var(--washi); }

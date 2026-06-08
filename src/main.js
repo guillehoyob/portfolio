@@ -56,10 +56,23 @@ function initMobileMenu() {
 function initWorkFilter() {
   const buttons = document.querySelectorAll('.filter[data-filter]');
   if (!buttons.length) return;
-  const cards = document.querySelectorAll('[data-grid] [data-status]');
+  const cards = [...document.querySelectorAll('[data-grid] [data-status]')];
+  const empty = document.querySelector('[data-empty]');
   const apply = (val) => {
-    cards.forEach((c) => { c.style.display = val === 'all' || c.dataset.status === val ? '' : 'none'; });
+    let shown = 0;
+    cards.forEach((c) => {
+      const match = val === 'all' || c.dataset.status === val;
+      if (match) {
+        shown++;
+        c.style.display = '';
+        requestAnimationFrame(() => c.classList.remove('is-filtered-out')); // dissolve in
+      } else {
+        c.classList.add('is-filtered-out'); // dissolve out (opacity only, §3.9)
+        setTimeout(() => { if (c.classList.contains('is-filtered-out')) c.style.display = 'none'; }, 240);
+      }
+    });
     buttons.forEach((b) => b.setAttribute('aria-pressed', b.dataset.filter === val ? 'true' : 'false'));
+    if (empty) empty.hidden = shown > 0;
   };
   buttons.forEach((b) => b.addEventListener('click', () => apply(b.dataset.filter)));
 }

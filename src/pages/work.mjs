@@ -30,9 +30,10 @@ export const main = `<div class="shell">
     <div class="workgrid workgrid--three" data-grid>
       ${gridCards.map((c) => card(c)).join('\n      ')}
     </div>
+    <p class="filter-empty" data-empty hidden>Nothing shipped under that filter yet — the rest of the road is in Next up.</p>
   </section>
 
-  <section class="section nextup" data-grid>
+  <section class="section nextup">
     <div class="nextup__head">
       <span class="metalabel">Next up</span>
       <hr class="wn-hairline" style="flex:1">

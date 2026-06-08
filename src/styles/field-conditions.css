@@ -7,6 +7,15 @@
  * paints unless a living behavior is actually running.
  */
 
+/* Register the Heliostat tint as a typed <color> so the 4s daypart crossfade
+   interpolates through warm in-betweens, not desaturated grey (craft §9). The
+   5% alpha hard cap is unchanged — this only prettifies the transition path. */
+@property --fc-tint {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
 /* ===== Stage 1 — Forward-landing reveals ===== */
 html.fc-motion .fc-reveal {
   opacity: 0;
@@ -23,7 +32,31 @@ html.fc-motion .fc-reveal.is-in { opacity: 1; transform: none; }
   html.fc-motion .fc-reveal { opacity: 1; transform: none; transition: none; }
 }
 
-/* ===== Stage 2 — Heartbeat (§5.6): governor-exempt 6s dot pulse ===== */
+/* ===== Stage 1 — hero entrance (§3.2): type armed hidden pre-paint ===== */
+/* 2.4s CSS fail-safe reveal so the name can never stay invisible (mirrors the route arm) */
+@keyframes wn-hero-reveal { to { opacity: 1; } }
+html.fc-hero .hero__pre, html.fc-hero .hero__h1, html.fc-hero .hero__sub,
+html.fc-hero .hero__greet, html.fc-hero .hero__cta {
+  opacity: 0;
+  animation: wn-hero-reveal var(--dur-420) var(--ease-run) 2400ms both;
+}
+html.fc-hero-revealed .hero__pre, html.fc-hero-revealed .hero__h1, html.fc-hero-revealed .hero__sub,
+html.fc-hero-revealed .hero__greet, html.fc-hero-revealed .hero__cta { animation: none; }
+
+/* ===== Method steps — scroll-driven dim→focus sticky highlight (typography §3) =====
+   Reading guide entirely in the ink range (no signal), compositor-thread, zero JS.
+   Progressive enhancement: @supports-gated and reduced-motion-off; unsupported
+   browsers (and the fc-reveal-less static state) simply render the steps at full ink. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes wn-step-focus { from { opacity: 0.45; } to { opacity: 1; } }
+    html.fc-motion .phases .phase {
+      animation: wn-step-focus linear both;
+      animation-timeline: view();
+      animation-range: entry 25% cover 35%;
+    }
+  }
+}
 @keyframes wn-breathe {
   0%, 100% { transform: scale(1);    opacity: var(--fc-pulse-alpha); }
   50%      { transform: scale(1.35); opacity: 1; }
@@ -53,7 +86,7 @@ html.fc-firstbreath .hero__chevron.fc-breathed {
 
 /* ===== Stage 2 — footer Scanline drift (§5.11) ===== */
 @keyframes wn-scanline { from { transform: translateX(0); } to { transform: translateX(var(--fc-scan-w, 1000px)); } }
-html.fc-motion .footer__scanline.fc-scan-run::after { animation: wn-scanline var(--dur-ambient-min) linear; }
+html.fc-motion .footer__scanline.fc-scan-run::after { animation: wn-scanline var(--dur-ambient-min) linear; will-change: transform; }
 
 /* ===== Stage 3 — New Route (§5.2) ===== */
 /* one index, two geometries: desktop (2 turns) ≥1024px, mobile (1 turn) below */

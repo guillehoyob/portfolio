@@ -9,7 +9,7 @@
  */
 const SEL = [
   '.eyebrow', '.h1', '.h2', '.prose',
-  '.wn-card', '.principle', '.proof__cell', '.phase',
+  '.wn-card', '.principle', '.proof__cell',
   '.wn-breath', '.about__photo',
   '.identity__title', '.identity__tagline', '.identity__badges',
   '.projbody > h3', '.projbody > p', '.monolist', '.artifacts',

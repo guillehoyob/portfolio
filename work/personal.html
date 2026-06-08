@@ -277,6 +277,46 @@ body {
   line-height: var(--lh-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+  font-feature-settings: "liga" 1, "kern" 1;
+}
+
+/* ---- typographic refinements: the silent luxury layer (craft §4, typography §1) ----
+   text-wrap balance on short display blocks, pretty on prose; old-style figures in
+   running prose, tabular figures in the mono/data voice; hanging punctuation on the
+   one pull-quote. All pure progressive enhancement — silently ignored where unsupported. */
+h1, h2, h3, .h2, .hero__h1, .identity__title, .wn-card__title,
+.principle__name, .phase__name, .wn-void__word, .contact__email, .cv-name {
+  text-wrap: balance;
+}
+.prose, .principle__body, .projbody p, .hero__sub, .identity__tagline,
+.footer__colophon, .wn-card__tagline, .breaks li, .collab p, .cv-p, .about__now {
+  text-wrap: pretty;
+}
+.prose, .principle__body, .projbody p, .hero__sub, .identity__tagline, .footer__colophon, .cv-p {
+  font-variant-numeric: oldstyle-nums proportional-nums;
+  hyphens: auto;
+}
+.wn-status, .eyebrow, .metalabel, .wn-tag, .wn-badge, .footer__mono, .about__now,
+.principle__prevents, .phase__who, .phase__exit, .monolist li, .artifacts__access,
+.wn-card__microrow, .hero__greet, .hero__pre, .wn-proof__label, .cv-job__when, .cv-contact {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.wn-breath, blockquote { hanging-punctuation: first last; }
+
+/* ---- static field grain (craft §6): paper micro-texture so the warm-white field
+   never reads as flat screen. Fixed, behind content, static — no motion, no budget
+   cost (texture on the field, not a signal/trace). Hard cap opacity 0.04. ---- */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
 }
 
 img, svg { display: block; max-width: 100%; }
@@ -644,6 +684,9 @@ a { color: inherit; }
 }
 .wn-void__crack { height: 1px; background: var(--signal); border: none; width: 100%; margin: var(--space-8) 0; }
 .wn-void__body { font-family: var(--font-body); font-size: var(--text-body); line-height: var(--lh-body); color: var(--washi); max-width: 55ch; }
+/* the collab grid (3 columns) must not be trapped by the 55ch prose cap — let it
+   breathe to the full band; each column stays ≤~34ch internally (§3.15) */
+.wn-void__body:has(.collab) { max-width: 980px; }
 .wn-void__body p { margin: 0 0 var(--space-4); }
 .wn-void__body p:last-child { margin-bottom: 0; }
 .wn-void .wn-signal-link { color: var(--washi); }
@@ -802,10 +845,12 @@ main { flex: 1 0 auto; }
 }
 .hero__h1line { display: block; }
 /* the route threads BETWEEN the two H1 lines — full-bleed, never across letters (§3.2) */
-.hero__routeband { position: relative; display: block; height: 0.07em; z-index: var(--z-route); }
+/* a real, clear gap between the name block and the role line — the route threads
+   this air at every breakpoint, never across letters even when the name wraps (§3.2) */
+.hero__routeband { position: relative; display: block; height: 0.55em; z-index: var(--z-route); }
 .hero__routeband svg {
-  position: absolute; left: 50%; top: 50%;
-  width: 100vw; height: 30px; margin-top: -15px;
+  position: absolute; left: 50%; top: 0;
+  width: 100vw; height: 100%;
   transform: translateX(-50%);
   pointer-events: none; overflow: visible;
 }
@@ -911,7 +956,7 @@ main { flex: 1 0 auto; }
 .footer__scanline { position: relative; height: 1px; background: var(--hairline); margin-top: var(--space-12); overflow: hidden; }
 /* static honest state: a 64px pulse segment sits at the footer's left edge */
 /* static honest state: the 64px pulse segment sits at the footer's left edge (§5.11) */
-.footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 64px; height: 1px; background: var(--pulse); opacity: 0.4; will-change: transform; }
+.footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 64px; height: 1px; background: var(--pulse); opacity: 0.4; }
 .footer__col + .footer__col { }
 
 /* ============ PROJECT PAGE (§3.20 / §4.3) ============ */
@@ -966,6 +1011,10 @@ main { flex: 1 0 auto; }
 .filter:hover::after { transform: scaleX(1); }
 .filter[aria-pressed="true"] { color: var(--ink); }
 .filter[aria-pressed="true"]::after { transform: scaleX(1); }
+/* §3.9 filter dissolve — opacity only (never slide); grid reflows under the fade */
+[data-grid] .wn-card { transition: transform var(--dur-180) var(--ease-react), background-color var(--dur-180) var(--ease-react), box-shadow var(--dur-180) var(--ease-react), opacity var(--dur-240) var(--ease-run); }
+.wn-card.is-filtered-out { opacity: 0; pointer-events: none; }
+.filter-empty { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: var(--ink-ghost); margin-top: var(--space-8); }
 
 .nextup { margin-top: var(--space-16); }
 .nextup__head { display: flex; align-items: center; gap: var(--space-6); margin-bottom: var(--space-8); }
@@ -984,6 +1033,15 @@ main { flex: 1 0 auto; }
  * paints unless a living behavior is actually running.
  */
 
+/* Register the Heliostat tint as a typed <color> so the 4s daypart crossfade
+   interpolates through warm in-betweens, not desaturated grey (craft §9). The
+   5% alpha hard cap is unchanged — this only prettifies the transition path. */
+@property --fc-tint {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
 /* ===== Stage 1 — Forward-landing reveals ===== */
 html.fc-motion .fc-reveal {
   opacity: 0;
@@ -1000,7 +1058,31 @@ html.fc-motion .fc-reveal.is-in { opacity: 1; transform: none; }
   html.fc-motion .fc-reveal { opacity: 1; transform: none; transition: none; }
 }
 
-/* ===== Stage 2 — Heartbeat (§5.6): governor-exempt 6s dot pulse ===== */
+/* ===== Stage 1 — hero entrance (§3.2): type armed hidden pre-paint ===== */
+/* 2.4s CSS fail-safe reveal so the name can never stay invisible (mirrors the route arm) */
+@keyframes wn-hero-reveal { to { opacity: 1; } }
+html.fc-hero .hero__pre, html.fc-hero .hero__h1, html.fc-hero .hero__sub,
+html.fc-hero .hero__greet, html.fc-hero .hero__cta {
+  opacity: 0;
+  animation: wn-hero-reveal var(--dur-420) var(--ease-run) 2400ms both;
+}
+html.fc-hero-revealed .hero__pre, html.fc-hero-revealed .hero__h1, html.fc-hero-revealed .hero__sub,
+html.fc-hero-revealed .hero__greet, html.fc-hero-revealed .hero__cta { animation: none; }
+
+/* ===== Method steps — scroll-driven dim→focus sticky highlight (typography §3) =====
+   Reading guide entirely in the ink range (no signal), compositor-thread, zero JS.
+   Progressive enhancement: @supports-gated and reduced-motion-off; unsupported
+   browsers (and the fc-reveal-less static state) simply render the steps at full ink. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes wn-step-focus { from { opacity: 0.45; } to { opacity: 1; } }
+    html.fc-motion .phases .phase {
+      animation: wn-step-focus linear both;
+      animation-timeline: view();
+      animation-range: entry 25% cover 35%;
+    }
+  }
+}
 @keyframes wn-breathe {
   0%, 100% { transform: scale(1);    opacity: var(--fc-pulse-alpha); }
   50%      { transform: scale(1.35); opacity: 1; }
@@ -1030,7 +1112,7 @@ html.fc-firstbreath .hero__chevron.fc-breathed {
 
 /* ===== Stage 2 — footer Scanline drift (§5.11) ===== */
 @keyframes wn-scanline { from { transform: translateX(0); } to { transform: translateX(var(--fc-scan-w, 1000px)); } }
-html.fc-motion .footer__scanline.fc-scan-run::after { animation: wn-scanline var(--dur-ambient-min) linear; }
+html.fc-motion .footer__scanline.fc-scan-run::after { animation: wn-scanline var(--dur-ambient-min) linear; will-change: transform; }
 
 /* ===== Stage 3 — New Route (§5.2) ===== */
 /* one index, two geometries: desktop (2 turns) ≥1024px, mobile (1 turn) below */
@@ -1097,10 +1179,11 @@ html.fc-amp[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 5
 html.fc-return .greet-first { display: none; }
 html.fc-return .greet-return { display: inline; }
 </style>
-<script>(function(){var d=document.documentElement;d.classList.add('has-js');try{var hh=new Date().getHours();d.setAttribute('data-daypart',(hh>=5&&hh<9)?'dawn':(hh>=9&&hh<17)?'noon':(hh>=17&&hh<21)?'evening':'night');}catch(e){}try{var v=localStorage.getItem('wn.visitor');if(!v){v=(self.crypto&&crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('wn.visitor',v);}var n=new Date(),ds=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate(),k=ds+'|'+v,h=5381,i=0;for(;i<k.length;i++)h=((h<<5)+h+k.charCodeAt(i))>>>0;window.__wnRouteIndex=h%10;}catch(e){window.__wnRouteIndex=0;}try{var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');d.classList.add('fc-firstbreath');d.classList.add('fc-route');}}catch(e){}})();</script>
+<script>(function(){var d=document.documentElement;d.classList.add('has-js');try{var hh=new Date().getHours();d.setAttribute('data-daypart',(hh>=5&&hh<9)?'dawn':(hh>=9&&hh<17)?'noon':(hh>=17&&hh<21)?'evening':'night');}catch(e){}try{var v=localStorage.getItem('wn.visitor');if(!v){v=(self.crypto&&crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('wn.visitor',v);}var n=new Date(),ds=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate(),k=ds+'|'+v,h=5381,i=0;for(;i<k.length;i++)h=((h<<5)+h+k.charCodeAt(i))>>>0;window.__wnRouteIndex=h%10;}catch(e){window.__wnRouteIndex=0;}try{var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');d.classList.add('fc-firstbreath');d.classList.add('fc-route');d.classList.add('fc-hero');}}catch(e){}})();</script>
 </head>
 <body>
 <div class="fc-tint" aria-hidden="true"></div>
+<svg class="grain" aria-hidden="true" focusable="false" width="100%" height="100%"><filter id="wn-grain"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#wn-grain)"/></svg>
 <a class="skip" href="#main">Skip to content</a>
 <nav class="nav" aria-label="Primary">
   <a class="nav__mark" href="/">Guillermo</a>

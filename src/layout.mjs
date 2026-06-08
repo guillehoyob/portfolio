@@ -36,6 +36,7 @@ export const prePaint = () => {
   const motionCls = [];
   if (f.firstBreath) motionCls.push('fc-firstbreath');
   if (f.newRoute) motionCls.push('fc-route');
+  if (f.heroEntrance) motionCls.push('fc-hero');
   const addMotion = motionCls.map((c) => `d.classList.add('${c}');`).join('');
   // Seed the first-party visitor id and the day's route index, pre-paint, so the
   // route arms hidden before first paint (§5.2). Gated by newRoute → flag off
@@ -122,6 +123,7 @@ ${prePaint()}
 </head>
 <body>
 <div class="fc-tint" aria-hidden="true"></div>
+<svg class="grain" aria-hidden="true" focusable="false" width="100%" height="100%"><filter id="wn-grain"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#wn-grain)"/></svg>
 <a class="skip" href="#main">Skip to content</a>
 ${nav(active)}
 <div class="page">
@@ -166,7 +168,7 @@ export function card(p) {
   <div class="wn-card__head">${statusBadge(p.status)}</div>
   <div class="wn-card__tags">${p.tags.slice(0, 3).map((t) => `<span class="wn-tag">${esc(t)}</span>`).join('')}</div>
   <div class="wn-card__body"><span class="wn-card__title">${esc(p.title)}</span><p class="wn-card__tagline">${ph(p.tagline)}</p></div>
-  <img class="wn-card__viz" src="${p.viz}" alt="" aria-hidden="true"${dim ? ' style="opacity:.7"' : ''} width="320" height="180">
+  <img class="wn-card__viz" src="${p.viz}" alt="" aria-hidden="true"${dim ? ' style="opacity:.7"' : ''} width="320" height="180" loading="lazy" decoding="async">
   <div class="wn-card__foot"><span></span><span class="wn-card__arrow" aria-hidden="true">→</span></div>
 </a>`;
 }
@@ -186,7 +188,7 @@ export function plannedCard(p, { static: isStatic = false } = {}) {
     <p class="wn-card__microrow"><b>FIRST MILESTONE:</b> ${ph(p.milestone)}</p>
     <p class="wn-card__microrow"><b>PLANNED START:</b> ${ph(p.plannedStart)}</p>
   </div>
-  ${isStatic ? '' : `<img class="wn-card__viz" src="/motifs/route-placeholder-dashed.svg" alt="" aria-hidden="true" style="opacity:.7" width="320" height="180">`}
+  ${isStatic ? '' : `<img class="wn-card__viz" src="/motifs/route-placeholder-dashed.svg" alt="" aria-hidden="true" style="opacity:.7" width="320" height="180" loading="lazy" decoding="async">`}
   ${isStatic ? '' : `<div class="wn-card__foot"><span></span><span class="wn-card__arrow" aria-hidden="true">→</span></div>`}
 ${tail}`;
 }

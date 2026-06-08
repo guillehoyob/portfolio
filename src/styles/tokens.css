@@ -1,0 +1,164 @@
+/**
+ * WHITE NOON — Design Tokens (the law)
+ * Canonical source: portfolio-kit/design-system.md §2 + assets/tokens.css,
+ * merged with the derived line-height / tracking / weight / semantic-alias
+ * tokens the components reference. This is the ONLY file in the system that
+ * carries raw hex — every component & layout rule references a var().
+ *
+ * No pure white or black anywhere (Japan-serenity rule): every neutral is warm.
+ * signal red ≤1.5% of any viewport · traces ≤0.5% each · field ≥90%.
+ *
+ * The Field Conditions runtime writes ONLY the --fc-* vars at the bottom.
+ * License: CC0 1.0 (owner dedication — Guillermo Hoyo Bravo, guillehoyob@gmail.com).
+ * Version 1.0 · 2026-06-08
+ */
+
+:root {
+  /* ============ COLOR — FIELD (≥90% of every viewport) ============ */
+  --field-0:        #F7F7F5;  /* page background — the dominant surface */
+  --field-0-dim:    #F2F1EF;  /* Heliostat night variant of field-0 */
+  --field-1:        #EDECEA;  /* cards, panels, elevated planes */
+  --field-2:        #E4E2DE;  /* pressed/recessed states, input wells */
+  --hairline:       #D6D4D0;  /* 1px strokes, dividers, rules — decorative only */
+
+  /* ============ COLOR — INK (structure made visible) ============ */
+  --ink:            #1A1917;  /* primary text & icons (16.38:1 ✓AAA) */
+  --ink-ghost:      #5A5855;  /* secondary text, metadata (6.61:1 ✓AA) */
+  --void:           #0F0E0D;  /* ground of THE ONE intensity band per page */
+  --washi:          #F5F0E8;  /* text on void ONLY (17.00:1 ✓AAA) */
+
+  /* ============ COLOR — SIGNAL (≤1.5% viewport area) ============ */
+  --signal:         #E8341A;  /* THE accent: large text/UI only (3.97:1) */
+  --signal-deep:    #B3270F;  /* small red text, focus ring, hover/pressed (6.09:1) */
+
+  /* ============ COLOR — TRACES (rationed) ============ */
+  --sky:            #A8C4D4;  /* ambient haze; always ≤8% opacity, never text */
+  --pulse:          #00C2D4;  /* heartbeat dot, scanline, focus halo — NEVER text/fill */
+  --sun:            #FFC42E;  /* dawn tint ≤3%; the one "open to work" badge */
+  --moss:           #7A8C72;  /* patina tick — graphic only (3.36:1) */
+  --moss-deep:      #5C6B55;  /* any moss-colored TEXT (5.31:1 ✓AA) */
+
+  /* ============ SEMANTIC ALIASES (role-named for authors) ============ */
+  --surface-page:   var(--field-0);
+  --surface-card:   var(--field-1);
+  --surface-sunken: var(--field-2);
+  --surface-void:   var(--void);
+  --border-rule:    var(--hairline);
+  --text-primary:   var(--ink);
+  --text-secondary: var(--ink-ghost);
+  --text-on-void:   var(--washi);
+  --text-accent:    var(--signal-deep);
+  --accent:         var(--signal);
+  --accent-pressed: var(--signal-deep);
+  --focus-ring:     var(--signal-deep);
+  --focus-halo:     var(--pulse);
+
+  /* ============ TYPOGRAPHY — stacks (metric-matched fallbacks for ~zero CLS) ============ */
+  --font-display:   "Space Grotesk", "Space Grotesk Fallback", system-ui, sans-serif;
+  --font-body:      "DM Sans", "DM Sans Fallback", system-ui, sans-serif;
+  --font-mono:      "Share Tech Mono", ui-monospace, monospace;
+  --font-breath:    "Cormorant Garamond", Georgia, serif;
+
+  /* ============ TYPOGRAPHY — scale (bold jumps only) ============ */
+  --text-h1:        clamp(3rem, 8vw, 6.5rem);    /* SG 700, lh 0.98, ls -0.015em */
+  --text-void-word: clamp(4rem, 20vw, 18rem);    /* SG 700 UPPER, lh 0.9, ls -0.02em */
+  --text-h2:        2rem;                         /* SG 700, lh 1.15, ls -0.01em */
+  --text-label:     1.0625rem;                    /* SG 500 UPPER, lh 1.4, ls +0.04em */
+  --text-breath:    clamp(1.75rem, 4vw, 2.75rem); /* Cormorant 300 italic, lh 1.5 */
+  --text-body:      1.0625rem;                     /* DM Sans 400, lh 1.6, 55–60ch */
+  --text-ui:        1.0625rem;                     /* DM Sans 500, lh 1.2 */
+  --text-micro:     0.8125rem;                     /* Share Tech Mono 400, lh 1.5 */
+  --text-cta:       1.1875rem;                      /* DM Sans 700 — 19px = WCAG large */
+
+  /* line-heights */
+  --lh-h1:     0.98;
+  --lh-void:   0.9;
+  --lh-h2:     1.15;
+  --lh-label:  1.4;
+  --lh-body:   1.6;
+  --lh-ui:     1.2;
+  --lh-mono:   1.5;
+  --lh-breath: 1.5;
+
+  /* tracking */
+  --ls-h1:    -0.015em;
+  --ls-void:  -0.02em;
+  --ls-h2:    -0.01em;
+  --ls-label:  0.04em;
+  --ls-mono:   0.02em;
+  --ls-cta:    0.01em;
+
+  /* weights */
+  --weight-body:    400;
+  --weight-ui:      500;
+  --weight-label:   500;
+  --weight-display: 700;
+  --weight-cta:     700;
+
+  /* ============ SPACING (4px base; bold jumps, no in-betweens) ============ */
+  --space-1:  0.25rem;  --space-2:  0.5rem;  --space-3:  0.75rem;
+  --space-4:  1rem;     --space-6:  1.5rem;  --space-8:  2rem;
+  --space-12: 3rem;     --space-16: 4rem;    --space-24: 6rem;
+  --space-section: clamp(6rem, 14vh, 10rem);  /* vertical rhythm between sections */
+  --gutter-page:   8vw;   /* min page margin desktop (6vw < 768px) */
+  --gutter-dead:   18vw;  /* the dead left gutter, ≥1024px only — never filled */
+
+  /* ============ RADIUS ============ */
+  --radius-0:    0;       /* hard geometric edges everywhere */
+  --radius-tag:  2px;     /* tags, badges, inputs — the only softening */
+  --radius-pill: 999px;   /* CTA pills and the heartbeat dot ONLY */
+
+  /* ============ SHADOW / ELEVATION (reactive states only) ============ */
+  --shadow-0:     none;
+  --shadow-card:  0 2px 12px rgba(26, 25, 23, 0.06);          /* card hover lift only */
+  --shadow-bloom: 0 6px 20px -6px rgba(232, 52, 26, 0.28);    /* primary CTA hover only */
+  --halo-focus:   0 0 0 6px color-mix(in srgb, var(--pulse) 25%, transparent);
+
+  /* ============ Z-LAYERS ============ */
+  --z-haze:    1;   --z-route: 2;   --z-content: 10;  --z-warm: 20;
+  --z-nav:     100; --z-menu:  150; --z-skip:    300;
+
+  /* ============ MOTION — easing ============ */
+  --ease-run:   cubic-bezier(0.22, 1, 0.36, 1);   /* THE curve — 90% of all motion */
+  --ease-react: cubic-bezier(0.4, 0, 0.2, 1);     /* hover/focus reactions <200ms */
+  --ease-cut:   cubic-bezier(0.8, 0, 1, 1);       /* threshold snap — void band ONLY */
+  --ease-crack: cubic-bezier(0.9, 0, 0.1, 1);     /* the crack line draw — void band ONLY */
+  --ease-lift:  cubic-bezier(0.42, 0, 1, 1);      /* ease-in — hover-OFF exits only */
+
+  /* ============ MOTION — duration (600ms is the Zen ceiling) ============ */
+  --dur-90:   90ms;   --dur-180: 180ms; --dur-240: 240ms;
+  --dur-300:  300ms;  --dur-420: 420ms; --dur-600: 600ms;
+  --dur-route: 900ms; /* the ONLY sanctioned >600ms UI motion */
+  /* FORBIDDEN MIDDLE BAND: nothing between 600ms and 4s. */
+  --dur-ambient-min: 4s;  /* floor for any ambient/looping cycle */
+  --dur-breathe:     6s;  /* Heartbeat dot cycle */
+
+  /* ============ MOTION — stagger ============ */
+  --stagger-sib: 60ms;   --breath-pre: 120ms;
+  --dur-cut: 70ms;       --dur-crack: 280ms;
+
+  /* ============ FIELD CONDITIONS RUNTIME (JS writes ONLY these) ============ */
+  --fc-field:        var(--field-0);  /* Heliostat → --field-0-dim at night */
+  --fc-tint:         transparent;     /* Heliostat dawn/evening overlay (≤5% alpha) */
+  --fc-haze-opacity: 0.05;            /* Slipstream raises to max 0.11 */
+  --fc-slip-scale:   1;               /* Slipstream heading scaleX, max 1.01 */
+  --fc-pulse-alpha:  0.85;            /* Heartbeat dot rest opacity; 1.0 at night */
+}
+
+/* ================================================================
+   REDUCED MOTION — token gate for UI motion.
+   Every UI duration/ease collapses; ambient-cycle tokens
+   (--dur-ambient-min, --dur-breathe) are deliberately NOT collapsed —
+   a 1ms infinite loop is flicker, not stillness; ambient behaviors
+   disable via their per-behavior §5 fallbacks instead.
+   ================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ease-run: linear; --ease-react: linear; --ease-cut: linear;
+    --ease-crack: linear; --ease-lift: linear;
+    --dur-90: 1ms; --dur-180: 1ms; --dur-240: 1ms; --dur-300: 1ms;
+    --dur-420: 1ms; --dur-600: 1ms; --dur-route: 1ms;
+    --dur-cut: 1ms; --dur-crack: 1ms;
+    --stagger-sib: 0ms; --breath-pre: 0ms;
+  }
+}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- author: Guillermo Hoyo Bravo (guillehoyob@gmail.com), license: CC0-1.0 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900">
+  <path d="M 0 820 L 430 680 L 1010 420 L 1440 250" fill="none" stroke="#E8341A" data-token="--signal" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter"/>
+</svg>

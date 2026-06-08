@@ -1,0 +1,121 @@
+/**
+ * WHITE NOON — Field Conditions ambient CSS
+ * Inert by default. Each rule activates only when html.fc-motion is set
+ * (pre-paint, motion allowed) AND the behavior's JS has tagged its element
+ * (e.g. .fc-reveal). Turning a behavior's flag off means its JS never tags,
+ * so its rules never apply → the Stage-0 static state holds. Nothing here
+ * paints unless a living behavior is actually running.
+ */
+
+/* ===== Stage 1 — Forward-landing reveals ===== */
+html.fc-motion .fc-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity var(--dur-420) var(--ease-run), transform var(--dur-420) var(--ease-run);
+}
+/* will-change only while armed; once revealed the compositor layer is demoted */
+html.fc-motion .fc-reveal:not(.is-in) { will-change: opacity, transform; }
+html.fc-motion .fc-reveal.is-in { opacity: 1; transform: none; }
+
+/* Hard stop for any reveal under reduced motion (belt-and-braces with the
+   JS no-op): never leave content stuck hidden. */
+@media (prefers-reduced-motion: reduce) {
+  html.fc-motion .fc-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ===== Stage 2 — Heartbeat (§5.6): governor-exempt 6s dot pulse ===== */
+@keyframes wn-breathe {
+  0%, 100% { transform: scale(1);    opacity: var(--fc-pulse-alpha); }
+  50%      { transform: scale(1.35); opacity: 1; }
+}
+html.fc-motion .wn-status__dot--live { animation: wn-breathe var(--dur-breathe) ease-in-out infinite; }
+/* reduced motion: dot solid at full opacity, label still renders (§5.6) */
+@media (prefers-reduced-motion: reduce) {
+  .wn-status__dot { opacity: 1; animation: none; }
+}
+
+/* ===== Stage 2 — First Breath scroll cue (§5.7) ===== */
+/* hidden until idle; fail-safe reveal at 4s so it can never stay invisible */
+@keyframes wn-chevron-reveal { to { opacity: 0.8; } }
+@keyframes wn-firstbreath {
+  0%   { transform: translateX(-50%) translateY(0); }
+  50%  { transform: translateX(-50%) translateY(6px); }
+  100% { transform: translateX(-50%) translateY(0); }
+}
+html.fc-firstbreath .hero__chevron {
+  opacity: 0;
+  animation: wn-chevron-reveal var(--dur-600) var(--ease-run) 4s forwards;
+}
+html.fc-firstbreath .hero__chevron.fc-breathed {
+  opacity: 0.8;
+  animation: wn-firstbreath var(--dur-600) var(--ease-run);
+}
+
+/* ===== Stage 2 — footer Scanline drift (§5.11) ===== */
+@keyframes wn-scanline { from { transform: translateX(0); } to { transform: translateX(var(--fc-scan-w, 1000px)); } }
+html.fc-motion .footer__scanline.fc-scan-run::after { animation: wn-scanline var(--dur-ambient-min) linear; }
+
+/* ===== Stage 3 — New Route (§5.2) ===== */
+/* one index, two geometries: desktop (2 turns) ≥1024px, mobile (1 turn) below */
+.route-path--mobile { display: none; }
+@media (max-width: 1023px) {
+  .route-path--desktop { display: none; }
+  .route-path--mobile { display: inline; }
+}
+/* armed hidden pre-paint + fail-safe CSS draw at 2.4s (the line can never stay blank) */
+@keyframes wn-route-draw { to { stroke-dashoffset: 0; } }
+html.fc-route .hero__routeband .route-path {
+  stroke-dasharray: 3000;
+  stroke-dashoffset: 3000;
+  animation: wn-route-draw var(--dur-route) var(--ease-run) 2400ms both;
+}
+html.fc-route-drawn .hero__routeband .route-path { animation: none; } /* GSAP took over */
+
+/* ===== Stage 3 — Threshold Cut (§5.8): the void detonates, no fade/stagger ===== */
+html.fc-motion .wn-void.fc-cut-armed .wn-void__word,
+html.fc-motion .wn-void.fc-cut-armed .wn-void__body { opacity: 0; transform: scale(0.98); }
+html.fc-motion .wn-void.fc-cut-in .wn-void__word,
+html.fc-motion .wn-void.fc-cut-in .wn-void__body {
+  opacity: 1; transform: none;
+  transition: opacity var(--dur-cut) var(--ease-cut), transform var(--dur-cut) var(--ease-cut);
+}
+
+/* ===== Stage 3 — Crack (§5.9): the 1px signal line draws across ===== */
+html.fc-motion .wn-void.fc-crack-armed .wn-void__crack { transform: scaleX(0); transform-origin: left; }
+html.fc-motion .wn-void.fc-crack .wn-void__crack { transform: scaleX(1); transition: transform var(--dur-crack) var(--ease-crack); }
+
+/* ===== Stage 4 — Heliostat (§5.1): time-of-day field state, tints from tokens ===== */
+.fc-tint {
+  position: fixed; inset: 0; z-index: var(--z-haze);
+  background: var(--fc-tint); pointer-events: none;
+  transition: background-color var(--dur-ambient-min) linear;
+}
+html[data-daypart="dawn"]    { --fc-tint: color-mix(in srgb, var(--sun) 3%, transparent); }
+html[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 4%, transparent); }
+html[data-daypart="night"]   { --fc-field: var(--field-0-dim); --fc-pulse-alpha: 1; }
+/* the field itself crossfades at the night boundary */
+html.fc-motion body { transition: background-color var(--dur-ambient-min) linear; }
+/* Patina amplification (visits ≥3): +1% tint, hard cap 5% (§5.1 / §5.5) */
+html.fc-amp[data-daypart="dawn"]    { --fc-tint: color-mix(in srgb, var(--sun) 4%, transparent); }
+html.fc-amp[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 5%, transparent); }
+@media (prefers-reduced-motion: reduce) { .fc-tint, body { transition: none; } }
+
+/* ===== Stage 5 — Crosswind (§5.3): cursor haze + multiply warming spot ===== */
+.fc-crosswind {
+  position: fixed; top: 0; left: 0; pointer-events: none; border-radius: 50%;
+  will-change: transform, opacity; transition: opacity var(--dur-600) var(--ease-lift);
+}
+.fc-crosswind--sky {
+  width: 600px; height: 600px; z-index: var(--z-haze);
+  background: radial-gradient(circle, color-mix(in srgb, var(--sky) 7%, transparent), transparent 70%);
+}
+.fc-crosswind--warm {
+  width: 240px; height: 240px; z-index: var(--z-warm); mix-blend-mode: multiply;
+  background: radial-gradient(circle, color-mix(in srgb, var(--ink-ghost) 5%, transparent), transparent 70%);
+}
+/* Slipstream writes --fc-haze-opacity (hero sky) + --fc-slip-scale (active head) via JS */
+
+/* ===== Stage 6 — Patina greeting (§5.5): memory state, pre-paint swap, zero CLS ===== */
+.greet-return { display: none; }
+html.fc-return .greet-first { display: none; }
+html.fc-return .greet-return { display: inline; }

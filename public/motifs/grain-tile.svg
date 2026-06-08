@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- author: Guillermo Hoyo Bravo (guillehoyob@gmail.com), license: CC0-1.0 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <filter id="wn-grain" x="0%" y="0%" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" result="noise"/>
+    <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
+    <feBlend in="SourceGraphic" in2="mono" mode="multiply"/>
+  </filter>
+  <rect width="128" height="128" fill="#F5F0E8" data-token="--washi" filter="url(#wn-grain)"/>
+</svg>

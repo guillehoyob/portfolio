@@ -1,0 +1,72 @@
+/**
+ * WHITE NOON — base / reset
+ * Minimal reset, the warm-white field, the skip link (§3.22), sr-only,
+ * and the one global focus-visible discipline (§6.2). Zero animation here —
+ * page transitions (Vault Blur, §5.10) are added in the Field Conditions stage.
+ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: auto;
+  /* fallback font metrics paired per family so swap causes ~zero CLS */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--fc-field);
+  color: var(--ink);
+  font-family: var(--font-body), "DM Sans Fallback", system-ui, sans-serif;
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img, svg { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; }
+a { color: inherit; }
+
+/* ---- the one focus-visible treatment (§6.2): red ring + decorative pulse halo ---- */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  box-shadow: var(--halo-focus);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* ---- skip link (§3.22): first focusable element on every page ---- */
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: var(--z-skip);
+}
+.skip:focus {
+  left: var(--space-4);
+  top: var(--space-4);
+  background: var(--field-0);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-tag);
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-body);
+  font-weight: var(--weight-ui);
+  text-decoration: none;
+}
+
+/* ---- screen-reader-only utility ---- */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The fallback metric family applies until the webfont swaps in. */
+.font-display-fallback { font-family: "Space Grotesk Fallback", system-ui, sans-serif; }

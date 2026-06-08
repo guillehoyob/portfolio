@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- author: Guillermo Hoyo Bravo (guillehoyob@gmail.com), license: CC0-1.0 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <rect width="320" height="180" fill="#E4E2DE" data-token="--field-2"/>
+  <path d="M 0 150 L 180 96 L 320 52" fill="none" stroke="#D6D4D0" data-token="--hairline" stroke-width="1" stroke-dasharray="4 6" stroke-linecap="butt" stroke-linejoin="miter"/>
+</svg>

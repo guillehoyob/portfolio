@@ -1,0 +1,328 @@
+/**
+ * WHITE NOON — components (§3)
+ * Token-only (no raw hex). Every interactive primitive's resting / hover /
+ * focus-visible / active state. STATIC pass: transitions use the motion tokens
+ * but no entrance or ambient animation. The Field Conditions stage layers
+ * ambient behavior on top; turning every flag off reproduces exactly this.
+ */
+
+/* ============ SIGNAL UNDERLINE — the only text-link hover (§3.12) ============ */
+.wn-signal-link {
+  position: relative;
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-weight: var(--weight-ui);
+  font-size: var(--text-ui);
+  line-height: var(--lh-ui);
+}
+.wn-signal-link::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -2px;
+  height: 2px;
+  background: var(--signal);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-180) var(--ease-react);
+}
+.wn-signal-link:hover::after,
+.wn-signal-link:focus-visible::after { transform: scaleX(1); }
+/* hover-off retracts from the right (the brush lifting) */
+.wn-signal-link:not(:hover):not(:focus-visible)::after {
+  transform-origin: right;
+  transition: transform var(--dur-180) var(--ease-lift);
+}
+/* persistent underline — active nav / selected filter (counts in the red budget) */
+.wn-signal-link--active::after { transform: scaleX(1); transform-origin: left; }
+/* body text link: resting hairline underline that re-draws in signal on hover */
+.wn-signal-link--body::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 1px;
+  background: var(--hairline);
+}
+
+/* ============ BUTTONS / CTAs (§3.11) ============ */
+.wn-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  background: none;
+}
+/* Primary pill — most of the page's red budget. Max ONE per viewport. */
+.wn-btn--primary {
+  background: var(--signal);
+  color: var(--field-0);
+  font-size: var(--text-cta);
+  font-weight: var(--weight-cta);
+  letter-spacing: var(--ls-cta);
+  border-radius: var(--radius-pill);
+  padding: var(--space-3) var(--space-8);
+  min-height: 48px;
+  transition: transform var(--dur-180) var(--ease-react),
+              background-color var(--dur-180) var(--ease-react),
+              box-shadow var(--dur-180) var(--ease-react);
+}
+.wn-btn--primary:hover {
+  transform: translateY(-3px);
+  background: var(--signal-deep);
+  box-shadow: var(--shadow-bloom);
+}
+.wn-btn--primary:active {
+  transform: translateY(0);
+  background: var(--signal-deep);
+  transition-duration: var(--dur-90);
+}
+/* Secondary CTA — text button with signal underline */
+.wn-btn--secondary {
+  position: relative;
+  color: var(--ink);
+  font-size: var(--text-ui);
+  font-weight: var(--weight-ui);
+  padding: var(--space-2) 0;
+  min-height: 44px;
+}
+.wn-btn--secondary::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 8px;
+  height: 2px;
+  background: var(--signal);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-180) var(--ease-react);
+}
+.wn-btn--secondary:hover::after,
+.wn-btn--secondary:focus-visible::after { transform: scaleX(1); }
+/* Quiet tertiary — mono, for the "Download CV" utility affordance */
+.wn-btn--quiet {
+  color: var(--ink-ghost);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--ls-mono);
+  text-transform: uppercase;
+  padding: var(--space-2) 0;
+  min-height: 44px;
+}
+.wn-btn--quiet:hover { color: var(--ink); }
+.wn-btn:disabled,
+.wn-btn[aria-disabled="true"] { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+/* ============ STATUS BADGE (§3.7) + TAG (§3.8) ============ */
+.wn-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--ls-mono);
+  text-transform: uppercase;
+  line-height: 1;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-tag);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.wn-badge--shipped  { color: var(--ink);       border-color: var(--ink); }
+.wn-badge--progress { color: var(--ink-ghost); border-color: var(--ink-ghost); }
+.wn-badge--planned  { color: var(--ink-ghost); border-color: var(--hairline); border-style: dashed; }
+.wn-badge--lab      { color: var(--ink);       border-color: var(--ink); border-style: dashed; }
+.wn-badge--archived { color: var(--ink-ghost); border-color: var(--hairline); background: var(--field-2); }
+/* The one sun badge — contact block only */
+.wn-badge--open     { color: var(--ink);       background: var(--sun); border-color: var(--sun); }
+
+.wn-tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--ls-mono);
+  color: var(--ink-ghost);
+  background: var(--field-2);
+  border-radius: var(--radius-tag);
+  padding: var(--space-1) var(--space-3);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ============ STATUS LINE — heartbeat dot + label (§3.3) ============ */
+.wn-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--ls-mono);
+  text-transform: uppercase;
+  color: var(--ink-ghost);
+  line-height: var(--lh-mono);
+}
+.wn-status__dot {
+  width: 8px; height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--pulse);
+  opacity: var(--fc-pulse-alpha);
+  flex: none;
+}
+/* footer variant: dot is static ink-ghost (the scanline owns the pulse there) */
+.wn-status__dot--static { background: var(--ink-ghost); opacity: 1; }
+
+/* ============ PROOF STAT (§3.4) ============ */
+.wn-proof__num {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  font-size: var(--text-h2);
+  line-height: 1;
+  color: var(--ink);
+  letter-spacing: var(--ls-h2);
+}
+.wn-proof__label {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--ls-mono);
+  text-transform: uppercase;
+  color: var(--ink-ghost);
+  margin-top: var(--space-3);
+  display: block;
+}
+
+/* ============ PROJECT CARD (§3.5 / §3.6) ============ */
+.wn-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: var(--field-1);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-0);
+  padding: var(--space-6);
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform var(--dur-180) var(--ease-react),
+              background-color var(--dur-180) var(--ease-react),
+              box-shadow var(--dur-180) var(--ease-react);
+}
+.wn-card:hover {
+  background: var(--field-0);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+}
+.wn-card:active {
+  transform: translateY(0);
+  background: var(--field-2);
+  transition-duration: var(--dur-90);
+}
+.wn-card__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+.wn-card__tags { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.wn-card__body { display: flex; flex-direction: column; gap: var(--space-2); }
+.wn-card__title {
+  font-family: var(--font-display);
+  font-weight: var(--weight-label);
+  font-size: var(--text-label);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--ink);
+  position: relative;
+  display: inline-block;
+}
+.wn-card__title::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -3px;
+  height: 2px;
+  background: var(--signal);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-180) var(--ease-react);
+}
+.wn-card:hover .wn-card__title::after { transform: scaleX(1); }
+.wn-card__tagline {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+  color: var(--ink-ghost);
+  margin: 0;
+}
+.wn-card__viz { display: block; width: 100%; height: auto; background: var(--field-2); }
+.wn-card__foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+.wn-card__arrow { font-family: var(--font-body); font-size: var(--text-h2); line-height: 1; color: var(--ink); }
+/* planned variant — muted, no signal underline (nothing to visit at depth yet) */
+.wn-card--planned .wn-card__body { opacity: 0.88; }
+.wn-card--planned .wn-card__title::after { display: none; }
+.wn-card__microrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--ls-mono);
+  color: var(--ink-ghost);
+  line-height: var(--lh-mono);
+  margin: 0;
+}
+.wn-card__microrow b { color: var(--ink); font-weight: 400; }
+/* visited (Patina, §5.5) — static honest state: warmed border + moss tick */
+.wn-card--visited { border-color: color-mix(in srgb, var(--moss) 25%, var(--hairline)); }
+.wn-card__patina { position: absolute; top: var(--space-3); right: var(--space-3); width: 12px; height: 12px; flex: none; line-height: 0; }
+/* non-interactive hub card (the personal-page planned stack) */
+.wn-card--static { cursor: default; }
+.wn-card--static:hover { transform: none; background: var(--field-1); box-shadow: none; }
+
+/* ============ BREATH LINE — Cormorant pull-quote (§3.13) ============ */
+.wn-breath {
+  font-family: var(--font-breath);
+  font-weight: 300;
+  font-style: italic;
+  font-size: var(--text-breath);
+  line-height: var(--lh-breath);
+  color: var(--ink);
+  max-width: 24ch;
+  margin: 0;
+  text-wrap: balance;
+}
+
+/* ============ VOID BAND — the one intensity band per page (§3.14) ============ */
+.wn-void {
+  position: relative;
+  background: var(--void);
+  color: var(--washi);
+  padding: var(--space-24) var(--gutter-page);
+  overflow: hidden;
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+/* 2–4% grain so it reads as material, not "dark mode" (inline SVG, no download) */
+.wn-void::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.wn-void > * { position: relative; z-index: 1; }
+.wn-void__word {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  font-size: var(--text-void-word);
+  line-height: var(--lh-void);
+  letter-spacing: var(--ls-void);
+  text-transform: uppercase;
+  color: var(--washi);
+  margin: 0;
+}
+.wn-void__crack { height: 1px; background: var(--signal); border: none; width: 100%; margin: var(--space-8) 0; }
+.wn-void__body { font-family: var(--font-body); font-size: var(--text-body); line-height: var(--lh-body); color: var(--washi); max-width: 55ch; }
+.wn-void__body p { margin: 0 0 var(--space-4); }
+.wn-void__body p:last-child { margin-bottom: 0; }
+.wn-void .wn-signal-link { color: var(--washi); }
+/* focus ring inside the band switches to washi (17:1) per §6.2 */
+.wn-void :focus-visible { outline-color: var(--washi); }
+
+/* ============ HAIRLINE RULE (§3.21) + SCROLL CHEVRON (§3.16) ============ */
+.wn-hairline { height: 1px; background: var(--hairline); border: none; width: 100%; }
+.wn-chevron { display: inline-flex; width: 16px; height: 16px; opacity: 0.8; }

@@ -7,6 +7,8 @@
  * Reduced motion → no-op: content and crack render complete (the Stage-0 state),
  * which is also the no-flash case (bands are below the fold, armed at runtime).
  */
+import { addImpulse } from './index.js';
+
 export function initThresholdCut(config) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const bands = document.querySelectorAll('.wn-void');
@@ -25,6 +27,9 @@ export function initThresholdCut(config) {
           if (!en.isIntersecting) continue;
           cutIO.disconnect();
           band.classList.add('fc-cut-in');
+          // the detonation's one outward consequence: the field flinches (the living layer feels it)
+          const r = band.getBoundingClientRect();
+          addImpulse(r.left + r.width / 2, Math.max(0, r.top) + 40, 0.5);
         }
       },
       { threshold: 0.35 }

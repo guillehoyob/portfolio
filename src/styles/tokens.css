@@ -140,7 +140,7 @@
   --dur-breathe:     6s;  /* Heartbeat dot cycle */
 
   /* ============ MOTION — stagger ============ */
-  --stagger-sib: 60ms;   --breath-pre: 120ms;
+  --stagger-sib: 55ms;   --breath-pre: 144ms;  /* Fibonacci: a wider inhale, a φ-spaced cascade */
   --dur-cut: 70ms;       --dur-crack: 280ms;
 
   /* ============ FIELD CONDITIONS RUNTIME (JS writes ONLY these) ============ */

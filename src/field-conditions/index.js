@@ -79,7 +79,7 @@ const recoil = (p, a, b) => (p < a || p > b ? 0 : -Math.sin(((p - a) / (b - a)) 
 // the cardiac beat: lub (full) + dub (0.6×), each followed by a short RECOIL undershoot
 // — the dip is what turns a mechanical "pum-pum" into a heartbeat with real recoil. ~[-0.18,1]
 export function heartbeatBeat(phase) {
-  const swell = Math.max(ping(phase, 0, 0.11), ping(phase, 0.15, 0.24) * 0.6);
+  const swell = Math.max(ping(phase, 0, 0.11), ping(phase, 0.15, 0.24) * 0.618); // dub = golden conjugate of the lub
   const dip = recoil(phase, 0.11, 0.145) * 0.18 + recoil(phase, 0.24, 0.30) * 0.10;
   return swell + dip;
 }
@@ -88,7 +88,7 @@ export function heartbeatBeat(phase) {
 export function heartbeatBreath(phase) {
   if (phase < 0.24) return 0;
   const t = (phase - 0.24) / 0.76;
-  return Math.sin(Math.pow(t, 0.78) * Math.PI);
+  return Math.sin(Math.pow(t, 0.786) * Math.PI); // √(1/φ) → crests at φ of the rest window
 }
 
 /* ---- the FIELD: a read-only bulletin board for the environment (the "ocean medium") ----
@@ -101,7 +101,7 @@ export const field = { cursorX: 0, cursorY: 0, cursorVel: 0, scrollVel: 0, energ
 export function addImpulse(x, y, force) {
   field.impulses.push({ x, y, force: force || 1, t: Date.now() });
   if (field.impulses.length > 4) field.impulses.shift();
-  field.energy = Math.min(1, field.energy + 0.28 * (force || 1));
+  field.energy = Math.min(1, field.energy + 0.236 * (force || 1)); // φ⁻³ — a golden-scaled stir, never a spike
   wake();
 }
 export function feedScroll(v) { // called from the Lenis scroll subscription (scroll.js)

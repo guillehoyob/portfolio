@@ -10,6 +10,7 @@
  * is never set, so the type renders complete from the static HTML).
  */
 import { setupGsap, SplitText } from './gsap-setup.js';
+import { addImpulse } from './index.js';
 
 export function initHeroEntrance() {
   const root = document.documentElement;
@@ -30,10 +31,17 @@ export function initHeroEntrance() {
   gsap.set(h1, { opacity: 1 }); // container visible; the masked lines sit below the clip
   const tl = gsap.timeline({
     delay: 0.12,
-    onComplete: () => { splits.forEach((s) => s.revert()); root.classList.remove('fc-hero'); },
+    onComplete: () => {
+      splits.forEach((s) => s.revert());
+      root.classList.remove('fc-hero');
+      // light the baton: as the name lands, push ONE faint pulse into the field near the route —
+      // as if the name's arrival pushed the first beat of blood into the spine
+      const rb = document.querySelector('.hero__routeband');
+      if (rb) { const r = rb.getBoundingClientRect(); addImpulse(r.left + r.width / 2, r.top + r.height / 2, 0.4); }
+    },
   });
-  // wider φ-ish stagger (90ms) + an opacity lead so the two lines read as TWO deliberate
-  // events rising through light, and the name leads the rest of the stack (+0.14)
-  tl.from(lines, { yPercent: 110, opacity: 0, duration: 0.7, stagger: 0.09, ease: 'run' }, 0);
-  tl.fromTo(rest, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, stagger: 0.06, ease: 'run', clearProps: 'transform,opacity' }, 0.14);
+  // Fibonacci stagger (89ms) + opacity lead so the two lines read as TWO deliberate events
+  // rising through light; the name leads the rest of the stack (+0.144, the same Fib grid)
+  tl.from(lines, { yPercent: 110, opacity: 0, duration: 0.7, stagger: 0.089, ease: 'run' }, 0);
+  tl.fromTo(rest, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, stagger: 0.055, ease: 'run', clearProps: 'transform,opacity' }, 0.144);
 }

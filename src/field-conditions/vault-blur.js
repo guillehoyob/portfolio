@@ -17,10 +17,10 @@ export function initVaultBlur(reduced) {
          ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
        }`
     : `@view-transition { navigation: auto; }
-       ::view-transition-old(root) { animation: wn-dive-out 80ms cubic-bezier(0.22,1,0.36,1) both; }
-       ::view-transition-new(root) { animation: wn-dive-in 160ms cubic-bezier(0.22,1,0.36,1) both; }
-       @keyframes wn-dive-out { to { filter: blur(4px); opacity: 0.55; transform: translateY(12px) scale(0.992); } }
-       @keyframes wn-dive-in { from { filter: blur(4px); opacity: 0.55; transform: translateY(-14px) scale(0.992); } to { filter: blur(0); opacity: 1; transform: none; } }
+       ::view-transition-old(root) { animation: wn-dive-out 89ms cubic-bezier(0.22,1,0.36,1) both; }
+       ::view-transition-new(root) { animation: wn-dive-in 144ms cubic-bezier(0.22,1,0.36,1) both; }
+       @keyframes wn-dive-out { to { filter: blur(4px); opacity: 0.55; transform: translateY(8px) scale(0.992); } }
+       @keyframes wn-dive-in { from { filter: blur(4px); opacity: 0.55; transform: translateY(-13px) scale(0.992); } to { filter: blur(0); opacity: 1; transform: none; } }
        @media (prefers-reduced-motion: reduce) {
          @view-transition { navigation: none; }
          ::view-transition-old(root), ::view-transition-new(root) { animation: none; }

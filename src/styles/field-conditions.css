@@ -247,7 +247,7 @@ html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 
   border: 1px solid color-mix(in srgb, var(--sky) 70%, transparent);
   opacity: 0; will-change: transform, opacity;
   /* scale / duration / start-opacity are written by JS from the field energy (heavy vs light) */
-  animation: wn-ocean var(--fc-ring-dur, 0.6s) var(--ease-run) forwards;
+  animation: wn-ocean var(--fc-ring-dur, 0.6s) var(--ease-run) var(--fc-ring-delay, 0s) forwards;
 }
 @keyframes wn-ocean {
   from { transform: scale(0.4); opacity: var(--fc-ring-op, 0.22); } /* sky stays a faint cool pulse */

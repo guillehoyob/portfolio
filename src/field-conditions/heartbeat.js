@@ -10,7 +10,7 @@
  * default → no third-party call. Reduced motion → dot solid, no beat (CSS), label
  * still renders.
  */
-import { addTicker, removeTicker, heartbeatPhase, heartbeatBeat, heartbeatBreath, onReducedMotionChange } from './index.js';
+import { addTicker, removeTicker, heartbeatPhase, heartbeatBeat, heartbeatBreath, onReducedMotionChange, field } from './index.js';
 
 export function initHeartbeat(config) {
   const dot = document.querySelector('.hero .wn-status__dot:not(.wn-status__dot--static)');
@@ -19,8 +19,9 @@ export function initHeartbeat(config) {
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
       const beat = () => {
         const ph = heartbeatPhase();
+        const calm = 1 - 0.4 * field.energy; // the rest-breath recedes while you work, surfaces when you pause
         dot.style.setProperty('--fc-dot-beat', heartbeatBeat(ph).toFixed(3));
-        dot.style.setProperty('--fc-dot-breath', heartbeatBreath(ph).toFixed(3)); // diastolic breath
+        dot.style.setProperty('--fc-dot-breath', (heartbeatBreath(ph) * calm).toFixed(3));
         return true; // continuous pulse — keeps the shared loop alive on the hero
       };
       addTicker(beat);

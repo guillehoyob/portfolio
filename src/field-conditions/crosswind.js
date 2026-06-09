@@ -46,7 +46,7 @@ export function initCrosswind() {
     // (the air quickens with the field). Opacity/area untouched — only the lag changes.
     const skyLerp = 0.020 + field.energy * 0.035;
     px += (cx - px) * skyLerp; py += (cy - py) * skyLerp;
-    wx += (cx - 40 - wx) * 0.05; wy += (cy - wy) * 0.05; // warm spot tracks tighter, 40px behind
+    wx += (cx - 34 - wx) * 0.05; wy += (cy - wy) * 0.05; // warm spot tracks tighter, 34px behind (Fib)
     sky.style.transform = `translate3d(${px - 300}px, ${py - 300}px, 0)`;
     warm.style.transform = `translate3d(${wx - 120}px, ${wy - 120}px, 0)`;
     return Math.abs(px - ox) > 0.05 || Math.abs(py - oy) > 0.05; // idle pointer costs nothing

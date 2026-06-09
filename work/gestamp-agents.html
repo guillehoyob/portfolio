@@ -154,7 +154,7 @@
   --dur-breathe:     6s;  /* Heartbeat dot cycle */
 
   /* ============ MOTION — stagger ============ */
-  --stagger-sib: 60ms;   --breath-pre: 120ms;
+  --stagger-sib: 55ms;   --breath-pre: 144ms;  /* Fibonacci: a wider inhale, a φ-spaced cascade */
   --dur-cut: 70ms;       --dur-crack: 280ms;
 
   /* ============ FIELD CONDITIONS RUNTIME (JS writes ONLY these) ============ */
@@ -577,14 +577,19 @@ a { color: inherit; }
   padding: var(--space-6);
   text-decoration: none;
   color: var(--ink);
-  transition: transform var(--dur-180) var(--ease-react),
-              background-color var(--dur-180) var(--ease-react),
-              box-shadow var(--dur-180) var(--ease-react);
+  /* asymmetric: the card SINKS back slowly (settle) ... */
+  transition: transform var(--dur-300) var(--ease-lift),
+              background-color var(--dur-300) var(--ease-lift),
+              box-shadow var(--dur-300) var(--ease-lift);
 }
 .wn-card:hover {
   background: var(--field-0);
   transform: translateY(-3px);
   box-shadow: var(--shadow-card);
+  /* ... and LEAPS to you quickly (arrive) — pure physics, the cheapest soul */
+  transition: transform var(--dur-180) var(--ease-react),
+              background-color var(--dur-180) var(--ease-react),
+              box-shadow var(--dur-180) var(--ease-react);
 }
 .wn-card:active {
   transform: translateY(0);
@@ -1295,7 +1300,7 @@ html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 
   border: 1px solid color-mix(in srgb, var(--sky) 70%, transparent);
   opacity: 0; will-change: transform, opacity;
   /* scale / duration / start-opacity are written by JS from the field energy (heavy vs light) */
-  animation: wn-ocean var(--fc-ring-dur, 0.6s) var(--ease-run) forwards;
+  animation: wn-ocean var(--fc-ring-dur, 0.6s) var(--ease-run) var(--fc-ring-delay, 0s) forwards;
 }
 @keyframes wn-ocean {
   from { transform: scale(0.4); opacity: var(--fc-ring-op, 0.22); } /* sky stays a faint cool pulse */

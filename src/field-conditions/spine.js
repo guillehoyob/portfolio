@@ -23,6 +23,7 @@ const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
 export function initSpine() {
   if (document.querySelector('.fc-spine')) return; // idempotent
+  if (document.body.classList.contains('cv-wrap')) return; // the print sheet has nothing to thread
   if ((document.documentElement.scrollHeight - innerHeight) < 200) return; // nothing to thread on a short page
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -64,7 +65,11 @@ export function initSpine() {
       if (rb) { const r = rb.getBoundingClientRect(); headY = r.top + r.height / 2 + scrollY; }
       fadeRef = hero.offsetHeight * 0.6;
     } else {
-      fadeRef = innerHeight * 0.4;
+      // project pages: baton-pass from the static identity route — the project's red line
+      // becomes the spine's launch point, alive like the hero route (consistency UNIFY-1)
+      const idr = document.querySelector('.identity__route');
+      if (idr) { const r = idr.getBoundingClientRect(); headY = r.top + r.height * 0.5 + scrollY; fadeRef = idr.offsetHeight * 0.8; }
+      else { fadeRef = innerHeight * 0.4; }
     }
     const anchors = ANCHORS.map((s) => document.querySelector(s)).filter(Boolean)
       .map((el) => el.offsetTop).filter((y) => y > headY + 40 && y < docH - 60).sort((a, b) => a - b);
@@ -118,11 +123,13 @@ export function initSpine() {
 
   const ticker = () => {
     const p = progress();
-    drawn += (p - drawn) * 0.18;
+    // velocity-eased draw: a fast flick lets the nib race ahead and settle; a slow scroll seeps
+    drawn += (p - drawn) * (0.146 + 0.114 * clamp01(velocity() * 0.1));
     const dLen = LEN * clamp01(drawn);
     path.style.strokeDashoffset = (LEN - dLen).toFixed(1);
 
-    influence += (targetInfluence - influence) * 0.06;
+    // quick to ANSWER the cursor, slow to FORGET it (asymmetric ease — poise, not lag)
+    influence += (targetInfluence - influence) * (targetInfluence > influence ? 0.09 : 0.045);
     if (fine && (dDirty || influence > 0.01)) {
       const bent = basePts.map(([x, y]) => {
         const wgt = Math.max(0, 1 - Math.abs(cursorDocY - y) / FALLOFF);
@@ -147,7 +154,9 @@ export function initSpine() {
       const tx = tip.x.toFixed(1), ty = tip.y.toFixed(1);
       pulse.setAttribute('cx', tx); pulse.setAttribute('cy', ty);
       const advancing = clamp01(Math.abs(drawn - prevDrawn) * 40 + velocity() * 0.08);
-      let nibOp = 0.14 + 0.66 * Math.max(advancing, beat * 0.5 + breath * 0.1);
+      // the tip breathes a golden fraction BEHIND the thread — blood reaching the extremity last
+      const nibBreath = heartbeatBreath((phase + 0.146) % 1);
+      let nibOp = 0.146 + 0.618 * Math.max(advancing, beat * 0.5 + nibBreath * 0.1);
       for (const im of field.impulses) { if (Date.now() - im.t < 350 && Math.abs(im.x - tip.x) < 200) { nibOp = Math.min(0.95, nibOp + 0.35); break; } }
       if (drawn > 0.985) nibOp *= clamp01((1 - drawn) / 0.015);
       pulse.style.opacity = nibOp.toFixed(3);

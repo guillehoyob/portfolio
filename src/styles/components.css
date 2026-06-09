@@ -204,14 +204,19 @@
   padding: var(--space-6);
   text-decoration: none;
   color: var(--ink);
-  transition: transform var(--dur-180) var(--ease-react),
-              background-color var(--dur-180) var(--ease-react),
-              box-shadow var(--dur-180) var(--ease-react);
+  /* asymmetric: the card SINKS back slowly (settle) ... */
+  transition: transform var(--dur-300) var(--ease-lift),
+              background-color var(--dur-300) var(--ease-lift),
+              box-shadow var(--dur-300) var(--ease-lift);
 }
 .wn-card:hover {
   background: var(--field-0);
   transform: translateY(-3px);
   box-shadow: var(--shadow-card);
+  /* ... and LEAPS to you quickly (arrive) — pure physics, the cheapest soul */
+  transition: transform var(--dur-180) var(--ease-react),
+              background-color var(--dur-180) var(--ease-react),
+              box-shadow var(--dur-180) var(--ease-react);
 }
 .wn-card:active {
   transform: translateY(0);

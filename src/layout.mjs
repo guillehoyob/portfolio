@@ -46,7 +46,7 @@ export const prePaint = () => {
     : '';
   // Heliostat daypart is STATE — set pre-paint regardless of reduced motion (§5.1)
   const daypart = f.heliostat
-    ? `try{var hh=new Date().getHours();d.setAttribute('data-daypart',(hh>=5&&hh<9)?'dawn':(hh>=9&&hh<17)?'noon':(hh>=17&&hh<21)?'evening':'night');}catch(e){}`
+    ? `try{var qh=new URLSearchParams(location.search).get('fc-hour');var hh=(qh!=null&&qh!==''&&!isNaN(+qh))?((+qh%24)+24)%24:new Date().getHours();d.setAttribute('data-daypart',(hh>=5&&hh<9)?'dawn':(hh>=9&&hh<17)?'noon':(hh>=17&&hh<21)?'evening':'night');}catch(e){}`
     : '';
   // Patina: increment visit count once per session (guarded) and set memory
   // classes pre-paint — the return greeting swaps with no content flash (§5.5).

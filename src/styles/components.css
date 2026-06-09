@@ -270,7 +270,13 @@
 }
 .wn-card__microrow b { color: var(--ink); font-weight: 400; }
 /* visited (Patina, §5.5) — static honest state: warmed border + moss tick */
-.wn-card--visited { border-color: color-mix(in srgb, var(--moss) 40%, var(--hairline)); } /* whole-edge "I've been here" — the PRIMARY at-a-glance cue, deeper than the corner tick (Fase 1) */
+.wn-card--visited {
+  border-color: color-mix(in srgb, var(--moss) 40%, var(--hairline)); /* whole-edge "I've been here" — the PRIMARY at-a-glance cue */
+  /* organic patina: a faint damp-moss tint creeping up from the lower-left (the earth corner) —
+     the passage of time settling INTO the card, felt-not-badged (deepens by visit tier below) */
+  background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%);
+}
+.wn-card--visited:hover, .wn-card--visited:active { background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%); }
 .wn-card__patina { position: absolute; top: var(--space-3); right: var(--space-3); width: 14px; height: 14px; flex: none; line-height: 0; }
 /* non-interactive hub card (the personal-page planned stack) */
 .wn-card--static { cursor: default; }

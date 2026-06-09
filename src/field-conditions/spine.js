@@ -147,7 +147,7 @@ export function initSpine() {
     const phase = heartbeatPhase();
     const beat = heartbeatBeat(phase);
     const breath = heartbeatBreath(phase);
-    svg.style.setProperty('--fc-spine-beat', beat.toFixed(3));
+    svg.style.setProperty('--fc-spine-beat', (beat * (1 - 0.6 * field.breath)).toFixed(3)); // beat recedes during the field's rest-breath (matches the dot — one organism slowing)
     svg.style.setProperty('--fc-spine-breath', breath.toFixed(3));        // cardiac diastole
     svg.style.setProperty('--fc-spine-sigh', field.breath.toFixed(3));    // the field's slow rest-breath — its OWN perceptible channel (the spine breathes deeper as the field rests)
 

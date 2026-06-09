@@ -12,8 +12,8 @@ import { addTicker, removeTicker, field, onReducedMotionChange } from './index.j
 const COUNT = 16; // a fuller sprinkling of caught sparks (still slow + low-opacity → calm, not a starfield)
 
 export function initParticles() {
-  if (!document.getElementById('hero')) return; // the landing field
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (document.body.classList.contains('cv-wrap')) return; // not on the print sheet
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; // motes now live on EVERY page (the air reaches everywhere), not home only
   if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
   if (document.querySelector('.fc-sky')) return;
 

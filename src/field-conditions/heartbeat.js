@@ -20,7 +20,7 @@ export function initHeartbeat(config) {
       const beat = () => {
         const ph = heartbeatPhase();
         const calm = 1 - 0.4 * field.energy; // the rest-breath recedes while you work, surfaces when you pause
-        dot.style.setProperty('--fc-dot-beat', heartbeatBeat(ph).toFixed(3));
+        dot.style.setProperty('--fc-dot-beat', (heartbeatBeat(ph) * (1 - 0.6 * field.breath)).toFixed(3)); // the sharp cardiac beat RECEDES as the field rest-breathes → the slow swell takes over (a heart visibly slowing, not a 2nd pulse on top)
         dot.style.setProperty('--fc-dot-breath', (heartbeatBreath(ph) * calm).toFixed(3)); // cardiac diastole
         dot.style.setProperty('--fc-dot-sigh', field.breath.toFixed(3));   // the field's slow rest-breath — a dedicated, PERCEPTIBLE channel (the dot swells slowly as the field rests with you)
         return true; // continuous pulse — keeps the shared loop alive on the hero

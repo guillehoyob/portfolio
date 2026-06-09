@@ -654,7 +654,13 @@ a { color: inherit; }
 }
 .wn-card__microrow b { color: var(--ink); font-weight: 400; }
 /* visited (Patina, §5.5) — static honest state: warmed border + moss tick */
-.wn-card--visited { border-color: color-mix(in srgb, var(--moss) 40%, var(--hairline)); } /* whole-edge "I've been here" — the PRIMARY at-a-glance cue, deeper than the corner tick (Fase 1) */
+.wn-card--visited {
+  border-color: color-mix(in srgb, var(--moss) 40%, var(--hairline)); /* whole-edge "I've been here" — the PRIMARY at-a-glance cue */
+  /* organic patina: a faint damp-moss tint creeping up from the lower-left (the earth corner) —
+     the passage of time settling INTO the card, felt-not-badged (deepens by visit tier below) */
+  background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%);
+}
+.wn-card--visited:hover, .wn-card--visited:active { background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%); }
 .wn-card__patina { position: absolute; top: var(--space-3); right: var(--space-3); width: 14px; height: 14px; flex: none; line-height: 0; }
 /* non-interactive hub card (the personal-page planned stack) */
 .wn-card--static { cursor: default; }
@@ -1127,8 +1133,8 @@ html.fc-hero-revealed .hero__greet, html.fc-hero-revealed .hero__cta { animation
 html.fc-motion .wn-status__dot--live {
   /* --fc-dot-sigh: the field's slow 6s rest-breath (idle ≥8s) given its OWN visible swell —
      a calm ~16% size / 10% opacity bloom, distinct from the fast cardiac beat (no new fog) */
-  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4 + var(--fc-dot-breath, 0) * 0.06 + var(--fc-dot-sigh, 0) * 0.16));
-  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha)) + var(--fc-dot-breath, 0) * 0.05 + var(--fc-dot-sigh, 0) * 0.10);
+  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4 + var(--fc-dot-breath, 0) * 0.06 + var(--fc-dot-sigh, 0) * 0.22));
+  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha)) + var(--fc-dot-breath, 0) * 0.05 + var(--fc-dot-sigh, 0) * 0.13);
 }
 /* reduced motion: dot solid at full opacity, no beat; label still renders (§5.6) */
 @media (prefers-reduced-motion: reduce) {
@@ -1262,10 +1268,10 @@ html.fc-return .greet-return { display: inline; }
 }
 /* the expanding RIPPLE ring emitted on each lub — the wave after the beat */
 .fc-spine__ripple { fill: none; stroke: var(--signal); stroke-width: 1; opacity: 0; }
-.fc-spine__ripple.go { animation: wn-spine-ripple var(--dur-600) var(--ease-run); }
+.fc-spine__ripple.go { animation: wn-spine-ripple 1300ms var(--ease-run); } /* slower, languid water-ring (was 600ms — read as too fast) */
 @keyframes wn-spine-ripple {
-  from { opacity: 0.30; r: 3.5; stroke-width: 1.4; }
-  to   { opacity: 0;    r: 22;  stroke-width: 0.4; }
+  from { opacity: 0.24; r: 3.5; stroke-width: 1.1; }
+  to   { opacity: 0;    r: 19;  stroke-width: 0.3; }
 }
 @media (prefers-reduced-motion: reduce) {
   .fc-spine__path { stroke-dashoffset: 0; opacity: 0.42; }
@@ -1318,6 +1324,9 @@ html.fc-aged .wn-void__crack::before {
 /* visited cards ripen: the moss border warms further on return; the deepest tier
    adds one tiny gold fleck to the patina tick (the card, too, has been repaired) */
 html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 52%, var(--hairline)); }
+/* the moss creep deepens with the visit tier — the longer you've been away, the more it has aged */
+html.fc-amp  .wn-card--visited, html.fc-amp  .wn-card--visited:hover  { background-image: radial-gradient(92% 70% at 4% 100%, color-mix(in srgb, var(--moss) 17%, transparent), transparent 64%); }
+html.fc-aged .wn-card--visited, html.fc-aged .wn-card--visited:hover { background-image: radial-gradient(98% 78% at 4% 100%, color-mix(in srgb, var(--moss) 23%, transparent), transparent 66%); }
 
 /* ===== Ocean (new): click → one faint SKY ripple (the field responds; never red) ===== */
 .fc-ocean { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
@@ -1367,7 +1376,7 @@ html.fc-aged .wn-card--visited .wn-card__patina::after {
   background: var(--gold); opacity: 0.5; pointer-events: none;
 }
 </style>
-<script>(function(){var d=document.documentElement;d.classList.add('has-js');try{var hh=new Date().getHours();d.setAttribute('data-daypart',(hh>=5&&hh<9)?'dawn':(hh>=9&&hh<17)?'noon':(hh>=17&&hh<21)?'evening':'night');}catch(e){}try{var v=localStorage.getItem('wn.visitor');if(!v){v=(self.crypto&&crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('wn.visitor',v);}var n=new Date(),ds=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate(),k=ds+'|'+v,h=5381,i=0;for(;i<k.length;i++)h=((h<<5)+h+k.charCodeAt(i))>>>0;window.__wnRouteIndex=h%10;}catch(e){window.__wnRouteIndex=0;}try{var qp=new URLSearchParams(location.search).get('wn');if(qp==='clear'){try{localStorage.removeItem('wn.visits');localStorage.removeItem('wn.visited');sessionStorage.removeItem('wn.session');}catch(e){}}var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(qp&&qp!=='clear'){var mp={fresh:1,'return':2,amp:3,aged:5};vi=mp[qp]||parseInt(qp,10)||vi;}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');if(vi>=5)d.classList.add('fc-aged');}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');d.classList.add('fc-firstbreath');d.classList.add('fc-route');d.classList.add('fc-hero');}}catch(e){}})();</script>
+<script>(function(){var d=document.documentElement;d.classList.add('has-js');try{var qh=new URLSearchParams(location.search).get('fc-hour');var hh=(qh!=null&&qh!==''&&!isNaN(+qh))?((+qh%24)+24)%24:new Date().getHours();d.setAttribute('data-daypart',(hh>=5&&hh<9)?'dawn':(hh>=9&&hh<17)?'noon':(hh>=17&&hh<21)?'evening':'night');}catch(e){}try{var v=localStorage.getItem('wn.visitor');if(!v){v=(self.crypto&&crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('wn.visitor',v);}var n=new Date(),ds=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate(),k=ds+'|'+v,h=5381,i=0;for(;i<k.length;i++)h=((h<<5)+h+k.charCodeAt(i))>>>0;window.__wnRouteIndex=h%10;}catch(e){window.__wnRouteIndex=0;}try{var qp=new URLSearchParams(location.search).get('wn');if(qp==='clear'){try{localStorage.removeItem('wn.visits');localStorage.removeItem('wn.visited');sessionStorage.removeItem('wn.session');}catch(e){}}var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(qp&&qp!=='clear'){var mp={fresh:1,'return':2,amp:3,aged:5};vi=mp[qp]||parseInt(qp,10)||vi;}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');if(vi>=5)d.classList.add('fc-aged');}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');d.classList.add('fc-firstbreath');d.classList.add('fc-route');d.classList.add('fc-hero');}}catch(e){}})();</script>
 </head>
 <body>
 <div class="fc-tint" aria-hidden="true"></div>

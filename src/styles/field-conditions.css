@@ -63,8 +63,8 @@ html.fc-hero-revealed .hero__greet, html.fc-hero-revealed .hero__cta { animation
 html.fc-motion .wn-status__dot--live {
   /* --fc-dot-sigh: the field's slow 6s rest-breath (idle ≥8s) given its OWN visible swell —
      a calm ~16% size / 10% opacity bloom, distinct from the fast cardiac beat (no new fog) */
-  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4 + var(--fc-dot-breath, 0) * 0.06 + var(--fc-dot-sigh, 0) * 0.16));
-  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha)) + var(--fc-dot-breath, 0) * 0.05 + var(--fc-dot-sigh, 0) * 0.10);
+  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4 + var(--fc-dot-breath, 0) * 0.06 + var(--fc-dot-sigh, 0) * 0.22));
+  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha)) + var(--fc-dot-breath, 0) * 0.05 + var(--fc-dot-sigh, 0) * 0.13);
 }
 /* reduced motion: dot solid at full opacity, no beat; label still renders (§5.6) */
 @media (prefers-reduced-motion: reduce) {
@@ -198,10 +198,10 @@ html.fc-return .greet-return { display: inline; }
 }
 /* the expanding RIPPLE ring emitted on each lub — the wave after the beat */
 .fc-spine__ripple { fill: none; stroke: var(--signal); stroke-width: 1; opacity: 0; }
-.fc-spine__ripple.go { animation: wn-spine-ripple var(--dur-600) var(--ease-run); }
+.fc-spine__ripple.go { animation: wn-spine-ripple 1300ms var(--ease-run); } /* slower, languid water-ring (was 600ms — read as too fast) */
 @keyframes wn-spine-ripple {
-  from { opacity: 0.30; r: 3.5; stroke-width: 1.4; }
-  to   { opacity: 0;    r: 22;  stroke-width: 0.4; }
+  from { opacity: 0.24; r: 3.5; stroke-width: 1.1; }
+  to   { opacity: 0;    r: 19;  stroke-width: 0.3; }
 }
 @media (prefers-reduced-motion: reduce) {
   .fc-spine__path { stroke-dashoffset: 0; opacity: 0.42; }
@@ -254,6 +254,9 @@ html.fc-aged .wn-void__crack::before {
 /* visited cards ripen: the moss border warms further on return; the deepest tier
    adds one tiny gold fleck to the patina tick (the card, too, has been repaired) */
 html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 52%, var(--hairline)); }
+/* the moss creep deepens with the visit tier — the longer you've been away, the more it has aged */
+html.fc-amp  .wn-card--visited, html.fc-amp  .wn-card--visited:hover  { background-image: radial-gradient(92% 70% at 4% 100%, color-mix(in srgb, var(--moss) 17%, transparent), transparent 64%); }
+html.fc-aged .wn-card--visited, html.fc-aged .wn-card--visited:hover { background-image: radial-gradient(98% 78% at 4% 100%, color-mix(in srgb, var(--moss) 23%, transparent), transparent 66%); }
 
 /* ===== Ocean (new): click → one faint SKY ripple (the field responds; never red) ===== */
 .fc-ocean { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }

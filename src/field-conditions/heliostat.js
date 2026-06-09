@@ -42,7 +42,8 @@ export function initHeliostat() {
   const root = document.documentElement;
   const apply = () => {
     const now = new Date();
-    const t = now.getHours() + now.getMinutes() / 60; // continuous hour 0..24
+    let t = now.getHours() + now.getMinutes() / 60; // continuous hour 0..24
+    try { const q = new URLSearchParams(location.search).get('fc-hour'); if (q != null && q !== '' && !isNaN(+q)) t = ((+q % 24) + 24) % 24; } catch { /* */ } // dev scrubber: ?fc-hour=17 previews any hour's light
     const [warmth, alpha, dim] = dayLight(t);
     const a = Math.min(5, alpha).toFixed(2);
     const hue = `color-mix(in srgb, var(--sun) ${Math.round(warmth * 100)}%, var(--sky))`; // warm↔cool of the hour
@@ -52,7 +53,7 @@ export function initHeliostat() {
       ? `color-mix(in srgb, var(--field-0) ${Math.round(100 - dim * 100)}%, var(--field-0-dim))`
       : 'var(--field-0)');
     root.style.setProperty('--fc-pulse-alpha', dim > 0.45 ? '1' : '0.85');
-    root.dataset.daypart = daypartFor(now.getHours());
+    root.dataset.daypart = daypartFor(Math.floor(t));
   };
   apply();
   setInterval(apply, 60000); // minute by minute — the day flows

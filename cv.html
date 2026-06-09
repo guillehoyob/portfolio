@@ -117,9 +117,17 @@
   --space-1:  0.25rem;  --space-2:  0.5rem;  --space-3:  0.75rem;
   --space-4:  1rem;     --space-6:  1.5rem;  --space-8:  2rem;
   --space-12: 3rem;     --space-16: 4rem;    --space-24: 6rem;
-  --space-section: clamp(6rem, 14vh, 10rem);  /* vertical rhythm between sections */
+  /* vertical rhythm between sections — tightened ~30% (was clamp(6rem,14vh,10rem))
+     so sections read as one breathing column, not cavernous voids. The tight
+     variant is the half-step used between coupled blocks (breath ↔ proof). */
+  --space-section:       clamp(4.25rem, 9vh, 7rem);
+  --space-section-tight: clamp(2.75rem, 5vh, 4rem);
   --gutter-page:   8vw;   /* min page margin desktop (6vw < 768px) */
   --gutter-dead:   18vw;  /* the dead left gutter, ≥1024px only — never filled */
+  /* ONE lane width + ONE left edge every section hangs from, so the dead gutter
+     reads as a single deliberate ma margin (where the red spine + motes live)
+     rather than ragged per-section widths. */
+  --lane-max:      72ch;  /* the unified content measure (hero, breath, proof, work, method, about, contact) */
 
   /* ============ RADIUS ============ */
   --radius-0:    0;       /* hard geometric edges everywhere */
@@ -566,6 +574,7 @@ a { color: inherit; }
 /* ============ PROJECT CARD (§3.5 / §3.6) ============ */
 .wn-card {
   position: relative;
+  isolation: isolate; /* own stacking context so the grain ::before (z-index:-1) sits ABOVE the card bg + BELOW content, never slipping behind the page */
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -648,10 +657,28 @@ a { color: inherit; }
   background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%);
 }
 .wn-card--visited:hover, .wn-card--visited:active { background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%); }
-.wn-card__patina { position: absolute; top: var(--space-3); right: var(--space-3); width: 14px; height: 14px; flex: none; line-height: 0; }
+/* (corner tick removed — visited aging now lives in the moss creep + warmed border) */
 /* non-interactive hub card (the personal-page planned stack) */
 .wn-card--static { cursor: default; }
 .wn-card--static:hover { transform: none; background: var(--field-1); box-shadow: none; }
+
+/* ---- card paper TOOTH (the void's materiality, carried out — felt-not-seen) ----
+   The SAME feTurbulence noise the void band uses (.wn-void::before), here at opacity 0.03
+   with mix-blend-mode: multiply so it can ONLY DARKEN the field-1 surface — text contrast
+   can only improve (AA-safe). On a ::before (not the bg shorthand) so it survives :hover/:active
+   and never collides with the .wn-card--visited patina creep. z-index:-1 inside the card's
+   isolation context: above the card bg, below all content. Pointer-inert, no motion, no red. */
+.wn-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.03;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
 /* ============ BREATH LINE — Cormorant pull-quote (§3.13) ============ */
 .wn-breath {
@@ -728,11 +755,25 @@ main { flex: 1 0 auto; }
 .stage { padding-left: 0; }
 @media (min-width: 1024px) { .stage > .lane { margin-left: var(--gutter-dead); } }
 
-.lane { max-width: 1100px; }
+/* the ONE content lane — every section on the stage shares this measure, so the
+   left edge and the right ragged edge are identical section-to-section and the
+   dead gutter reads as one deliberate ma margin (not random per-section widths) */
+.lane { max-width: var(--lane-max); }
 .col-narrow { max-width: 60ch; }
 
 .section { padding-top: var(--space-section); padding-bottom: var(--space-section); }
-.section--tight { padding-top: var(--space-16); padding-bottom: var(--space-16); }
+/* tight = the half-step rhythm for coupled blocks (breath + proof) — not flush,
+   just a quieter gap that keeps the same vertical cadence as the full sections */
+.section--tight { padding-top: var(--space-section-tight); padding-bottom: var(--space-section-tight); }
+/* breath ↔ proof are a single coupled unit: collapse the seam between them so the
+   pull-quote and the stat row read as one held pause, not two thin sections */
+.section--tight + .section--tight { padding-top: 0; }
+
+/* breath line — give the Cormorant pull-quote room to USE the lane (was capped at
+   24ch, which left it stranded against the wide gutter). Wider measure + balance
+   keeps it two calm lines while sharing the section's left edge. (Overrides the
+   base .wn-breath measure in components.css — layout.css cascades after it.) */
+.section .wn-breath { max-width: 34ch; }
 
 .eyebrow {
   font-family: var(--font-mono);
@@ -851,7 +892,9 @@ main { flex: 1 0 auto; }
   max-width: 1440px; margin: 0 auto; width: 100%;
   padding: 0 var(--gutter-page);
 }
-.hero__lane { max-width: 60ch; }
+/* hero shares the ONE lane measure + the ONE left edge as every stage section, so
+   the column no longer reads thin against the proof/work blocks below it */
+.hero__lane { max-width: var(--lane-max); }
 @media (min-width: 1024px) { .hero__lane { margin-left: var(--gutter-dead); } }
 /* tablet (768–1023): give the hero + stage a PARTIAL dead gutter so the up-left
    axis bias survives — without it the block floats flush-left, reading as a
@@ -895,7 +938,9 @@ main { flex: 1 0 auto; }
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
   border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);
 }
-.proof__cell { padding: var(--space-12) var(--space-8) var(--space-12) 0; border-right: 1px solid var(--hairline); }
+/* stat cells sit flush on the lane's left edge (same edge as every section) and
+   breathe via a tighter, even vertical padding that matches the new rhythm */
+.proof__cell { padding: var(--space-8) var(--space-8) var(--space-8) 0; border-right: 1px solid var(--hairline); }
 .proof__cell:last-child { border-right: none; }
 @media (max-width: 768px) {
   .proof { grid-template-columns: 1fr; }
@@ -1309,7 +1354,7 @@ html.fc-aged .wn-void__crack::before {
   background: var(--gold); opacity: 0.5; pointer-events: none;
 }
 /* visited cards ripen: the moss border warms further on return; the deepest tier
-   adds one tiny gold fleck to the patina tick (the card, too, has been repaired) */
+   settles one tiny gold glint INTO the moss creep (the card, too, has been repaired) */
 html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 52%, var(--hairline)); }
 /* the moss creep deepens with the visit tier — the longer you've been away, the more it has aged */
 html.fc-amp  .wn-card--visited, html.fc-amp  .wn-card--visited:hover  { background-image: radial-gradient(92% 70% at 4% 100%, color-mix(in srgb, var(--moss) 17%, transparent), transparent 64%); }
@@ -1358,10 +1403,23 @@ html.fc-aged .wn-card--visited, html.fc-aged .wn-card--visited:hover { backgroun
   @view-transition { navigation: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 }
-html.fc-aged .wn-card--visited .wn-card__patina::after {
-  content: ""; position: absolute; right: 0; bottom: 0; width: 4px; height: 4px;
-  background: var(--gold); opacity: 0.5; pointer-events: none;
+/* deepest tier: a faint gold GLINT settled INTO the lower-left moss creep (where the
+   patina has aged most) — a tiny soft fleck, not a corner badge; pure state so it is
+   identical under reduced motion. Gold (~44° hue) is decorative, unmistakably not the
+   red signal (~9°); footprint << 0.1% of viewport, felt-not-seen. */
+html.fc-aged .wn-card--visited::after {
+  content: ""; position: absolute; left: var(--space-4); bottom: var(--space-4);
+  width: 6px; height: 6px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--gold) 50%, transparent), transparent 70%);
 }
+
+/* ===== Work drift (Stage 5, OCEAN) — the work row sways with the tide as you scroll =====
+   work-drift.js writes the standalone `translate:` property per card; it COMPOSES with the
+   card's own `transform:` (hover lift / filter fade) so they never collide. The amplitude is
+   clamped to ≤7px in JS — far inside the page gutter — so it can never add a horizontal
+   scrollbar (transform-only, zero layout, CLS-safe). will-change is hinted ONLY under the
+   motion gate, so reduced-motion never promotes a compositor layer (honest Stage-0 stillness). */
+html.fc-motion #work .workgrid .wn-card { will-change: translate; }
 
   .cv-wrap { background: var(--field-2); min-height: 100vh; }
   .toolbar { max-width: 820px; margin: 0 auto; padding: var(--space-6) var(--space-8) 0; display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); }

@@ -1,8 +1,9 @@
 /**
  * WHITE NOON — Patina (Stage 6, §5.5) — state, not animation
- * The site ages with the visitor (wabi-sabi). Visited project cards grow a 12px
- * moss corner tick and a border warmed toward moss, with an sr-only "viewed
- * earlier". The visit count + return greeting are handled PRE-PAINT in the head
+ * The site ages with the visitor (wabi-sabi). Visited project cards grow an
+ * organic moss CREEP from the lower-left earth corner and a border warmed toward
+ * moss, with an sr-only "viewed earlier" (no corner badge — the aging is rooted,
+ * felt-not-seen; the deepest tier settles a faint gold glint INTO the creep). The visit count + return greeting are handled PRE-PAINT in the head
  * snippet (no content flash; fc-return swaps the greeting, fc-amp ≥3 amplifies
  * Heliostat). Here we record the current project-page visit and mark cards.
  * Reduced motion: identical — memory isn't motion. Storage unavailable (private
@@ -34,15 +35,9 @@ function markVisited(card) {
   if (card.dataset.visited) return;
   card.dataset.visited = 'true';
   card.classList.add('wn-card--visited');
-  const tick = document.createElement('span');
-  tick.className = 'wn-card__patina';
-  tick.setAttribute('aria-hidden', 'true');
-  // two-tone moss: a filled corner + a 1px --moss-deep edge along the hypotenuse, so it reads
-  // as a small bloom of lichen (settled growth) rather than a hard UI flag
-  // a small rounded moss BLOOM in the corner (concave inner curve) — reads as settled lichen, not a
-  // hard UI dog-ear (Fase 1); the moss-deep edge is thicker so the organic rim is actually visible
-  tick.innerHTML = '<svg viewBox="0 0 12 12" width="100%" height="100%"><path d="M0 0 L12 0 L12 12 Q6 6 0 0 Z" fill="var(--moss)"/><path d="M12 12 Q6 6 0 0" stroke="var(--moss-deep)" stroke-width="1.5" fill="none"/></svg>';
-  (card.querySelector('.wn-card__head') || card).appendChild(tick);
+  // No corner badge: the aging lives in the moss CREEP (CSS on .wn-card--visited) —
+  // warmed border + creep from the lower-left earth corner, plus an in-creep gold glint
+  // at the deepest tier. We only add the a11y label here (memory isn't a visual flag).
   const sr = document.createElement('span');
   sr.className = 'sr-only';
   sr.textContent = ' (viewed earlier)';

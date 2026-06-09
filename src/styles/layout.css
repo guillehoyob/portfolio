@@ -14,11 +14,25 @@ main { flex: 1 0 auto; }
 .stage { padding-left: 0; }
 @media (min-width: 1024px) { .stage > .lane { margin-left: var(--gutter-dead); } }
 
-.lane { max-width: 1100px; }
+/* the ONE content lane — every section on the stage shares this measure, so the
+   left edge and the right ragged edge are identical section-to-section and the
+   dead gutter reads as one deliberate ma margin (not random per-section widths) */
+.lane { max-width: var(--lane-max); }
 .col-narrow { max-width: 60ch; }
 
 .section { padding-top: var(--space-section); padding-bottom: var(--space-section); }
-.section--tight { padding-top: var(--space-16); padding-bottom: var(--space-16); }
+/* tight = the half-step rhythm for coupled blocks (breath + proof) — not flush,
+   just a quieter gap that keeps the same vertical cadence as the full sections */
+.section--tight { padding-top: var(--space-section-tight); padding-bottom: var(--space-section-tight); }
+/* breath ↔ proof are a single coupled unit: collapse the seam between them so the
+   pull-quote and the stat row read as one held pause, not two thin sections */
+.section--tight + .section--tight { padding-top: 0; }
+
+/* breath line — give the Cormorant pull-quote room to USE the lane (was capped at
+   24ch, which left it stranded against the wide gutter). Wider measure + balance
+   keeps it two calm lines while sharing the section's left edge. (Overrides the
+   base .wn-breath measure in components.css — layout.css cascades after it.) */
+.section .wn-breath { max-width: 34ch; }
 
 .eyebrow {
   font-family: var(--font-mono);
@@ -137,7 +151,9 @@ main { flex: 1 0 auto; }
   max-width: 1440px; margin: 0 auto; width: 100%;
   padding: 0 var(--gutter-page);
 }
-.hero__lane { max-width: 60ch; }
+/* hero shares the ONE lane measure + the ONE left edge as every stage section, so
+   the column no longer reads thin against the proof/work blocks below it */
+.hero__lane { max-width: var(--lane-max); }
 @media (min-width: 1024px) { .hero__lane { margin-left: var(--gutter-dead); } }
 /* tablet (768–1023): give the hero + stage a PARTIAL dead gutter so the up-left
    axis bias survives — without it the block floats flush-left, reading as a
@@ -181,7 +197,9 @@ main { flex: 1 0 auto; }
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
   border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);
 }
-.proof__cell { padding: var(--space-12) var(--space-8) var(--space-12) 0; border-right: 1px solid var(--hairline); }
+/* stat cells sit flush on the lane's left edge (same edge as every section) and
+   breathe via a tighter, even vertical padding that matches the new rhythm */
+.proof__cell { padding: var(--space-8) var(--space-8) var(--space-8) 0; border-right: 1px solid var(--hairline); }
 .proof__cell:last-child { border-right: none; }
 @media (max-width: 768px) {
   .proof { grid-template-columns: 1fr; }

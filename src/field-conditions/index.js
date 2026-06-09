@@ -183,6 +183,7 @@ export async function boot() {
   await load(f.warmLens, () => import('./warm-lens.js'), (m) => m.initWarmLens());
   await load(f.particles, () => import('./particles.js'), (m) => m.initParticles());
   await load(f.ocean, () => import('./ocean.js'), (m) => m.initOcean());
+  await load(f.workDrift, () => import('./work-drift.js'), (m) => m.initWorkDrift());
   await load(f.idleSigh, () => import('./idle-sigh.js'), (m) => m.initIdleSigh());
   // Stage 6 — Patina (memory; the visit count + greeting swapped pre-paint)
   await load(f.patina, () => import('./patina.js'), (m) => m.initPatina(config));

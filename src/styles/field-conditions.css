@@ -252,7 +252,7 @@ html.fc-aged .wn-void__crack::before {
   background: var(--gold); opacity: 0.5; pointer-events: none;
 }
 /* visited cards ripen: the moss border warms further on return; the deepest tier
-   adds one tiny gold fleck to the patina tick (the card, too, has been repaired) */
+   settles one tiny gold glint INTO the moss creep (the card, too, has been repaired) */
 html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 52%, var(--hairline)); }
 /* the moss creep deepens with the visit tier — the longer you've been away, the more it has aged */
 html.fc-amp  .wn-card--visited, html.fc-amp  .wn-card--visited:hover  { background-image: radial-gradient(92% 70% at 4% 100%, color-mix(in srgb, var(--moss) 17%, transparent), transparent 64%); }
@@ -301,7 +301,20 @@ html.fc-aged .wn-card--visited, html.fc-aged .wn-card--visited:hover { backgroun
   @view-transition { navigation: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
 }
-html.fc-aged .wn-card--visited .wn-card__patina::after {
-  content: ""; position: absolute; right: 0; bottom: 0; width: 4px; height: 4px;
-  background: var(--gold); opacity: 0.5; pointer-events: none;
+/* deepest tier: a faint gold GLINT settled INTO the lower-left moss creep (where the
+   patina has aged most) — a tiny soft fleck, not a corner badge; pure state so it is
+   identical under reduced motion. Gold (~44° hue) is decorative, unmistakably not the
+   red signal (~9°); footprint << 0.1% of viewport, felt-not-seen. */
+html.fc-aged .wn-card--visited::after {
+  content: ""; position: absolute; left: var(--space-4); bottom: var(--space-4);
+  width: 6px; height: 6px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--gold) 50%, transparent), transparent 70%);
 }
+
+/* ===== Work drift (Stage 5, OCEAN) — the work row sways with the tide as you scroll =====
+   work-drift.js writes the standalone `translate:` property per card; it COMPOSES with the
+   card's own `transform:` (hover lift / filter fade) so they never collide. The amplitude is
+   clamped to ≤7px in JS — far inside the page gutter — so it can never add a horizontal
+   scrollbar (transform-only, zero layout, CLS-safe). will-change is hinted ONLY under the
+   motion gate, so reduced-motion never promotes a compositor layer (honest Stage-0 stillness). */
+html.fc-motion #work .workgrid .wn-card { will-change: translate; }

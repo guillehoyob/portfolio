@@ -290,13 +290,14 @@ try {
   await p2.waitForTimeout(200);
   const back = await p2.evaluate(() => ({
     visited: document.querySelectorAll('.wn-card--visited').length,
-    tick: document.querySelectorAll('.wn-card__patina').length,
+    // aging is now an organic moss CREEP (background-image) + sr-only label — no corner tick element
+    patina: (() => { const c = document.querySelector('.wn-card--visited'); if (!c) return false; return /gradient/.test(getComputedStyle(c).backgroundImage) && !!c.querySelector('.sr-only'); })(),
     ret: document.documentElement.classList.contains('fc-return'),
     amp: document.documentElement.classList.contains('fc-amp'),
   }));
   await c2.close();
-  const aged = back.visited > first.visited && back.tick > 0 && back.ret && back.amp;
-  rec('Patina', true, aged, `first(visited=${first.visited},ret=${first.ret}) → return(visited=${back.visited},tick=${back.tick},ret=${back.ret},amp=${back.amp})`, aged);
+  const aged = back.visited > first.visited && back.patina && back.ret && back.amp;
+  rec('Patina', true, aged, `first(visited=${first.visited},ret=${first.ret}) → return(visited=${back.visited},creep+label=${back.patina},ret=${back.ret},amp=${back.amp})`, aged);
 } catch (e) { rec('Patina', true, false, 'ERR ' + e.message, false); }
 
 /* ───────────────── 13. THE RED SPINE (new, §5.2 ext) ───────────────── */

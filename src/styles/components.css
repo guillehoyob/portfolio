@@ -195,6 +195,7 @@
 /* ============ PROJECT CARD (§3.5 / §3.6) ============ */
 .wn-card {
   position: relative;
+  isolation: isolate; /* own stacking context so the grain ::before (z-index:-1) sits ABOVE the card bg + BELOW content, never slipping behind the page */
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -277,10 +278,28 @@
   background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%);
 }
 .wn-card--visited:hover, .wn-card--visited:active { background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%); }
-.wn-card__patina { position: absolute; top: var(--space-3); right: var(--space-3); width: 14px; height: 14px; flex: none; line-height: 0; }
+/* (corner tick removed — visited aging now lives in the moss creep + warmed border) */
 /* non-interactive hub card (the personal-page planned stack) */
 .wn-card--static { cursor: default; }
 .wn-card--static:hover { transform: none; background: var(--field-1); box-shadow: none; }
+
+/* ---- card paper TOOTH (the void's materiality, carried out — felt-not-seen) ----
+   The SAME feTurbulence noise the void band uses (.wn-void::before), here at opacity 0.03
+   with mix-blend-mode: multiply so it can ONLY DARKEN the field-1 surface — text contrast
+   can only improve (AA-safe). On a ::before (not the bg shorthand) so it survives :hover/:active
+   and never collides with the .wn-card--visited patina creep. z-index:-1 inside the card's
+   isolation context: above the card bg, below all content. Pointer-inert, no motion, no red. */
+.wn-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.03;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
 
 /* ============ BREATH LINE — Cormorant pull-quote (§3.13) ============ */
 .wn-breath {

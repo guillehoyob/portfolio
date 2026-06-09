@@ -31,7 +31,7 @@ export function initIdleSigh() {
     }
     const t = (now - sighStart) / SIGH_MS;
     if (t >= 1) { stopSigh(); return false; }
-    root.style.setProperty('--fc-haze-opacity', (0.05 + Math.sin(t * Math.PI) * 0.03).toFixed(4)); // ≤0.08
+    root.style.setProperty('--fc-haze-opacity', (0.05 + Math.sin(t * Math.PI) * 0.06).toFixed(4)); // 0.05→0.11→0.05 (the cap, so it's actually visible)
     return true;
   };
   addTicker(ticker);

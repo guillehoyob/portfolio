@@ -9,7 +9,7 @@
  */
 import { addTicker, removeTicker, field, onReducedMotionChange } from './index.js';
 
-const COUNT = 5;
+const COUNT = 7;
 
 export function initParticles() {
   if (!document.getElementById('hero')) return; // the landing field
@@ -25,7 +25,7 @@ export function initParticles() {
   const motes = Array.from({ length: COUNT }, (_, i) => {
     const el = document.createElement('span');
     el.className = 'fc-mote';
-    const size = 5 + (i % 3) * 2; // 5..9px soft blooms (light, not dots)
+    const size = 7 + (i % 3) * 4; // 7..15px soft warm blooms (dust catching light)
     el.style.width = el.style.height = size + 'px';
     layer.appendChild(el);
     return {

@@ -475,8 +475,8 @@ try {
   await page.waitForTimeout(9200); // stay completely still past the 8s idle threshold
   let peak = 0;
   for (let i = 0; i < 28; i++) { peak = Math.max(peak, await page.evaluate(() => +getComputedStyle(document.documentElement).getPropertyValue('--fc-haze-opacity') || 0.05)); await page.waitForTimeout(130); }
-  const ok = peak > 0.055 && peak <= 0.0802;
-  rec('Idle sigh', true, ok, `haze after 8s rest rose to ${num(peak)} (one breath ≤0.08)`, ok);
+  const ok = peak > 0.07 && peak <= 0.1102;
+  rec('Idle sigh', true, ok, `haze after 8s rest rose to ${num(peak)} (one breath, ≤0.11 cap)`, ok);
   await c.close();
 } catch (e) { rec('Idle sigh', true, false, 'ERR ' + e.message, false); }
 

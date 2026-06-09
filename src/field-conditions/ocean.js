@@ -21,8 +21,9 @@ export function initOcean() {
     // affordances own their own feedback (§3.12) — don't ripple on links/buttons/fields
     if (e.target.closest && e.target.closest('a,button,input,textarea,select,label,summary,[role="button"],[contenteditable]')) return;
     const now = performance.now();
-    if (now - last < 120 || live >= 2) return; // debounce + concurrency cap (no spectacle)
-    last = now; live++;
+    if (now - last < 120 || live >= 3) return; // debounce + concurrency cap (no spectacle)
+    last = now; // NOTE: live is incremented inside spawn() only — never here (that double-count
+                // leaked the counter and froze the ocean after 2 clicks)
     // the ring's CHARACTER reads the field's ENERGY — a heavy moment (you were moving fast) makes
     // a WIDER, SLOWER, DIMMER swell; a calm tap makes a SMALL, QUICK, BRIGHT one ("resembles what
     // is happening"). The click also feeds the ocean (raises energy + a nib blip near the spine).
@@ -38,7 +39,10 @@ export function initOcean() {
       ring.style.setProperty('--fc-ring-dur', dur.toFixed(2) + 's');
       ring.style.setProperty('--fc-ring-op', ((0.26 - en * 0.1) * opMul).toFixed(3));
       ring.style.setProperty('--fc-ring-delay', delay.toFixed(2) + 's');
-      ring.addEventListener('animationend', () => { ring.remove(); live--; }, { once: true });
+      let done = false;
+      const finish = () => { if (done) return; done = true; ring.remove(); live = Math.max(0, live - 1); };
+      ring.addEventListener('animationend', finish, { once: true });
+      setTimeout(finish, (dur + delay) * 1000 + 300); // backstop: live can never leak
       layer.appendChild(ring);
     };
     spawn(1, 0);

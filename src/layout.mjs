@@ -161,7 +161,7 @@ export const heroRoute = () =>
 /* scroll cue (§3.16) — a real, keyboard-usable anchor (native jump at Stage 0;
    Lenis smooth-scroll upgrade later). Inner glyph stays decorative. */
 export const chevron = () =>
-  `<a class="hero__chevron" href="#proof" aria-label="Scroll to content"><svg class="wn-chevron" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M 2 5 L 8 11 L 14 5" fill="none" stroke="var(--signal)" stroke-width="2" stroke-linecap="square"/></svg></a>`;
+  `<a class="hero__chevron" href="#proof" aria-label="Scroll to content"><svg class="wn-chevron" viewBox="0 0 16 16" width="22" height="22" aria-hidden="true"><path d="M 2 5 L 8 11 L 14 5" fill="none" stroke="var(--signal)" stroke-width="2" stroke-linecap="square"/></svg></a>`;
 
 /* featured work card (§3.5 / §3.6) */
 export function card(p) {

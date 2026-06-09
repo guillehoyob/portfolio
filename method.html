@@ -1258,10 +1258,13 @@ html.fc-return .greet-return { display: inline; }
    The sky stratum's atmosphere — soft WARMTH, not hard specks (those read as screen-dirt on
    white). z-index:-1 (the field/grain layer, behind content). JS drives the layer opacity by
    the field's energy (the sky brightens when the field stirs). */
-.fc-sky { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; opacity: 0.55; transition: opacity var(--dur-600) var(--ease-run); }
+/* z-index ABOVE content (so they're not occluded by the opaque body bg, the old bug) +
+   mix-blend-mode: multiply → soft WARM dust that only ever DARKENS (so text contrast can only
+   improve — AA-safe over everything). Pointer-events:none, faint, transient. */
+.fc-sky { position: fixed; inset: 0; z-index: var(--z-warm); pointer-events: none; overflow: hidden; opacity: 0.7; transition: opacity var(--dur-600) var(--ease-run); }
 .fc-mote {
-  position: absolute; top: 0; left: 0; border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--sun) 22%, transparent), transparent 65%);
+  position: absolute; top: 0; left: 0; border-radius: 50%; mix-blend-mode: multiply;
+  background: radial-gradient(circle, color-mix(in srgb, var(--sun) 40%, transparent), transparent 62%);
 }
 
 /* ===== Stage 6 — Patina kintsugi aging (§5.5 extension): healed history =====
@@ -1312,10 +1315,10 @@ html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 
    never a subtractive fog — so the pristine field + reading stay intact). Whisper-quiet. ===== */
 .fc-lit { transition: box-shadow var(--dur-300) var(--ease-react), text-shadow var(--dur-300) var(--ease-react); }
 .proof__cell.fc-lit, .principle.fc-lit, .phase.fc-lit, .about__photo.fc-lit, .stacktable.fc-lit, .toolchain.fc-lit, .identity.fc-lit {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sun) 9%, transparent), 0 6px 24px -14px color-mix(in srgb, var(--sun) 28%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sun) 18%, transparent), 0 8px 30px -12px color-mix(in srgb, var(--sun) 45%, transparent);
 }
-.wn-void.fc-lit { box-shadow: inset 0 0 140px -70px color-mix(in srgb, var(--sun) 20%, transparent); }
-.wn-breath.fc-lit { text-shadow: 0 0 20px color-mix(in srgb, var(--sun) 14%, transparent); }
+.wn-void.fc-lit { box-shadow: inset 0 0 180px -60px color-mix(in srgb, var(--sun) 30%, transparent); }
+.wn-breath.fc-lit { text-shadow: 0 0 24px color-mix(in srgb, var(--sun) 22%, transparent); }
 @media (prefers-reduced-motion: reduce) { .fc-lit { box-shadow: none; text-shadow: none; } }
 html.fc-aged .wn-card--visited .wn-card__patina::after {
   content: ""; position: absolute; right: 0; bottom: 0; width: 4px; height: 4px;

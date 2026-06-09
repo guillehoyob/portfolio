@@ -103,7 +103,13 @@ main { flex: 1 0 auto; }
     display: none;
     flex-direction: column; justify-content: center; align-items: flex-start;
     gap: var(--space-8); padding: var(--gutter-page);
-    background: var(--fc-field);
+    /* Vault Blur (§5.10) — the menu lands as frosted glass over the page: a
+       translucent warm-white field with a backdrop blur, so the content behind
+       softly defocuses on open. Static frost (not motion) → identical under
+       reduced motion. Links stay bold ink on ~86% field → AA holds. */
+    background: color-mix(in srgb, var(--fc-field) 86%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(1.05);
+    backdrop-filter: blur(20px) saturate(1.05);
   }
   .has-js .nav[data-menu-open="true"] .nav__links { display: flex; }
   .has-js .nav__links .wn-signal-link { font-family: var(--font-display); font-weight: 700; font-size: 2rem; }
@@ -257,7 +263,7 @@ main { flex: 1 0 auto; }
 .footer__scanline { position: relative; height: 1px; background: var(--hairline); margin-top: var(--space-12); overflow: hidden; }
 /* static honest state: a 64px pulse segment sits at the footer's left edge */
 /* static honest state: the 64px pulse segment sits at the footer's left edge (§5.11) */
-.footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 64px; height: 1px; background: var(--pulse); opacity: 0.4; }
+.footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 96px; height: 1px; background: var(--pulse); opacity: 0.6; }
 .footer__col + .footer__col { }
 
 /* ============ PROJECT PAGE (§3.20 / §4.3) ============ */

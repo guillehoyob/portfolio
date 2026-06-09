@@ -49,6 +49,12 @@
   --sun:            #FFC42E;  /* dawn tint ≤3%; the one "open to work" badge */
   --moss:           #7A8C72;  /* patina tick — graphic only (3.36:1) */
   --moss-deep:      #5C6B55;  /* any moss-colored TEXT (5.31:1 ✓AA) */
+  /* Kintsugi gold — the only repair colour, derived from --sun warmed toward
+     --ink so it reads as low-sheen gilded lacquer (Tanizaki: gold in shadow),
+     never red (hue ~44° vs signal's ~9°). Decorative trace; returning-visitor
+     patina only. No raw hex — the lineage is --sun. */
+  --gold:           color-mix(in srgb, var(--sun) 82%, var(--ink) 18%);  /* ≈ #D2A22A daylight seam */
+  --gold-deep:      color-mix(in srgb, var(--sun) 70%, var(--ink) 30%);  /* ≈ #B68B25 seam in the void */
 
   /* ============ SEMANTIC ALIASES (role-named for authors) ============ */
   --surface-page:   var(--field-0);
@@ -800,7 +806,13 @@ main { flex: 1 0 auto; }
     display: none;
     flex-direction: column; justify-content: center; align-items: flex-start;
     gap: var(--space-8); padding: var(--gutter-page);
-    background: var(--fc-field);
+    /* Vault Blur (§5.10) — the menu lands as frosted glass over the page: a
+       translucent warm-white field with a backdrop blur, so the content behind
+       softly defocuses on open. Static frost (not motion) → identical under
+       reduced motion. Links stay bold ink on ~86% field → AA holds. */
+    background: color-mix(in srgb, var(--fc-field) 86%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(1.05);
+    backdrop-filter: blur(20px) saturate(1.05);
   }
   .has-js .nav[data-menu-open="true"] .nav__links { display: flex; }
   .has-js .nav__links .wn-signal-link { font-family: var(--font-display); font-weight: 700; font-size: 2rem; }
@@ -954,7 +966,7 @@ main { flex: 1 0 auto; }
 .footer__scanline { position: relative; height: 1px; background: var(--hairline); margin-top: var(--space-12); overflow: hidden; }
 /* static honest state: a 64px pulse segment sits at the footer's left edge */
 /* static honest state: the 64px pulse segment sits at the footer's left edge (§5.11) */
-.footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 64px; height: 1px; background: var(--pulse); opacity: 0.4; }
+.footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 96px; height: 1px; background: var(--pulse); opacity: 0.6; }
 .footer__col + .footer__col { }
 
 /* ============ PROJECT PAGE (§3.20 / §4.3) ============ */
@@ -1081,22 +1093,24 @@ html.fc-hero-revealed .hero__greet, html.fc-hero-revealed .hero__cta { animation
     }
   }
 }
-@keyframes wn-breathe {
-  0%, 100% { transform: scale(1);    opacity: var(--fc-pulse-alpha); }
-  50%      { transform: scale(1.35); opacity: 1; }
+/* the dot beats on the SHARED heartbeat clock (one rAF, the same cardiac phase
+   the Red Spine reads): JS writes --fc-dot-beat each frame; CSS maps it to a
+   scale + opacity swell. scale 1→1.4 on the lub, on the 8px flex-item dot. */
+html.fc-motion .wn-status__dot--live {
+  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4));
+  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha)));
 }
-html.fc-motion .wn-status__dot--live { animation: wn-breathe var(--dur-breathe) ease-in-out infinite; }
-/* reduced motion: dot solid at full opacity, label still renders (§5.6) */
+/* reduced motion: dot solid at full opacity, no beat; label still renders (§5.6) */
 @media (prefers-reduced-motion: reduce) {
-  .wn-status__dot { opacity: 1; animation: none; }
+  .wn-status__dot { opacity: 1; transform: none; }
 }
 
 /* ===== Stage 2 — First Breath scroll cue (§5.7) ===== */
 /* hidden until idle; fail-safe reveal at 4s so it can never stay invisible */
-@keyframes wn-chevron-reveal { to { opacity: 0.8; } }
+@keyframes wn-chevron-reveal { to { opacity: 0.85; } }
 @keyframes wn-firstbreath {
   0%   { transform: translateX(-50%) translateY(0); }
-  50%  { transform: translateX(-50%) translateY(6px); }
+  50%  { transform: translateX(-50%) translateY(12px); }
   100% { transform: translateX(-50%) translateY(0); }
 }
 html.fc-firstbreath .hero__chevron {
@@ -1104,7 +1118,7 @@ html.fc-firstbreath .hero__chevron {
   animation: wn-chevron-reveal var(--dur-600) var(--ease-run) 4s forwards;
 }
 html.fc-firstbreath .hero__chevron.fc-breathed {
-  opacity: 0.8;
+  opacity: 0.85;
   animation: wn-firstbreath var(--dur-600) var(--ease-run);
 }
 
@@ -1147,13 +1161,13 @@ html.fc-motion .wn-void.fc-crack .wn-void__crack { transform: scaleX(1); transit
   background: var(--fc-tint); pointer-events: none;
   transition: background-color var(--dur-ambient-min) linear;
 }
-html[data-daypart="dawn"]    { --fc-tint: color-mix(in srgb, var(--sun) 3%, transparent); }
-html[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 4%, transparent); }
+html[data-daypart="dawn"]    { --fc-tint: color-mix(in srgb, var(--sun) 5%, transparent); }
+html[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 5%, transparent); }
 html[data-daypart="night"]   { --fc-field: var(--field-0-dim); --fc-pulse-alpha: 1; }
 /* the field itself crossfades at the night boundary */
 html.fc-motion body { transition: background-color var(--dur-ambient-min) linear; }
 /* Patina amplification (visits ≥3): +1% tint, hard cap 5% (§5.1 / §5.5) */
-html.fc-amp[data-daypart="dawn"]    { --fc-tint: color-mix(in srgb, var(--sun) 4%, transparent); }
+html.fc-amp[data-daypart="dawn"]    { --fc-tint: color-mix(in srgb, var(--sun) 5%, transparent); }
 html.fc-amp[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 5%, transparent); }
 @media (prefers-reduced-motion: reduce) { .fc-tint, body { transition: none; } }
 
@@ -1164,11 +1178,11 @@ html.fc-amp[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 5
 }
 .fc-crosswind--sky {
   width: 600px; height: 600px; z-index: var(--z-haze);
-  background: radial-gradient(circle, color-mix(in srgb, var(--sky) 7%, transparent), transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--sky) 8%, transparent), transparent 60%);
 }
 .fc-crosswind--warm {
   width: 240px; height: 240px; z-index: var(--z-warm); mix-blend-mode: multiply;
-  background: radial-gradient(circle, color-mix(in srgb, var(--ink-ghost) 5%, transparent), transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--ink-ghost) 7%, transparent), transparent 65%);
 }
 /* Slipstream writes --fc-haze-opacity (hero sky) + --fc-slip-scale (active head) via JS */
 
@@ -1176,6 +1190,73 @@ html.fc-amp[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 5
 .greet-return { display: none; }
 html.fc-return .greet-first { display: none; }
 html.fc-return .greet-return { display: inline; }
+
+/* ===== Stage 3 — THE RED SPINE (new): one scroll-drawn thread down the page =====
+   Fixed full-viewport SVG on the field-grain layer (z-index:-1, behind content),
+   armed hidden (full dash) until scroll draws it. width/height:100% of the viewport
+   (not 100vw → no scrollbar overflow). Reduced motion → drawn complete, no pulse. */
+.fc-spine {
+  position: absolute; top: 0; left: 0; width: 100%; /* height set by JS = document height */
+  z-index: -1; pointer-events: none; overflow: visible; will-change: transform;
+}
+.fc-spine__path {
+  stroke-dasharray: var(--fc-spine-len, 4000);
+  stroke-dashoffset: var(--fc-spine-len, 4000);
+  opacity: 0.42; /* a faint red TRACE thread — the hero route stays the only full-red gesture;
+                    JS fades it 0 → this past the hero so the two reds never share a frame */
+}
+/* the travelling heartbeat node: signal red that flashes toward the cyan --pulse
+   at the beat peak (cyan ONLY as a pulse), with a soft pulse-tinted glow. JS sets
+   its opacity per frame (a comet that brightens on the lub–dub, fades as it glides). */
+.fc-spine__pulse {
+  fill: color-mix(in srgb, var(--signal) calc(100% - var(--fc-spine-beat, 0) * 55%), var(--pulse));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--pulse) calc(15% + var(--fc-spine-beat, 0) * 45%), transparent));
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-spine__path { stroke-dashoffset: 0; }
+  .fc-spine__pulse { display: none; }
+}
+
+/* ===== Field motes (new): faint warm dust behind content (in'ei, dust in light) ===== */
+.fc-motes { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.fc-mote {
+  position: absolute; top: 0; left: 0; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--sun) 45%, var(--ink-ghost)), transparent 70%);
+  opacity: 0.18; /* translate3d auto-promotes while moving — no permanent will-change layer needed */
+}
+
+/* ===== Stage 6 — Patina kintsugi aging (§5.5 extension): healed history =====
+   The void-band crack is the break; on return visits a faint GOLD seam traces it
+   (the mend). Pure state, no transition/animation → identical under reduced motion.
+   Deepens by visit tier: fc-return (>=2) → fc-amp (>=3) → fc-aged (>=5). Gold is a
+   decorative trace (hue ~44°, not a second red); footprint << 0.1% of viewport. */
+.wn-void__crack { position: relative; }
+/* the break, honoured in gold: a soft gold GLOW on the red crack (the gild) plus
+   a parallel gold seam below it. Reads as a healed, gilded break — deepens tier
+   by tier. Gold (~44° hue) is unmistakably not the red signal (~9°). */
+/* glow kept tight so the gold reads as a SEAM tracing the break, not an ambient halo */
+html.fc-return .wn-void__crack { box-shadow: 0 0 4px color-mix(in srgb, var(--gold-deep) 40%, transparent); }
+html.fc-return .wn-void__crack::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 3px; height: 1px;
+  background: var(--gold-deep); opacity: 0.6; pointer-events: none;
+}
+html.fc-amp  .wn-void__crack { box-shadow: 0 0 5px color-mix(in srgb, var(--gold-deep) 52%, transparent); }
+html.fc-amp  .wn-void__crack::after { opacity: 0.78; }
+html.fc-aged .wn-void__crack { box-shadow: 0 0 6px color-mix(in srgb, var(--gold-deep) 64%, transparent); }
+html.fc-aged .wn-void__crack::after { opacity: 0.92; }
+/* deepest tier: a second hairline gold seam above the break — fully veined */
+html.fc-aged .wn-void__crack::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -3px; height: 1px;
+  background: var(--gold); opacity: 0.5; pointer-events: none;
+}
+/* visited cards ripen: the moss border warms further on return; the deepest tier
+   adds one tiny gold fleck to the patina tick (the card, too, has been repaired) */
+html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 38%, var(--hairline)); }
+html.fc-aged .wn-card--visited .wn-card__patina::after {
+  content: ""; position: absolute; right: 0; bottom: 0; width: 4px; height: 4px;
+  background: var(--gold); opacity: 0.5; pointer-events: none;
+}
 
   .cv-wrap { background: var(--field-2); min-height: 100vh; }
   .toolbar { max-width: 820px; margin: 0 auto; padding: var(--space-6) var(--space-8) 0; display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); }
@@ -1209,7 +1290,7 @@ html.fc-return .greet-return { display: inline; }
     @page { margin: 0; }
     .cv-section, .cv-job { break-inside: avoid; }
   }</style>
-<script>(function(){var d=document.documentElement;d.classList.add('has-js');try{var hh=new Date().getHours();d.setAttribute('data-daypart',(hh>=5&&hh<9)?'dawn':(hh>=9&&hh<17)?'noon':(hh>=17&&hh<21)?'evening':'night');}catch(e){}try{var v=localStorage.getItem('wn.visitor');if(!v){v=(self.crypto&&crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('wn.visitor',v);}var n=new Date(),ds=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate(),k=ds+'|'+v,h=5381,i=0;for(;i<k.length;i++)h=((h<<5)+h+k.charCodeAt(i))>>>0;window.__wnRouteIndex=h%10;}catch(e){window.__wnRouteIndex=0;}try{var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');d.classList.add('fc-firstbreath');d.classList.add('fc-route');d.classList.add('fc-hero');}}catch(e){}})();</script>
+<script>(function(){var d=document.documentElement;d.classList.add('has-js');try{var hh=new Date().getHours();d.setAttribute('data-daypart',(hh>=5&&hh<9)?'dawn':(hh>=9&&hh<17)?'noon':(hh>=17&&hh<21)?'evening':'night');}catch(e){}try{var v=localStorage.getItem('wn.visitor');if(!v){v=(self.crypto&&crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('wn.visitor',v);}var n=new Date(),ds=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate(),k=ds+'|'+v,h=5381,i=0;for(;i<k.length;i++)h=((h<<5)+h+k.charCodeAt(i))>>>0;window.__wnRouteIndex=h%10;}catch(e){window.__wnRouteIndex=0;}try{var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');if(vi>=5)d.classList.add('fc-aged');}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');d.classList.add('fc-firstbreath');d.classList.add('fc-route');d.classList.add('fc-hero');}}catch(e){}})();</script>
 </head>
 <body class="cv-wrap">
 <a class="skip" href="#cv">Skip to content</a>

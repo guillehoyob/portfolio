@@ -25,11 +25,12 @@ export const config = {
     heroEntrance: true,   // hero type Forward-land + H1 SplitText masked reveal (§3.2)
     vaultBlur: true,      // cross-document View Transitions page blur (§5.10)
     // Stage 2 — pulse
-    heartbeat: true,      // 6s dot breathe (§5.6) — governor-exempt
+    heartbeat: true,      // 4s cardiac dot+spine pulse, shared clock (§5.6) — governor-exempt
     firstBreath: true,    // one-shot scroll-cue pulse (§5.7)
     scanline: true,       // footer 1px drift once/60s (§5.11)
     // Stage 3 — identity
     newRoute: true,       // per-visit hero route path (§5.2)
+    spine: true,          // THE RED SPINE — scroll-drawn full-page red thread (§5.2 ext)
     thresholdCut: true,   // void-band entry snap (§5.8)
     crack: true,          // signal crack draw across void (§5.9)
     // Stage 4 — weather (field state)
@@ -37,6 +38,7 @@ export const config = {
     // Stage 5 — weather (traces, governor-arbitrated)
     slipstream: true,     // scroll velocity → haze + heading scaleX (§5.4)
     crosswind: true,      // cursor radial + multiply warming spot (§5.3)
+    particles: true,      // a few faint warm field motes, cursor-reactive (home only)
     // Stage 6 — memory
     patina: true,         // returning-visitor state (§5.5)
   },

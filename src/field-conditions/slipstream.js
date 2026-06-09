@@ -29,7 +29,7 @@ export function initSlipstream() {
   const onScroll = (e) => {
     if (typeof e.scroll === 'number') scroll = e.scroll;
     const v = e.velocity || 0;
-    if (v > 1.2) { target = Math.min(1, (v - 1.2) / 8); requestWeather('slipstream'); }
+    if (v > 1.2) { target = Math.min(1, (v - 1.2) / 3); requestWeather('slipstream'); }
     else { target = 0; releaseWeather('slipstream'); }
     wake();
   };
@@ -41,7 +41,7 @@ export function initSlipstream() {
     current += (target - current) * rate;
     if (sky) sky.style.transform = `translateY(${scroll * -0.4}px)`; // ~0.6× parallax
     root.style.setProperty('--fc-haze-opacity', (0.05 + current * 0.06).toFixed(4));
-    const scale = (1 + current * 0.01).toFixed(4);
+    const scale = (1 + current * 0.02).toFixed(4);
     root.style.setProperty('--fc-slip-scale', scale);
     if (prevHead && prevHead !== activeHead) prevHead.style.transform = '';
     if (activeHead) { activeHead.style.transformOrigin = 'left'; activeHead.style.transform = `scaleX(${scale})`; prevHead = activeHead; }

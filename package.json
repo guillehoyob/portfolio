@@ -11,7 +11,8 @@
     "dev": "vite",
     "prebuild": "node scripts/build-pages.mjs",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "living": "node tests/living.spec.js"
   },
   "devDependencies": {
     "playwright": "^1.60.0",

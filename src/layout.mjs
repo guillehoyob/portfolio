@@ -51,7 +51,7 @@ export const prePaint = () => {
   // Patina: increment visit count once per session (guarded) and set memory
   // classes pre-paint — the return greeting swaps with no content flash (§5.5).
   const patina = f.patina
-    ? `try{var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');}catch(e){}`
+    ? `try{var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');if(vi>=5)d.classList.add('fc-aged');}catch(e){}`
     : '';
   return `<script>(function(){var d=document.documentElement;d.classList.add('has-js');${daypart}${seed}${patina}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');${addMotion}}}catch(e){}})();</script>`;
 };

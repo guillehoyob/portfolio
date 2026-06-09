@@ -1,14 +1,31 @@
 /**
- * WHITE NOON — Heartbeat (Stage 2, §5.6)
- * The one ambient pulse: the 8px hero status dot breathes on a 6s cycle (pure
- * CSS, compositor-only). Governor-EXEMPT — a pulse, not weather. The status
- * text is the self-set config.statusLabel: zero network, always valid, never
- * stale. liveGitHub is off by default → no third-party call. Reduced motion is
- * handled in CSS (no fc-motion → no animation; dot solid, label still renders).
+ * WHITE NOON — Heartbeat (Stage 2, §5.6) — the one shared pulse
+ * The hero status dot beats on the SHARED heartbeat clock (a 4s cardiac lub–dub
+ * + diastole, exported from index.js), driven on the ONE shared rAF — the exact
+ * same phase the Red Spine's travelling node reads, so the dot and the spine are
+ * provably one heartbeat, not two coincident loops. Governor-EXEMPT (a pulse,
+ * not weather); the dot ticker returns true so it owns/keeps the shared loop
+ * alive on the home hero (suspends on tab-hide). The status text is the self-set
+ * config.statusLabel: zero network, always valid, never stale. liveGitHub off by
+ * default → no third-party call. Reduced motion → dot solid, no beat (CSS), label
+ * still renders.
  */
+import { addTicker, removeTicker, heartbeatPhase, heartbeatBeat, onReducedMotionChange } from './index.js';
+
 export function initHeartbeat(config) {
   const dot = document.querySelector('.hero .wn-status__dot:not(.wn-status__dot--static)');
-  if (dot) dot.classList.add('wn-status__dot--live');
+  if (dot) {
+    dot.classList.add('wn-status__dot--live');
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const beat = () => {
+        dot.style.setProperty('--fc-dot-beat', heartbeatBeat(heartbeatPhase()).toFixed(3));
+        return true; // continuous pulse — keeps the shared loop alive on the hero
+      };
+      addTicker(beat);
+      // live OS reduced-motion toggle → stop writing the beat var (CSS already neutralises it)
+      onReducedMotionChange((r) => { if (r) { removeTicker(beat); dot.style.removeProperty('--fc-dot-beat'); } });
+    }
+  }
 
   // resolve + cache the status label (the line is already rendered in static HTML)
   const label = (config.statusLabel || '').trim();

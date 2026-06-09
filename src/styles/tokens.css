@@ -37,6 +37,12 @@
   --sun:            #FFC42E;  /* dawn tint ≤3%; the one "open to work" badge */
   --moss:           #7A8C72;  /* patina tick — graphic only (3.36:1) */
   --moss-deep:      #5C6B55;  /* any moss-colored TEXT (5.31:1 ✓AA) */
+  /* Kintsugi gold — the only repair colour, derived from --sun warmed toward
+     --ink so it reads as low-sheen gilded lacquer (Tanizaki: gold in shadow),
+     never red (hue ~44° vs signal's ~9°). Decorative trace; returning-visitor
+     patina only. No raw hex — the lineage is --sun. */
+  --gold:           color-mix(in srgb, var(--sun) 82%, var(--ink) 18%);  /* ≈ #D2A22A daylight seam */
+  --gold-deep:      color-mix(in srgb, var(--sun) 70%, var(--ink) 30%);  /* ≈ #B68B25 seam in the void */
 
   /* ============ SEMANTIC ALIASES (role-named for authors) ============ */
   --surface-page:   var(--field-0);

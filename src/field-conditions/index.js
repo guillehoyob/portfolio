@@ -51,9 +51,32 @@ document.addEventListener('visibilitychange', () => {
   else if (!document.hidden) wake();
 });
 
+/* ---- the ONE heartbeat clock (governor-exempt, §5.6) ----
+   A single time-based phase shared by every pulse in the system: the status dot
+   (Heartbeat) and the Red Spine's travelling node both read the SAME phase from
+   the SAME epoch on the SAME shared rAF — so they are provably one heartbeat,
+   not two equal-period loops drifting apart. A 4s cardiac cycle: a lub then a
+   smaller dub close together, then a long diastole rest — reads as a calm heart
+   while honouring the 4s ambient floor (§2.4). Phase wraps 0..1 every cycle. */
+const HEARTBEAT_MS = 4000;
+let beatEpoch = 0;
+export function heartbeatPhase(now) {
+  const t = now ?? performance.now();
+  if (!beatEpoch) beatEpoch = t;
+  return ((t - beatEpoch) % HEARTBEAT_MS) / HEARTBEAT_MS;
+}
+const ping = (p, a, b) => (p < a || p > b ? 0 : 0.5 - 0.5 * Math.cos(((p - a) / (b - a)) * 2 * Math.PI));
+export function heartbeatBeat(phase) {
+  // lub (full, 0–11% of cycle) then dub (0.6×, 15–24%), then rest — a cardiac rhythm
+  return Math.max(ping(phase, 0, 0.11), ping(phase, 0.15, 0.24) * 0.6);
+}
+
 /* ---- the Governor (weather behaviors only; Heartbeat + Heliostat exempt) ----
-   precedence: slipstream > crosswind > scanline. Lower-precedence suspends. */
-const WEATHER_PRECEDENCE = ['slipstream', 'crosswind', 'scanline'];
+   precedence: slipstream > crosswind. Lower-precedence suspends. Scanline is NOT
+   arbitrated here — it is footer-pinned and never collides with the cursor haze,
+   so coupling it only let Crosswind (which holds the slot until pointerleave)
+   starve it forever; it now self-arbitrates in scanline.js. */
+const WEATHER_PRECEDENCE = ['slipstream', 'crosswind'];
 let activeWeather = null;
 const suspendHooks = new Map(); // name -> fn(suspended:boolean)
 export function registerWeather(name, onSuspend) { suspendHooks.set(name, onSuspend); }
@@ -94,14 +117,16 @@ export async function boot() {
   await load(f.heartbeat, () => import('./heartbeat.js'), (m) => m.initHeartbeat(config));
   await load(f.firstBreath, () => import('./first-breath.js'), (m) => m.initFirstBreath());
   await load(f.scanline, () => import('./scanline.js'), (m) => m.initScanline());
-  // Stage 3 — identity (New Route swaps the pre-armed line; Threshold Cut + Crack detonate the void)
+  // Stage 3 — identity (New Route swaps the pre-armed line; the Spine extends it down the page; Threshold Cut + Crack detonate the void)
   await load(f.thresholdCut, () => import('./threshold-cut.js'), (m) => m.initThresholdCut(config));
   await load(f.newRoute, () => import('./new-route.js'), (m) => m.initNewRoute());
+  await load(f.spine, () => import('./spine.js'), (m) => m.initSpine());
   // Stage 4 — Heliostat (field-state, governor-exempt)
   await load(f.heliostat, () => import('./heliostat.js'), (m) => m.initHeliostat());
   // Stage 5 — weather traces (Governor: slipstream > crosswind > scanline)
   await load(f.slipstream, () => import('./slipstream.js'), (m) => m.initSlipstream());
   await load(f.crosswind, () => import('./crosswind.js'), (m) => m.initCrosswind());
+  await load(f.particles, () => import('./particles.js'), (m) => m.initParticles());
   // Stage 6 — Patina (memory; the visit count + greeting swapped pre-paint)
   await load(f.patina, () => import('./patina.js'), (m) => m.initPatina(config));
 }

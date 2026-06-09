@@ -1,7 +1,7 @@
 # WHITE NOON — Portfolio Living Layer · HANDOFF
 
 > Hand-off for a fresh session. Read this first, then `src/field-conditions/index.js` and `config.js`.
-> Status: all green, deployed to `main`. The owner (Guillermo) is iterating on the "living ocean" by hand and reporting what he can/can't feel.
+> Status: all green, deployed to `main` (through v4d, `aca2e48`). The owner (Guillermo) is **actively iterating on perceptibility** — he keeps reporting living-layer effects he still can't see and intends to keep going until each is clearly felt. **Read §8.0 before touching anything.**
 
 ---
 
@@ -67,17 +67,41 @@ CLS ~0 (≤0.0003) · shipped JS ≈55 KB gz (<90) · fonts 133 KB (<220) · **z
 - **Already REJECTED — do not re-propose:** red section titles (breaks one-red + AA on small text); a faster heartbeat (reads as alarm); gilding the hero route or a gold "vein" on the spine (ugly + kintsugi gilds *breaks* only → gold lives on the void crack); a persistent inverted-fog veil (hurts reading → shipped the additive **warm lens** instead).
 - **Likes / keep:** the warm lens, the ocean click ripple, the continuous day, the kintsugi glow on the crack, the spine on every page.
 
-## 8. Open items / what he's reviewing now
-- **SHIPPED to main (deployed):** the "WHITE NOON maestro plan" — Fase-1 audit + v4 (perceptibility) + v4b (live-feedback tuning) + v4c (redesign). See `CONCEPT.md` (three-layer law) and commits `e8f82f4` (seams) ← `8d14f27` (v4c) ← `7109b6c` (v4b) ← `671861d` (v4). Harness 22/22, budgets met.
-  - **v4 (perceptibility):** warm visible afternoon/evening day-tint (heliostat ANCHORS warmth floor 16/18/19.5; mask 82%→92%; dead daypart `--fc-tint` rules deleted); motes **gold** (saturated `--sun`, kept `multiply` — NOTE `screen` is invisible on near-white, don't "fix" that way) ; ocean ripple **crests as a ring** + energy varies width/dur/wake not brightness; spine bend **contained**; kintsugi gold separated from the red crack; **og/social image** (`scripts/make-og.mjs`). Independently re-audited clean (Fase 6).
-  - **v4b:** spine ripple slowed 600→1300ms; idle-sigh now perceptible — the cardiac beat **recedes** (×(1−0.6·breath)) so the dot/spine visibly SLOW into a deep breath (dedicated `--fc-dot-sigh`/`--fc-spine-sigh`); **motes on every page** (not /cv); **dev day-scrubber `?fc-hour=17`** previews any hour's light.
-  - **v4c (redesign):** **tighter vertical rhythm** (`--space-section` ~30% down + `--space-section-tight`) + **one unified lane** (`--lane-max: 72ch`, every section shares the left edge; hero no longer thin); **card paper TOOTH** (`.wn-card::before` void noise, 0.03 multiply, `isolation:isolate`); **ocean work-drift** (new `work-drift.js`, flag `workDrift` — work row sways ≤7px with scroll); **organic patina creep-only** (corner tick badge REMOVED — visited = warm border + lower-left moss creep + aged gold glint; a11y sr-only kept; harness Patina assertion updated to creep+label); **seams** (scroll-drawn hairline dividers on #work/#method/#about/#contact, never red).
-  - **His call now:** TINT warm vs cool (currently warm — a 2-number flip of heliostat ANCHORS warmth at 16/18h); WORK GRID is 2-col at `--lane-max:72ch` — bump toward 80–84ch if he wants cards wider.
-  - **Deferred:** slim shipped-but-unused `public/motifs/*` SVGs; populate empty `public/references/`; og:image is root-relative (make absolute if a custom domain is set).
-  - **Orchestration note:** parallel WRITE agents MUST use `isolation:'worktree'` — a redesign workflow without it raced on the shared tree (recovered by re-applying specs deterministically).
-- **His call, not done (offer):** the *composition* notes from the art-director review — work cards feel flat; the void band is bottom-heavy; whether the dead gutter reads deliberate enough. These are his visual-design layout, not the living layer.
-- **Candidates if he wants:** sky sparkles on inner pages (currently home-only); a flagged prototype of the inverted-fog veil (he was curious); project `identity__route` as inline SVG for richer life (currently a static `<img>`, the spine already baton-passes from it).
-- **Fase-1 audit artifacts:** `screenshots/baseline/` (36 labelled shots), `screenshots/audit/` (probe + crops), `screenshots/before-audit/` (the pre-fix "before"). `CONCEPT.md` holds the three-layer concept + shared contracts + the change-set table.
+## 8. Open items / HANDOFF for the next session
+
+### 8.0 ⚠️ READ THIS FIRST — the owner is NOT satisfied yet; this is ongoing
+Guillermo's standing words: **"sigo sin ver muchas cosas… voy a intentar seguir iterando hasta que lo consiga."** Every round, after we ship, he reviews the LIVE site and reports *more* living-layer effects he still can't perceive. **Treat the perceptibility work as OPEN and continuing, not done.** He will keep pushing each element until HE can clearly see/feel it.
+
+**THE CORE TENSION (the most important thing to understand):** WHITE NOON's law is *felt-not-seen / ma / ≤5% tint / ≥90% warm field / ≤1.5% red / whisper-quiet*. For **Guillermo's taste, that spec lands too far toward "not seen."** He repeatedly asks to **exaggerate** — and has explicitly approved exceeding the original subtle budgets (e.g. the v4d "sun" glow runs at 0.10–0.22 opacity, well past the old ≤5% tint guideline). **So: lean MORE visible than the original spec.** Protect the hard invariants that are about *correctness* (exactly ONE red ≤1.5%; AA contrast; reduced-motion honest; harness 22/22; zero deps) — but the "everything ultra-subtle" guideline is **negotiable and he wants it dialed up.** When in doubt, make it more perceptible, deploy, and let him judge live.
+
+**Method that works with him:** he tests hands-on and reports "no veo X." Reproduce + debug with the **`?fc-hour=` scrubber**, `scripts/audit-probe.mjs` (hard numbers), and **before/after screenshot crops** — NEVER hand-wave or argue it "is" visible. Ship each round (push to main → Cloudflare); he reviews live and comes back with the next thing. Small, fast, deploy-each-round loop.
+
+### 8.1 STILL "ON PROBATION" — things he may still say he can't see (verify live each)
+- **The day-tint / light of the hour** — his #1 recurring complaint across EVERY round ("no veo el tinte"). v4 warmed it, v4d added the moving **"sun" glow** (`.fc-sun`, heliostat-driven, traverses low→high→low + east→west, op 0.10–0.22). **Unconfirmed he's happy** — likely the next thing he pushes. Lever: `heliostat.js` sun `warmth * 0.22` (raise for more), and the `.fc-sun` radial size/position; the flat `.fc-tint` wash is still there but faint.
+- **The breathing / idle-sigh** — he said "no veo el respirar" twice. v4b made the cardiac beat *recede* so the dot/spine SLOW into a deep breath after 8s idle (`--fc-dot-sigh` 0.22 scale / `--fc-spine-sigh`). **Requires staying perfectly still 8s** (cursor included) — a real discoverability problem he keeps hitting. Unconfirmed. Levers: the 8s threshold (`idle-sigh.js`), the sigh amplitudes, or a more findable channel.
+- **The moss / "visited"** — "no veo el musgo, nada verde." v4d added a clear **4px `--moss-deep` left band** + stronger creep. Unconfirmed he finds it clear enough.
+- **Motes** — wanted gold + glowing; v4 made them saturated gold (kept `multiply`; `screen` is invisible on near-white — don't "fix" that way). He didn't re-complain but may.
+- **Pulse wave** — was "too fast"; slowed 600→1300ms (v4b). Unconfirmed.
+
+### 8.2 Shipped so far (deployed to main; harness 22/22, budgets met)
+Commits: `aca2e48` (v4d) ← `e8f82f4` (seams) ← `8d14f27` (v4c) ← `7109b6c` (v4b) ← `671861d` (v4). See `CONCEPT.md` for the three-layer law.
+- **v4 perceptibility:** warm afternoon/evening tint; gold motes; ocean ripple crests as a ring + energy→width/dur/wake; spine bend contained; kintsugi gold off the red crack; `og-image` (`scripts/make-og.mjs`). Fase-6 independently audited clean.
+- **v4b:** ripple slowed; idle-sigh via beat-recede; motes on every page; **`?fc-hour=` dev day-scrubber**.
+- **v4c redesign:** tighter rhythm + unified `--lane-max:72ch` lane; card paper-tooth grain (`.wn-card::before`); creep-only patina (badge removed); scroll-drawn **seams**. *(Removed in v4d: the ocean work-drift — he said it "broke the steadiness/the soul.")*
+- **v4d:** removed work-drift; **clear green visited band**; **hero ALIGNED** (it sat ~115px right of every section — `.stage` zeros padding-left but `.hero__inner` kept it; now hero = 259px = sections @1440); **breath line one centered line**; **proof-grid cells get left padding**; **"sun" glow** for a visible day-cycle.
+
+### 8.3 His call / tunables (he may ask for these)
+- **Sun intensity** (too much / too little) — one number in `heliostat.js`. **Tint warm vs cool** — ANCHORS warmth 16/18h.
+- **Work grid** is 2-col at `--lane-max:72ch` — bump toward 80–84ch for wider cards.
+- **Breath line** is centered within the lane — he may want it centered on the full page instead.
+
+### 8.4 Deferred / candidates
+Slim unused `public/motifs/*` SVGs; populate empty `public/references/`; og:image is root-relative (make absolute if a custom domain is set); flagged inverted-fog veil prototype (he was curious); project `identity__route` as inline SVG.
+
+### 8.5 Tools, artifacts & lessons
+- **Verify scripts:** `scripts/baseline-shots.mjs` (36 labelled shots), `scripts/audit-probe.mjs` (hard numbers + crops), `scripts/verify-v4b.mjs`/`verify-v4c.mjs`, `scripts/make-og.mjs`. Outputs under `screenshots/` (gitignored).
+- **`?fc-hour=<0–24>`** previews any hour's light instantly (ephemeral, dev). `?wn=aged|return|amp|fresh|clear` for visit state.
+- **LESSON:** parallel WRITE agents/workflows MUST use `isolation:'worktree'` — a redesign workflow without it raced on the shared tree (recovered by re-applying the returned edit-specs deterministically). Read-only audit agents are safe to parallelize freely.
 
 ## 9. Recent commits (main, newest first)
-`02869e5` living-ocean v3 (breath↔heart, twinkle motes, broad warm lens, static dive, continuous day) · `ea00f9d` fix ocean leak + motes occlusion + continuous gradient · `c86e954` φ + depth + consistency · `feef9a0` spine on every page + remove gold vein + warm lens · `1d8c304` continuous heartbeat + bus + sigh + dive + energy couplings · `0c79694` living-layer v2 (spine, heartbeat, kintsugi…) · `54c1e76` harness + first living layer.
+`aca2e48` v4d (hero align, clear green visited, "sun" glow, remove work-drift) · `e8f82f4` seams · `8d14f27` v4c redesign (lane/rhythm, grain, drift, creep patina) · `7109b6c` v4b (slow pulse, perceptible breath, motes everywhere, ?fc-hour scrubber) · `671861d` v4 perceptibility (Fase-1 audit fixes) · `8f86842` HANDOFF · `02869e5` living-ocean v3.

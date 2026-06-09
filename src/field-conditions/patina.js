@@ -39,7 +39,9 @@ function markVisited(card) {
   tick.setAttribute('aria-hidden', 'true');
   // two-tone moss: a filled corner + a 1px --moss-deep edge along the hypotenuse, so it reads
   // as a small bloom of lichen (settled growth) rather than a hard UI flag
-  tick.innerHTML = '<svg viewBox="0 0 12 12" width="12" height="12"><path d="M0 0 L12 0 L12 12 Z" fill="var(--moss)"/><path d="M0 0 L12 12" stroke="var(--moss-deep)" stroke-width="1" fill="none"/></svg>';
+  // a small rounded moss BLOOM in the corner (concave inner curve) — reads as settled lichen, not a
+  // hard UI dog-ear (Fase 1); the moss-deep edge is thicker so the organic rim is actually visible
+  tick.innerHTML = '<svg viewBox="0 0 12 12" width="100%" height="100%"><path d="M0 0 L12 0 L12 12 Q6 6 0 0 Z" fill="var(--moss)"/><path d="M12 12 Q6 6 0 0" stroke="var(--moss-deep)" stroke-width="1.5" fill="none"/></svg>';
   (card.querySelector('.wn-card__head') || card).appendChild(tick);
   const sr = document.createElement('span');
   sr.className = 'sr-only';

@@ -101,7 +101,7 @@ export function initSpine() {
 
   let drawn = 0, prevDrawn = 0;
   let cursorDocX = -9999, cursorDocY = -9999, influence = 0, targetInfluence = 0, dDirty = true, rang = false;
-  const MAXPULL = 14, FALLOFF = 260;
+  const MAXPULL = 8, FALLOFF = 340; // contained lean (≤8px) + a wider, gentler falloff so the bulge GLIDES, never flicks
   const lenis = window.__wn && window.__wn.lenis;
 
   const progress = () => {
@@ -132,8 +132,9 @@ export function initSpine() {
     influence += (targetInfluence - influence) * (targetInfluence > influence ? 0.09 : 0.045);
     if (fine && (dDirty || influence > 0.01)) {
       const bent = basePts.map(([x, y]) => {
-        const wgt = Math.max(0, 1 - Math.abs(cursorDocY - y) / FALLOFF);
-        const pull = Math.max(-MAXPULL, Math.min(MAXPULL, (cursorDocX - x) * 0.18 * wgt)) * influence;
+        const w0 = Math.max(0, 1 - Math.abs(cursorDocY - y) / FALLOFF);
+        const wgt = w0 * w0; // squared → the active bulge eases in/out instead of snapping between φ-nodes (kills the "weird flick")
+        const pull = Math.max(-MAXPULL, Math.min(MAXPULL, (cursorDocX - x) * 0.12 * wgt)) * influence;
         return [x + pull, y];
       });
       path.setAttribute('d', catmullRom(bent));
@@ -147,7 +148,8 @@ export function initSpine() {
     const beat = heartbeatBeat(phase);
     const breath = heartbeatBreath(phase);
     svg.style.setProperty('--fc-spine-beat', beat.toFixed(3));
-    svg.style.setProperty('--fc-spine-breath', (breath + field.breath * 0.4).toFixed(3)); // + the field's slow sigh (one organism)
+    svg.style.setProperty('--fc-spine-breath', breath.toFixed(3));        // cardiac diastole
+    svg.style.setProperty('--fc-spine-sigh', field.breath.toFixed(3));    // the field's slow rest-breath — its OWN perceptible channel (the spine breathes deeper as the field rests)
 
     if (LEN > 1) {
       const tip = path.getPointAtLength(dLen);

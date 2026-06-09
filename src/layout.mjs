@@ -118,6 +118,17 @@ export function renderPage({ title, description, active = '', main, content }) {
 <meta name="description" content="${escAttr(description)}">
 <meta name="author" content="${escAttr(content.identity.name)}">
 <meta name="color-scheme" content="light">
+<meta property="og:type" content="website">
+<meta property="og:title" content="${escAttr(title)}">
+<meta property="og:description" content="${escAttr(description)}">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${escAttr(content.identity.name + ' — GenAI engineer')}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${escAttr(title)}">
+<meta name="twitter:description" content="${escAttr(description)}">
+<meta name="twitter:image" content="/og-image.png">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/SpaceGrotesk-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/DMSans-400.woff2" as="font" type="font/woff2" crossorigin>

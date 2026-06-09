@@ -21,9 +21,9 @@ const ANCHORS = [
   [7.5, 1.00, 5.0, 0.00], // amanecer cálido (warm, full)
   [11, 0.70, 1.6, 0.00],  // día
   [13, 0.50, 0.0, 0.00],  // mediodía limpio (clear)
-  [16, 0.32, 2.0, 0.00],  // tarde
-  [18, 0.12, 4.2, 0.00],  // tarde fría (cool)
-  [19.5, 0.85, 5.0, 0.12],// crepúsculo (warm sunset glow)
+  [16, 0.55, 3.2, 0.00],  // tarde — ya entibiando (warmth floor up so the afternoon reads warm, not cool-grey)
+  [18, 0.70, 4.8, 0.00],  // atardecer dorado (warm golden, clearly visible — the owner's chosen direction)
+  [19.5, 0.88, 5.0, 0.12],// crepúsculo (warm sunset glow, the day's peak presence)
   [21, 0.42, 4.2, 0.42],  // night falls
   [24, 0.30, 4.0, 0.60],
 ];

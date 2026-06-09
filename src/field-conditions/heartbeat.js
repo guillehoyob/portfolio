@@ -21,12 +21,13 @@ export function initHeartbeat(config) {
         const ph = heartbeatPhase();
         const calm = 1 - 0.4 * field.energy; // the rest-breath recedes while you work, surfaces when you pause
         dot.style.setProperty('--fc-dot-beat', heartbeatBeat(ph).toFixed(3));
-        dot.style.setProperty('--fc-dot-breath', (heartbeatBreath(ph) * calm + field.breath * 0.4).toFixed(3)); // + the field's slow sigh (coupled)
+        dot.style.setProperty('--fc-dot-breath', (heartbeatBreath(ph) * calm).toFixed(3)); // cardiac diastole
+        dot.style.setProperty('--fc-dot-sigh', field.breath.toFixed(3));   // the field's slow rest-breath — a dedicated, PERCEPTIBLE channel (the dot swells slowly as the field rests with you)
         return true; // continuous pulse — keeps the shared loop alive on the hero
       };
       addTicker(beat);
       // live OS reduced-motion toggle → stop writing the vars (CSS already neutralises them)
-      onReducedMotionChange((r) => { if (r) { removeTicker(beat); dot.style.removeProperty('--fc-dot-beat'); dot.style.removeProperty('--fc-dot-breath'); } });
+      onReducedMotionChange((r) => { if (r) { removeTicker(beat); dot.style.removeProperty('--fc-dot-beat'); dot.style.removeProperty('--fc-dot-breath'); dot.style.removeProperty('--fc-dot-sigh'); } });
     }
   }
 

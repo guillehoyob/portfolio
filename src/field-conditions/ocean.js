@@ -37,7 +37,7 @@ export function initOcean() {
       ring.style.top = e.clientY + 'px';
       ring.style.setProperty('--fc-ring-scale', (8 + en * 7).toFixed(1)); // 8→15: a clearly wider swell when you were moving
       ring.style.setProperty('--fc-ring-dur', dur.toFixed(2) + 's');
-      ring.style.setProperty('--fc-ring-op', ((0.26 - en * 0.1) * opMul).toFixed(3));
+      ring.style.setProperty('--fc-ring-op', ((0.30 + en * 0.03) * opMul).toFixed(3)); // energy varies WIDTH/DURATION/wake, not brightness — a heavier touch is no longer dimmer
       ring.style.setProperty('--fc-ring-delay', delay.toFixed(2) + 's');
       let done = false;
       const finish = () => { if (done) return; done = true; ring.remove(); live = Math.max(0, live - 1); };
@@ -46,7 +46,7 @@ export function initOcean() {
       layer.appendChild(ring);
     };
     spawn(1, 0);
-    if (en > 0.3) spawn(0.5, dur * 0.146); // a still sea drops ONE ring on a calm tap; a heavier touch leaves a φ-delayed wake
+    if (en > 0.3) spawn(0.7, dur * 0.146); // a still sea drops ONE ring on a calm tap; a heavier touch leaves a φ-delayed wake (now visible)
     addImpulse(e.clientX, e.clientY, 0.6 + en * 0.6);
   }, { passive: true });
 }

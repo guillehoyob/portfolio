@@ -9,7 +9,7 @@
  */
 import { addTicker, removeTicker, field, onReducedMotionChange } from './index.js';
 
-const COUNT = 9;
+const COUNT = 16; // a fuller sprinkling of caught sparks (still slow + low-opacity → calm, not a starfield)
 
 export function initParticles() {
   if (!document.getElementById('hero')) return; // the landing field

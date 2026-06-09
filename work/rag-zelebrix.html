@@ -8,6 +8,17 @@
 <meta name="description" content="RAG chatbot answering from a multi-tenant payments SaaS knowledge base.">
 <meta name="author" content="Guillermo Hoyo Bravo">
 <meta name="color-scheme" content="light">
+<meta property="og:type" content="website">
+<meta property="og:title" content="RAG Zelebrix — Guillermo Hoyo Bravo">
+<meta property="og:description" content="RAG chatbot answering from a multi-tenant payments SaaS knowledge base.">
+<meta property="og:image" content="/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Guillermo Hoyo Bravo — GenAI engineer">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="RAG Zelebrix — Guillermo Hoyo Bravo">
+<meta name="twitter:description" content="RAG chatbot answering from a multi-tenant payments SaaS knowledge base.">
+<meta name="twitter:image" content="/og-image.png">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/SpaceGrotesk-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/DMSans-400.woff2" as="font" type="font/woff2" crossorigin>
@@ -643,8 +654,8 @@ a { color: inherit; }
 }
 .wn-card__microrow b { color: var(--ink); font-weight: 400; }
 /* visited (Patina, §5.5) — static honest state: warmed border + moss tick */
-.wn-card--visited { border-color: color-mix(in srgb, var(--moss) 32%, var(--hairline)); } /* whole-edge "I've been here", more felt than the 12px tick */
-.wn-card__patina { position: absolute; top: var(--space-3); right: var(--space-3); width: 12px; height: 12px; flex: none; line-height: 0; }
+.wn-card--visited { border-color: color-mix(in srgb, var(--moss) 40%, var(--hairline)); } /* whole-edge "I've been here" — the PRIMARY at-a-glance cue, deeper than the corner tick (Fase 1) */
+.wn-card__patina { position: absolute; top: var(--space-3); right: var(--space-3); width: 14px; height: 14px; flex: none; line-height: 0; }
 /* non-interactive hub card (the personal-page planned stack) */
 .wn-card--static { cursor: default; }
 .wn-card--static:hover { transform: none; background: var(--field-1); box-shadow: none; }
@@ -1114,8 +1125,10 @@ html.fc-hero-revealed .hero__greet, html.fc-hero-revealed .hero__cta { animation
    the Red Spine reads): JS writes --fc-dot-beat each frame; CSS maps it to a
    scale + opacity swell. scale 1→1.4 on the lub, on the 8px flex-item dot. */
 html.fc-motion .wn-status__dot--live {
-  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4 + var(--fc-dot-breath, 0) * 0.06));
-  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha)) + var(--fc-dot-breath, 0) * 0.05);
+  /* --fc-dot-sigh: the field's slow 6s rest-breath (idle ≥8s) given its OWN visible swell —
+     a calm ~16% size / 10% opacity bloom, distinct from the fast cardiac beat (no new fog) */
+  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4 + var(--fc-dot-breath, 0) * 0.06 + var(--fc-dot-sigh, 0) * 0.16));
+  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha)) + var(--fc-dot-breath, 0) * 0.05 + var(--fc-dot-sigh, 0) * 0.10);
 }
 /* reduced motion: dot solid at full opacity, no beat; label still renders (§5.6) */
 @media (prefers-reduced-motion: reduce) {
@@ -1187,17 +1200,17 @@ html.fc-motion .wn-void.fc-crack .wn-void__crack { transform: scaleX(1); transit
   background: var(--fc-tint); pointer-events: none;
   transition: background-color var(--dur-ambient-min) linear; /* the hour's colour crossfades smoothly */
   /* TOP-DOWN wash: the sky's light comes from above and fades toward the foot */
-  -webkit-mask-image: linear-gradient(180deg, #000, color-mix(in srgb, #000 28%, transparent) 48%, transparent 82%);
-  mask-image: linear-gradient(180deg, #000, color-mix(in srgb, #000 28%, transparent) 48%, transparent 82%);
+  /* mask floor lowered (82%→92%, mid 40%@55%) so the wash survives further down the hero →
+     ~doubles the effective alpha without raising the ≤5% peak cap (Fase 1: the mask halved the tint) */
+  -webkit-mask-image: linear-gradient(180deg, #000, color-mix(in srgb, #000 40%, transparent) 55%, transparent 92%);
+  mask-image: linear-gradient(180deg, #000, color-mix(in srgb, #000 40%, transparent) 55%, transparent 92%);
 }
-html[data-daypart="dawn"]    { --fc-tint: color-mix(in srgb, var(--sun) 5%, transparent); }
-html[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 5%, transparent); }
+/* NOTE: Heliostat writes --fc-tint as an INLINE style every minute, which out-specifies any
+   html[data-daypart] --fc-tint rule — so per-daypart tint rules here would be DEAD CODE (Fase 1).
+   Only the night --fc-field / --fc-pulse-alpha swap below is reachable (JS doesn't set those). */
 html[data-daypart="night"]   { --fc-field: var(--field-0-dim); --fc-pulse-alpha: 1; }
 /* the field itself crossfades at the night boundary */
 html.fc-motion body { transition: background-color var(--dur-ambient-min) linear; }
-/* Patina amplification (visits ≥3): +1% tint, hard cap 5% (§5.1 / §5.5) */
-html.fc-amp[data-daypart="dawn"]    { --fc-tint: color-mix(in srgb, var(--sun) 5%, transparent); }
-html.fc-amp[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 5%, transparent); }
 @media (prefers-reduced-motion: reduce) { .fc-tint, body { transition: none; } }
 
 /* ===== Stage 5 — Crosswind (§5.3): cursor haze + multiply warming spot ===== */
@@ -1233,8 +1246,10 @@ html.fc-return .greet-return { display: inline; }
   stroke: var(--signal); stroke-width: 2;
   stroke-dasharray: var(--fc-spine-len, 4000);
   stroke-dashoffset: var(--fc-spine-len, 4000);
-  /* faint red trace that breathes with the heartbeat; hero fade-in via --fc-spine-fade */
-  opacity: calc((0.42 + var(--fc-spine-breath, 0) * 0.04) * var(--fc-spine-fade, 1));
+  /* faint red trace that breathes with the heartbeat; hero fade-in via --fc-spine-fade.
+     --fc-spine-sigh: the thread breathes DEEPER as the field rests (idle sigh) — opacity only, so
+     the red AREA is unchanged (stays ≤1.5%); the whole organism visibly rests with you. */
+  opacity: calc((0.42 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-spine-sigh, 0) * 0.16) * var(--fc-spine-fade, 1));
 }
 /* (kintsugi gold lives ONLY on the void CRACK — the actual break — never on the
    continuous spine thread; gilding a thread that isn't broken read as an ugly dashed line.) */
@@ -1267,7 +1282,10 @@ html.fc-return .greet-return { display: inline; }
 .fc-sky { position: fixed; inset: 0; z-index: var(--z-warm); pointer-events: none; overflow: hidden; }
 .fc-mote {
   position: absolute; top: 0; left: 0; border-radius: 50%; mix-blend-mode: multiply; opacity: 0; /* JS drives the twinkle */
-  background: radial-gradient(circle, color-mix(in srgb, var(--fc-sky-hue, var(--sun)) 60%, transparent), transparent 58%);
+  /* saturated GOLD core (multiply of gold over white → a warm gold speck that catches light, AA-safe).
+     Stays hour-aware via --fc-sky-hue but gold-dominant so it reads gold, not khaki (Fase 1).
+     (screen/additive was rejected: on a near-white field it lightens toward white = invisible.) */
+  background: radial-gradient(circle, color-mix(in srgb, var(--sun) 82%, var(--fc-sky-hue, var(--sun))), transparent 60%);
 }
 
 /* ===== Stage 6 — Patina kintsugi aging (§5.5 extension): healed history =====
@@ -1281,10 +1299,12 @@ html.fc-return .greet-return { display: inline; }
    by tier. Gold (~44° hue) is unmistakably not the red signal (~9°). */
 /* glow kept tight so the gold reads as a SEAM tracing the break, not an ambient halo */
 /* the GLOW (the gold light of the mend) AND the seam — both kept, both deepen with use */
-html.fc-return .wn-void__crack { box-shadow: 0 0 6px color-mix(in srgb, var(--gold-deep) 48%, transparent); }
+html.fc-return .wn-void__crack { box-shadow: 0 0 9px color-mix(in srgb, var(--gold-deep) 52%, transparent); }
 html.fc-return .wn-void__crack::after {
-  content: ""; position: absolute; left: 0; right: 0; top: 3px; height: 1px;
-  background: var(--gold-deep); opacity: 0.6; pointer-events: none;
+  /* a parallel gold thread CLEAR of the red crack (top 5px, 1.5px) so the mend reads as its own
+     seam, not a red-fused edge (Fase 1: the gold sat 3px under the red and merged into it) */
+  content: ""; position: absolute; left: 0; right: 0; top: 5px; height: 1.5px;
+  background: var(--gold-deep); opacity: 0.62; pointer-events: none;
 }
 html.fc-amp  .wn-void__crack { box-shadow: 0 0 8px color-mix(in srgb, var(--gold-deep) 60%, transparent); }
 html.fc-amp  .wn-void__crack::after { opacity: 0.78; }
@@ -1292,12 +1312,12 @@ html.fc-aged .wn-void__crack { box-shadow: 0 0 11px color-mix(in srgb, var(--gol
 html.fc-aged .wn-void__crack::after { opacity: 0.92; }
 /* deepest tier: a second hairline gold seam above the break — fully veined */
 html.fc-aged .wn-void__crack::before {
-  content: ""; position: absolute; left: 0; right: 0; top: -3px; height: 1px;
+  content: ""; position: absolute; left: 0; right: 0; top: -5px; height: 1.5px;
   background: var(--gold); opacity: 0.5; pointer-events: none;
 }
 /* visited cards ripen: the moss border warms further on return; the deepest tier
    adds one tiny gold fleck to the patina tick (the card, too, has been repaired) */
-html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 44%, var(--hairline)); }
+html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 52%, var(--hairline)); }
 
 /* ===== Ocean (new): click → one faint SKY ripple (the field responds; never red) ===== */
 .fc-ocean { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
@@ -1308,9 +1328,13 @@ html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 
   /* scale / duration / start-opacity are written by JS from the field energy (heavy vs light) */
   animation: wn-ocean var(--fc-ring-dur, 0.6s) var(--ease-run) var(--fc-ring-delay, 0s) forwards;
 }
+/* opacity crests at MID-expansion (when it is a recognizable RING), not at the first 5px-dot frame —
+   the Fase 1 fix for "brightest when tiny, invisible when a swell". Scale grows steadily. */
 @keyframes wn-ocean {
-  from { transform: scale(0.4); opacity: var(--fc-ring-op, 0.22); } /* sky stays a faint cool pulse */
-  to   { transform: scale(var(--fc-ring-scale, 9)); opacity: 0; }
+  0%   { transform: scale(0.4); opacity: 0; }
+  20%  { transform: scale(calc(var(--fc-ring-scale, 9) * 0.42)); opacity: var(--fc-ring-op, 0.30); }
+  55%  { transform: scale(calc(var(--fc-ring-scale, 9) * 0.78)); opacity: calc(var(--fc-ring-op, 0.30) * 0.6); }
+  100% { transform: scale(var(--fc-ring-scale, 9)); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .fc-ocean { display: none; } }
 

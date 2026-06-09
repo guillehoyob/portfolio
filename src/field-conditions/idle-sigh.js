@@ -18,7 +18,7 @@ export function initIdleSigh() {
 
   let lastActive = Date.now();
   let sighing = false, sighStart = 0;
-  const stopSigh = () => { sighing = false; root.style.removeProperty('--fc-haze-opacity'); };
+  const stopSigh = () => { sighing = false; field.breath = 0; root.style.removeProperty('--fc-haze-opacity'); };
   const bump = () => { lastActive = Date.now(); if (sighing) stopSigh(); };
   addEventListener('scroll', bump, { passive: true });
   addEventListener('pointermove', bump, { passive: true });
@@ -30,8 +30,10 @@ export function initIdleSigh() {
       else return false; // not yet — the hero heartbeat keeps the loop alive to re-check
     }
     const t = (now - sighStart) / SIGH_MS;
-    if (t >= 1) { stopSigh(); return false; }
-    root.style.setProperty('--fc-haze-opacity', (0.05 + Math.sin(t * Math.PI) * 0.06).toFixed(4)); // 0.05→0.11→0.05 (the cap, so it's actually visible)
+    if (t >= 1) { stopSigh(); lastActive = now; return false; } // reset the clock → it sighs AGAIN after another 8s of rest
+    const breath = Math.sin(t * Math.PI);
+    field.breath = breath; // publish the field's slow breath → the heartbeat dot + spine breathe WITH it (one organism)
+    root.style.setProperty('--fc-haze-opacity', (0.05 + breath * 0.06).toFixed(4)); // 0.05→0.11→0.05 (the cap, so it's visible)
     return true;
   };
   addTicker(ticker);

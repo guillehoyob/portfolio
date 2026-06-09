@@ -8,7 +8,8 @@
  */
 import { onReducedMotionChange } from './index.js';
 
-const SEL = '.wn-void, .proof__cell, .principle, .phase, .about__photo, .stacktable, .toolchain, .wn-breath, .identity';
+// broad: hovering ANY content block warms it (consistent everywhere, not just a few cells)
+const SEL = '.wn-card, .wn-void, .proof__cell, .principle, .phase, .about__photo, .stacktable, .toolchain, .wn-breath, .identity, .prose, .h2, .related-cards, .artifacts li, .monolist li, .breaks li, .footer__col';
 
 export function initWarmLens() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;

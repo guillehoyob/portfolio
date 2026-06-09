@@ -97,7 +97,7 @@ export function heartbeatBreath(phase) {
    and decaying back to calm. The law (so it never breaches a §2 cap by stacking): energy
    scales an amplitude ONLY where a hard cap already clamps it. Strata: SKY reads energy;
    OCEAN reads energy + impulses; EARTH reads NEITHER (memory must not ripen on a fast scroll). */
-export const field = { cursorX: 0, cursorY: 0, cursorVel: 0, scrollVel: 0, energy: 0, impulses: [] };
+export const field = { cursorX: 0, cursorY: 0, cursorVel: 0, scrollVel: 0, energy: 0, breath: 0, impulses: [] };
 export function addImpulse(x, y, force) {
   field.impulses.push({ x, y, force: force || 1, t: Date.now() });
   if (field.impulses.length > 4) field.impulses.shift();
@@ -112,13 +112,13 @@ let _cx = 0, _cy = 0, _hasCursor = false;
 addEventListener('pointermove', (e) => {
   if (_hasCursor) field.cursorVel = Math.min(1, Math.hypot(e.clientX - _cx, e.clientY - _cy) / 40);
   _cx = field.cursorX = e.clientX; _cy = field.cursorY = e.clientY; _hasCursor = true;
-  if (field.cursorVel > 0.02) field.energy = Math.min(1, field.energy + field.cursorVel * 0.03);
+  if (field.cursorVel > 0.02) field.energy = Math.min(1, field.energy + field.cursorVel * 0.06);
   wake();
 }, { passive: true });
 // the energy integrator — decays toward calm each frame; prunes spent impulses. NEVER keeps
 // the loop alive on its own (returns work only while energy/impulses persist), so idle-suspend holds.
 function integrateEnergy() {
-  if (field.energy > 0) { field.energy *= 0.94; if (field.energy < 0.0008) field.energy = 0; }
+  if (field.energy > 0) { field.energy *= 0.97; if (field.energy < 0.0008) field.energy = 0; } // slower decay → the stir LINGERS, so click/mote variation is perceptible
   if (field.impulses.length) { const now = Date.now(); field.impulses = field.impulses.filter((im) => now - im.t < 700); }
   field.cursorVel *= 0.9;
   return field.energy > 0.001 || field.impulses.length > 0;

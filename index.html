@@ -1133,7 +1133,7 @@ html.fc-motion .wn-status__dot--live {
 }
 html.fc-firstbreath .hero__chevron {
   opacity: 0;
-  animation: wn-chevron-reveal var(--dur-600) var(--ease-run) 4s forwards;
+  animation: wn-chevron-reveal var(--dur-600) var(--ease-run) 1.5s forwards; /* appears sooner → findable */
 }
 html.fc-firstbreath .hero__chevron.fc-breathed {
   opacity: 0.85;
@@ -1185,7 +1185,10 @@ html.fc-motion .wn-void.fc-crack .wn-void__crack { transform: scaleX(1); transit
 .fc-tint {
   position: fixed; inset: 0; z-index: var(--z-haze);
   background: var(--fc-tint); pointer-events: none;
-  transition: background-color var(--dur-ambient-min) linear;
+  transition: background-color var(--dur-ambient-min) linear; /* the hour's colour crossfades smoothly */
+  /* TOP-DOWN wash: the sky's light comes from above and fades toward the foot */
+  -webkit-mask-image: linear-gradient(180deg, #000, color-mix(in srgb, #000 28%, transparent) 48%, transparent 82%);
+  mask-image: linear-gradient(180deg, #000, color-mix(in srgb, #000 28%, transparent) 48%, transparent 82%);
 }
 html[data-daypart="dawn"]    { --fc-tint: color-mix(in srgb, var(--sun) 5%, transparent); }
 html[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 5%, transparent); }
@@ -1261,10 +1264,10 @@ html.fc-return .greet-return { display: inline; }
 /* z-index ABOVE content (so they're not occluded by the opaque body bg, the old bug) +
    mix-blend-mode: multiply → soft WARM dust that only ever DARKENS (so text contrast can only
    improve — AA-safe over everything). Pointer-events:none, faint, transient. */
-.fc-sky { position: fixed; inset: 0; z-index: var(--z-warm); pointer-events: none; overflow: hidden; opacity: 0.7; transition: opacity var(--dur-600) var(--ease-run); }
+.fc-sky { position: fixed; inset: 0; z-index: var(--z-warm); pointer-events: none; overflow: hidden; }
 .fc-mote {
-  position: absolute; top: 0; left: 0; border-radius: 50%; mix-blend-mode: multiply;
-  background: radial-gradient(circle, color-mix(in srgb, var(--sun) 40%, transparent), transparent 62%);
+  position: absolute; top: 0; left: 0; border-radius: 50%; mix-blend-mode: multiply; opacity: 0; /* JS drives the twinkle */
+  background: radial-gradient(circle, color-mix(in srgb, var(--fc-sky-hue, var(--sun)) 60%, transparent), transparent 58%);
 }
 
 /* ===== Stage 6 — Patina kintsugi aging (§5.5 extension): healed history =====
@@ -1313,13 +1316,28 @@ html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 
 
 /* ===== Warm lens (new): the cursor CLARIFIES/warms the element it touches (additive light,
    never a subtractive fog — so the pristine field + reading stay intact). Whisper-quiet. ===== */
-.fc-lit { transition: box-shadow var(--dur-300) var(--ease-react), text-shadow var(--dur-300) var(--ease-react); }
-.proof__cell.fc-lit, .principle.fc-lit, .phase.fc-lit, .about__photo.fc-lit, .stacktable.fc-lit, .toolchain.fc-lit, .identity.fc-lit {
+/* EVERY warmed element gets a faint warm text-glow (so it reads the same everywhere you hover);
+   bounded blocks add a warm frame, cards warm their border (complementing their own lift). */
+.fc-lit { transition: box-shadow var(--dur-300) var(--ease-react), text-shadow var(--dur-300) var(--ease-react), border-color var(--dur-300) var(--ease-react); text-shadow: 0 0 16px color-mix(in srgb, var(--sun) 16%, transparent); }
+.wn-card.fc-lit { border-color: color-mix(in srgb, var(--sun) 35%, var(--hairline)); }
+.proof__cell.fc-lit, .principle.fc-lit, .phase.fc-lit, .about__photo.fc-lit, .stacktable.fc-lit, .toolchain.fc-lit, .identity.fc-lit, .related-cards.fc-lit {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--sun) 18%, transparent), 0 8px 30px -12px color-mix(in srgb, var(--sun) 45%, transparent);
 }
 .wn-void.fc-lit { box-shadow: inset 0 0 180px -60px color-mix(in srgb, var(--sun) 30%, transparent); }
-.wn-breath.fc-lit { text-shadow: 0 0 24px color-mix(in srgb, var(--sun) 22%, transparent); }
 @media (prefers-reduced-motion: reduce) { .fc-lit { box-shadow: none; text-shadow: none; } }
+
+/* ===== Vertical DIVE page transition — STATIC (inlined) so cross-document View Transitions
+   engage reliably at parse time (a JS-injected opt-in can be too late for the first navigation).
+   The old page sinks + blurs, the new page surfaces from above into clarity. ===== */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: wn-dive-out 120ms var(--ease-run) both; }
+::view-transition-new(root) { animation: wn-dive-in 200ms var(--ease-run) both; }
+@keyframes wn-dive-out { to { filter: blur(6px); opacity: 0.4; transform: translateY(20px) scale(0.988); } }
+@keyframes wn-dive-in { from { filter: blur(6px); opacity: 0.4; transform: translateY(-30px) scale(0.988); } to { filter: blur(0); opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+}
 html.fc-aged .wn-card--visited .wn-card__patina::after {
   content: ""; position: absolute; right: 0; bottom: 0; width: 4px; height: 4px;
   background: var(--gold); opacity: 0.5; pointer-events: none;
@@ -1364,7 +1382,7 @@ html.fc-aged .wn-card--visited .wn-card__patina::after {
       </div>
     </div>
   </div>
-  <a class="hero__chevron" href="#proof" aria-label="Scroll to content"><svg class="wn-chevron" viewBox="0 0 16 16" width="22" height="22" aria-hidden="true"><path d="M 2 5 L 8 11 L 14 5" fill="none" stroke="var(--signal)" stroke-width="2" stroke-linecap="square"/></svg></a>
+  <a class="hero__chevron" href="#proof" aria-label="Scroll to content"><svg class="wn-chevron" viewBox="0 0 16 16" width="28" height="28" aria-hidden="true"><path d="M 2 5 L 8 11 L 14 5" fill="none" stroke="var(--signal)" stroke-width="2" stroke-linecap="square"/></svg></a>
 </header>
 
 <div class="shell stage"><div class="lane">

@@ -232,10 +232,7 @@ try {
   const c = await newCtx();
   const page = await c.newPage();
   await page.goto(HOME, { waitUntil: 'networkidle' });
-  const styleInjected = await page.evaluate(() => {
-    const s = document.querySelector('style[data-fc="vault-blur"]');
-    return !!s && /blur\(/.test(s.textContent);
-  });
+  const styleInjected = await page.evaluate(() => [...document.querySelectorAll('style')].some((s) => /@view-transition/.test(s.textContent) && /wn-dive/.test(s.textContent)));
   // mobile menu backdrop blur (390px)
   const m = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const mp = await m.newPage();
@@ -486,10 +483,7 @@ try {
   const page = await c.newPage();
   await page.goto(HOME, { waitUntil: 'networkidle' });
   await page.waitForTimeout(200);
-  const dive = await page.evaluate(() => {
-    const s = document.querySelector('style[data-fc="vault-blur"]');
-    return s ? /wn-dive-out[\s\S]*?translateY/.test(s.textContent) : false;
-  });
+  const dive = await page.evaluate(() => [...document.querySelectorAll('style')].some((s) => /wn-dive-out[\s\S]*?translateY/.test(s.textContent)));
   rec('Vertical dive', true, dive, `page transition sinks/surfaces (wn-dive translateY)=${dive}`, dive);
   await c.close();
 } catch (e) { rec('Vertical dive', true, false, 'ERR ' + e.message, false); }

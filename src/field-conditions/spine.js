@@ -147,7 +147,7 @@ export function initSpine() {
     const beat = heartbeatBeat(phase);
     const breath = heartbeatBreath(phase);
     svg.style.setProperty('--fc-spine-beat', beat.toFixed(3));
-    svg.style.setProperty('--fc-spine-breath', breath.toFixed(3));
+    svg.style.setProperty('--fc-spine-breath', (breath + field.breath * 0.4).toFixed(3)); // + the field's slow sigh (one organism)
 
     if (LEN > 1) {
       const tip = path.getPointAtLength(dLen);

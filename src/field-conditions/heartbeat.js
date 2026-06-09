@@ -21,7 +21,7 @@ export function initHeartbeat(config) {
         const ph = heartbeatPhase();
         const calm = 1 - 0.4 * field.energy; // the rest-breath recedes while you work, surfaces when you pause
         dot.style.setProperty('--fc-dot-beat', heartbeatBeat(ph).toFixed(3));
-        dot.style.setProperty('--fc-dot-breath', (heartbeatBreath(ph) * calm).toFixed(3));
+        dot.style.setProperty('--fc-dot-breath', (heartbeatBreath(ph) * calm + field.breath * 0.4).toFixed(3)); // + the field's slow sigh (coupled)
         return true; // continuous pulse — keeps the shared loop alive on the hero
       };
       addTicker(beat);

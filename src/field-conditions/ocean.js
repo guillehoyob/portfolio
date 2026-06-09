@@ -35,7 +35,7 @@ export function initOcean() {
       ring.className = 'fc-ocean__ring';
       ring.style.left = e.clientX + 'px';
       ring.style.top = e.clientY + 'px';
-      ring.style.setProperty('--fc-ring-scale', (8 + en * 5).toFixed(1)); // 8→13 (Fibonacci span)
+      ring.style.setProperty('--fc-ring-scale', (8 + en * 7).toFixed(1)); // 8→15: a clearly wider swell when you were moving
       ring.style.setProperty('--fc-ring-dur', dur.toFixed(2) + 's');
       ring.style.setProperty('--fc-ring-op', ((0.26 - en * 0.1) * opMul).toFixed(3));
       ring.style.setProperty('--fc-ring-delay', delay.toFixed(2) + 's');
@@ -46,7 +46,7 @@ export function initOcean() {
       layer.appendChild(ring);
     };
     spawn(1, 0);
-    if (en > 0.45) spawn(0.5, dur * 0.146); // a still sea drops ONE ring on a calm tap; a heavier touch leaves a φ-delayed wake
+    if (en > 0.3) spawn(0.5, dur * 0.146); // a still sea drops ONE ring on a calm tap; a heavier touch leaves a φ-delayed wake
     addImpulse(e.clientX, e.clientY, 0.6 + en * 0.6);
   }, { passive: true });
 }

@@ -664,12 +664,12 @@ a { color: inherit; }
 .wn-card__microrow b { color: var(--ink); font-weight: 400; }
 /* visited (Patina, §5.5) — static honest state: warmed border + moss tick */
 .wn-card--visited {
-  border-color: color-mix(in srgb, var(--moss) 40%, var(--hairline)); /* whole-edge "I've been here" — the PRIMARY at-a-glance cue */
-  /* organic patina: a faint damp-moss tint creeping up from the lower-left (the earth corner) —
-     the passage of time settling INTO the card, felt-not-badged (deepens by visit tier below) */
-  background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%);
+  border-color: color-mix(in srgb, var(--moss) 40%, var(--hairline));
+  border-left: 4px solid var(--moss-deep); /* a CLEAR "you've opened this" — a band of moss grown along the earth (left) edge; reads at a glance, still organic, not a badge */
+  /* organic patina: damp moss creeping up from the lower-left earth corner — the passage of time */
+  background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 22%, transparent), transparent 62%);
 }
-.wn-card--visited:hover, .wn-card--visited:active { background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%); }
+.wn-card--visited:hover, .wn-card--visited:active { background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 22%, transparent), transparent 62%); }
 /* (corner tick removed — visited aging now lives in the moss creep + warmed border) */
 /* non-interactive hub card (the personal-page planned stack) */
 .wn-card--static { cursor: default; }
@@ -782,11 +782,10 @@ main { flex: 1 0 auto; }
    pull-quote and the stat row read as one held pause, not two thin sections */
 .section--tight + .section--tight { padding-top: 0; }
 
-/* breath line — give the Cormorant pull-quote room to USE the lane (was capped at
-   24ch, which left it stranded against the wide gutter). Wider measure + balance
-   keeps it two calm lines while sharing the section's left edge. (Overrides the
-   base .wn-breath measure in components.css — layout.css cascades after it.) */
-.section .wn-breath { max-width: 34ch; }
+/* breath line — a single CENTERED pull-quote that USES the lane width (was a 24ch
+   block stranded left in two lines). One line on desktop, balanced wrap on small
+   screens. (Overrides the base .wn-breath measure in components.css.) */
+.section .wn-breath { max-width: none; text-align: center; text-wrap: balance; margin-inline: auto; }
 
 .eyebrow {
   font-family: var(--font-mono);
@@ -909,6 +908,11 @@ main { flex: 1 0 auto; }
    the column no longer reads thin against the proof/work blocks below it */
 .hero__lane { max-width: var(--lane-max); }
 @media (min-width: 1024px) { .hero__lane { margin-left: var(--gutter-dead); } }
+/* the hero must hang off the SAME left edge as the stage sections, which zero their
+   padding-left and rely solely on the gutter-dead margin (.stage). hero__inner keeps
+   the gutter-page padding, so without this the hero sat 1×gutter-page (~115px @1440)
+   to the RIGHT of every section. Zero the hero's left padding from tablet up to match. */
+@media (min-width: 768px) { .hero__inner { padding-left: 0; } }
 /* tablet (768–1023): give the hero + stage a PARTIAL dead gutter so the up-left
    axis bias survives — without it the block floats flush-left, reading as a
    stretched phone layout (the dead gutter only existed ≥1024 before) */
@@ -953,7 +957,8 @@ main { flex: 1 0 auto; }
 }
 /* stat cells sit flush on the lane's left edge (same edge as every section) and
    breathe via a tighter, even vertical padding that matches the new rhythm */
-.proof__cell { padding: var(--space-8) var(--space-8) var(--space-8) 0; border-right: 1px solid var(--hairline); }
+.proof__cell { padding: var(--space-8); border-right: 1px solid var(--hairline); }
+.proof__cell:first-child { padding-left: 0; } /* first cell flush on the lane edge; the rest get air between the divider and the text */
 .proof__cell:last-child { border-right: none; }
 @media (max-width: 768px) {
   .proof { grid-template-columns: 1fr; }
@@ -1264,6 +1269,18 @@ html[data-daypart="night"]   { --fc-field: var(--field-0-dim); --fc-pulse-alpha:
 html.fc-motion body { transition: background-color var(--dur-ambient-min) linear; }
 @media (prefers-reduced-motion: reduce) { .fc-tint, body { transition: none; } }
 
+/* ===== "Sun" — the hour's light made VISIBLE in one part of the field (the flat top-down
+   tint was imperceptible). A soft warm radial that travels low→high→low and east→west through
+   the day and warms at dawn/dusk. Warm-on-warm so the field stays warm-white (no new hue, no
+   red); JS (heliostat) drives position + intensity. Behind all content (z-haze). */
+.fc-sun {
+  position: fixed; inset: 0; z-index: var(--z-haze); pointer-events: none;
+  background: radial-gradient(38vw 34vw at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 62%);
+  opacity: var(--fc-sun-op, 0);
+  transition: opacity var(--dur-ambient-min) linear;
+}
+@media (prefers-reduced-motion: reduce) { .fc-sun { transition: none; } }
+
 /* ===== Stage 5 — Crosswind (§5.3): cursor haze + multiply warming spot ===== */
 .fc-crosswind {
   position: fixed; top: 0; left: 0; pointer-events: none; border-radius: 50%;
@@ -1370,8 +1387,10 @@ html.fc-aged .wn-void__crack::before {
    settles one tiny gold glint INTO the moss creep (the card, too, has been repaired) */
 html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 52%, var(--hairline)); }
 /* the moss creep deepens with the visit tier — the longer you've been away, the more it has aged */
-html.fc-amp  .wn-card--visited, html.fc-amp  .wn-card--visited:hover  { background-image: radial-gradient(92% 70% at 4% 100%, color-mix(in srgb, var(--moss) 17%, transparent), transparent 64%); }
-html.fc-aged .wn-card--visited, html.fc-aged .wn-card--visited:hover { background-image: radial-gradient(98% 78% at 4% 100%, color-mix(in srgb, var(--moss) 23%, transparent), transparent 66%); }
+html.fc-amp  .wn-card--visited, html.fc-amp  .wn-card--visited:hover  { background-image: radial-gradient(92% 70% at 4% 100%, color-mix(in srgb, var(--moss) 30%, transparent), transparent 66%); }
+html.fc-aged .wn-card--visited, html.fc-aged .wn-card--visited:hover { background-image: radial-gradient(98% 80% at 4% 100%, color-mix(in srgb, var(--moss) 40%, transparent), transparent 70%); }
+/* keep the clear green LEFT band across every tier (the tier border-color above would otherwise lighten it) */
+html.fc-return .wn-card--visited, html.fc-amp .wn-card--visited, html.fc-aged .wn-card--visited { border-left-color: var(--moss-deep); }
 
 /* ===== Ocean (new): click → one faint SKY ripple (the field responds; never red) ===== */
 .fc-ocean { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
@@ -1426,14 +1445,6 @@ html.fc-aged .wn-card--visited::after {
   background: radial-gradient(circle, color-mix(in srgb, var(--gold) 50%, transparent), transparent 70%);
 }
 
-/* ===== Work drift (Stage 5, OCEAN) — the work row sways with the tide as you scroll =====
-   work-drift.js writes the standalone `translate:` property per card; it COMPOSES with the
-   card's own `transform:` (hover lift / filter fade) so they never collide. The amplitude is
-   clamped to ≤7px in JS — far inside the page gutter — so it can never add a horizontal
-   scrollbar (transform-only, zero layout, CLS-safe). will-change is hinted ONLY under the
-   motion gate, so reduced-motion never promotes a compositor layer (honest Stage-0 stillness). */
-html.fc-motion #work .workgrid .wn-card { will-change: translate; }
-
 /* ===== Seams (void-essence): hairline section dividers that DRAW on scroll =====
    A quiet echo of the void band's crack — a thin --hairline rule across the top of the
    major sections that draws as the section enters view. NEVER red (the crack's red is the
@@ -1461,6 +1472,7 @@ html.fc-motion #about::before, html.fc-motion #contact::before {
 </head>
 <body>
 <div class="fc-tint" aria-hidden="true"></div>
+<div class="fc-sun" aria-hidden="true"></div>
 <svg class="grain" aria-hidden="true" focusable="false" width="100%" height="100%"><filter id="wn-grain"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#wn-grain)"/></svg>
 <a class="skip" href="#main">Skip to content</a>
 <nav class="nav" aria-label="Primary">
@@ -1501,7 +1513,7 @@ html.fc-motion #about::before, html.fc-motion #contact::before {
 
 <div class="shell stage"><div class="lane">
   <section class="section section--tight">
-    <p class="wn-breath">The model proposes;<br>the evals dispose.</p>
+    <p class="wn-breath">The model proposes; the evals dispose.</p>
   </section>
 
   <section class="section section--tight" id="proof">

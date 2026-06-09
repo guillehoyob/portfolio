@@ -149,6 +149,18 @@ html[data-daypart="night"]   { --fc-field: var(--field-0-dim); --fc-pulse-alpha:
 html.fc-motion body { transition: background-color var(--dur-ambient-min) linear; }
 @media (prefers-reduced-motion: reduce) { .fc-tint, body { transition: none; } }
 
+/* ===== "Sun" — the hour's light made VISIBLE in one part of the field (the flat top-down
+   tint was imperceptible). A soft warm radial that travels low→high→low and east→west through
+   the day and warms at dawn/dusk. Warm-on-warm so the field stays warm-white (no new hue, no
+   red); JS (heliostat) drives position + intensity. Behind all content (z-haze). */
+.fc-sun {
+  position: fixed; inset: 0; z-index: var(--z-haze); pointer-events: none;
+  background: radial-gradient(38vw 34vw at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 62%);
+  opacity: var(--fc-sun-op, 0);
+  transition: opacity var(--dur-ambient-min) linear;
+}
+@media (prefers-reduced-motion: reduce) { .fc-sun { transition: none; } }
+
 /* ===== Stage 5 — Crosswind (§5.3): cursor haze + multiply warming spot ===== */
 .fc-crosswind {
   position: fixed; top: 0; left: 0; pointer-events: none; border-radius: 50%;
@@ -255,8 +267,10 @@ html.fc-aged .wn-void__crack::before {
    settles one tiny gold glint INTO the moss creep (the card, too, has been repaired) */
 html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 52%, var(--hairline)); }
 /* the moss creep deepens with the visit tier — the longer you've been away, the more it has aged */
-html.fc-amp  .wn-card--visited, html.fc-amp  .wn-card--visited:hover  { background-image: radial-gradient(92% 70% at 4% 100%, color-mix(in srgb, var(--moss) 17%, transparent), transparent 64%); }
-html.fc-aged .wn-card--visited, html.fc-aged .wn-card--visited:hover { background-image: radial-gradient(98% 78% at 4% 100%, color-mix(in srgb, var(--moss) 23%, transparent), transparent 66%); }
+html.fc-amp  .wn-card--visited, html.fc-amp  .wn-card--visited:hover  { background-image: radial-gradient(92% 70% at 4% 100%, color-mix(in srgb, var(--moss) 30%, transparent), transparent 66%); }
+html.fc-aged .wn-card--visited, html.fc-aged .wn-card--visited:hover { background-image: radial-gradient(98% 80% at 4% 100%, color-mix(in srgb, var(--moss) 40%, transparent), transparent 70%); }
+/* keep the clear green LEFT band across every tier (the tier border-color above would otherwise lighten it) */
+html.fc-return .wn-card--visited, html.fc-amp .wn-card--visited, html.fc-aged .wn-card--visited { border-left-color: var(--moss-deep); }
 
 /* ===== Ocean (new): click → one faint SKY ripple (the field responds; never red) ===== */
 .fc-ocean { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
@@ -310,14 +324,6 @@ html.fc-aged .wn-card--visited::after {
   width: 6px; height: 6px; border-radius: 50%; pointer-events: none;
   background: radial-gradient(circle, color-mix(in srgb, var(--gold) 50%, transparent), transparent 70%);
 }
-
-/* ===== Work drift (Stage 5, OCEAN) — the work row sways with the tide as you scroll =====
-   work-drift.js writes the standalone `translate:` property per card; it COMPOSES with the
-   card's own `transform:` (hover lift / filter fade) so they never collide. The amplitude is
-   clamped to ≤7px in JS — far inside the page gutter — so it can never add a horizontal
-   scrollbar (transform-only, zero layout, CLS-safe). will-change is hinted ONLY under the
-   motion gate, so reduced-motion never promotes a compositor layer (honest Stage-0 stillness). */
-html.fc-motion #work .workgrid .wn-card { will-change: translate; }
 
 /* ===== Seams (void-essence): hairline section dividers that DRAW on scroll =====
    A quiet echo of the void band's crack — a thin --hairline rule across the top of the

@@ -53,6 +53,15 @@ export function initHeliostat() {
       ? `color-mix(in srgb, var(--field-0) ${Math.round(100 - dim * 100)}%, var(--field-0-dim))`
       : 'var(--field-0)');
     root.style.setProperty('--fc-pulse-alpha', dim > 0.45 ? '1' : '0.85');
+    // the "sun": a warm glow that travels low→high→low + east→west through the day and is
+    // brightest/warmest at dawn & dusk — the day-light made perceptible in one part of the field.
+    const sx = (6 + Math.max(0, Math.min(1, (t - 5) / 15)) * 88).toFixed(0);   // 6%→94% east→west (5h→20h)
+    const sy = (4 + Math.min(1, Math.abs(t - 13) / 8) * 28).toFixed(0);        // high (4%) at noon, low (32%) at dawn/dusk
+    const sUp = (t > 4.5 && t < 21) ? 1 : 0.3;                                 // a dim disc through the night
+    root.style.setProperty('--fc-sun-x', sx + '%');
+    root.style.setProperty('--fc-sun-y', sy + '%');
+    root.style.setProperty('--fc-sun-glow', `color-mix(in srgb, var(--sun) ${Math.round(60 + warmth * 35)}%, var(--sky))`);
+    root.style.setProperty('--fc-sun-op', (warmth * 0.22 * sUp).toFixed(3));   // visible (~0.10–0.22), warmest at dawn/dusk
     root.dataset.daypart = daypartFor(Math.floor(t));
   };
   apply();

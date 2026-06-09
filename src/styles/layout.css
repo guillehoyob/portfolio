@@ -28,11 +28,10 @@ main { flex: 1 0 auto; }
    pull-quote and the stat row read as one held pause, not two thin sections */
 .section--tight + .section--tight { padding-top: 0; }
 
-/* breath line — give the Cormorant pull-quote room to USE the lane (was capped at
-   24ch, which left it stranded against the wide gutter). Wider measure + balance
-   keeps it two calm lines while sharing the section's left edge. (Overrides the
-   base .wn-breath measure in components.css — layout.css cascades after it.) */
-.section .wn-breath { max-width: 34ch; }
+/* breath line — a single CENTERED pull-quote that USES the lane width (was a 24ch
+   block stranded left in two lines). One line on desktop, balanced wrap on small
+   screens. (Overrides the base .wn-breath measure in components.css.) */
+.section .wn-breath { max-width: none; text-align: center; text-wrap: balance; margin-inline: auto; }
 
 .eyebrow {
   font-family: var(--font-mono);
@@ -155,6 +154,11 @@ main { flex: 1 0 auto; }
    the column no longer reads thin against the proof/work blocks below it */
 .hero__lane { max-width: var(--lane-max); }
 @media (min-width: 1024px) { .hero__lane { margin-left: var(--gutter-dead); } }
+/* the hero must hang off the SAME left edge as the stage sections, which zero their
+   padding-left and rely solely on the gutter-dead margin (.stage). hero__inner keeps
+   the gutter-page padding, so without this the hero sat 1×gutter-page (~115px @1440)
+   to the RIGHT of every section. Zero the hero's left padding from tablet up to match. */
+@media (min-width: 768px) { .hero__inner { padding-left: 0; } }
 /* tablet (768–1023): give the hero + stage a PARTIAL dead gutter so the up-left
    axis bias survives — without it the block floats flush-left, reading as a
    stretched phone layout (the dead gutter only existed ≥1024 before) */
@@ -199,7 +203,8 @@ main { flex: 1 0 auto; }
 }
 /* stat cells sit flush on the lane's left edge (same edge as every section) and
    breathe via a tighter, even vertical padding that matches the new rhythm */
-.proof__cell { padding: var(--space-8) var(--space-8) var(--space-8) 0; border-right: 1px solid var(--hairline); }
+.proof__cell { padding: var(--space-8); border-right: 1px solid var(--hairline); }
+.proof__cell:first-child { padding-left: 0; } /* first cell flush on the lane edge; the rest get air between the divider and the text */
 .proof__cell:last-child { border-right: none; }
 @media (max-width: 768px) {
   .proof { grid-template-columns: 1fr; }

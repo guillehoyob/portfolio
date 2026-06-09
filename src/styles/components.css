@@ -272,12 +272,12 @@
 .wn-card__microrow b { color: var(--ink); font-weight: 400; }
 /* visited (Patina, §5.5) — static honest state: warmed border + moss tick */
 .wn-card--visited {
-  border-color: color-mix(in srgb, var(--moss) 40%, var(--hairline)); /* whole-edge "I've been here" — the PRIMARY at-a-glance cue */
-  /* organic patina: a faint damp-moss tint creeping up from the lower-left (the earth corner) —
-     the passage of time settling INTO the card, felt-not-badged (deepens by visit tier below) */
-  background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%);
+  border-color: color-mix(in srgb, var(--moss) 40%, var(--hairline));
+  border-left: 4px solid var(--moss-deep); /* a CLEAR "you've opened this" — a band of moss grown along the earth (left) edge; reads at a glance, still organic, not a badge */
+  /* organic patina: damp moss creeping up from the lower-left earth corner — the passage of time */
+  background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 22%, transparent), transparent 62%);
 }
-.wn-card--visited:hover, .wn-card--visited:active { background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 15%, transparent), transparent 62%); }
+.wn-card--visited:hover, .wn-card--visited:active { background-image: radial-gradient(88% 66% at 4% 100%, color-mix(in srgb, var(--moss) 22%, transparent), transparent 62%); }
 /* (corner tick removed — visited aging now lives in the moss creep + warmed border) */
 /* non-interactive hub card (the personal-page planned stack) */
 .wn-card--static { cursor: default; }

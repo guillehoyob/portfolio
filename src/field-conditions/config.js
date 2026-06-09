@@ -41,7 +41,6 @@ export const config = {
     warmLens: true,       // the cursor CLARIFIES/warms the element it touches (reveal, not fog)
     particles: true,      // SKY-light motes — soft warm light blooms high in the field, energy-reactive (redesigned)
     ocean: true,          // click → faint sky ripple, the field responds (ocean), one-shot
-    workDrift: true,      // work-card tide drift — the work row sways with the ocean as you scroll (Stage 5, OCEAN)
     idleSigh: true,       // ONE non-looping breath of the field after ~8s of rest (the field responds)
     continuity: true,     // persist the heartbeat across page navigations (the same ocean)
     // Stage 6 — memory

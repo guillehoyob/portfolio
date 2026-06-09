@@ -180,6 +180,7 @@ export async function boot() {
   // Stage 5 — weather traces (Governor: slipstream > crosswind > scanline)
   await load(f.slipstream, () => import('./slipstream.js'), (m) => m.initSlipstream());
   await load(f.crosswind, () => import('./crosswind.js'), (m) => m.initCrosswind());
+  await load(f.warmLens, () => import('./warm-lens.js'), (m) => m.initWarmLens());
   await load(f.particles, () => import('./particles.js'), (m) => m.initParticles());
   await load(f.ocean, () => import('./ocean.js'), (m) => m.initOcean());
   await load(f.idleSigh, () => import('./idle-sigh.js'), (m) => m.initIdleSigh());

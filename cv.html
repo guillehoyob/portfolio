@@ -1226,11 +1226,8 @@ html.fc-return .greet-return { display: inline; }
   /* faint red trace that breathes with the heartbeat; hero fade-in via --fc-spine-fade */
   opacity: calc((0.42 + var(--fc-spine-breath, 0) * 0.04) * var(--fc-spine-fade, 1));
 }
-/* the kintsugi GOLD VEIN — φ-dashed gold flecks healing the red thread, returning
-   visitors only, clipped to the drawn portion in JS; deepens by visit tier. */
-.fc-spine__gild { stroke: var(--gold-deep); stroke-width: 1.5; opacity: 0.45; filter: drop-shadow(0 0 2px color-mix(in srgb, var(--gold-deep) 35%, transparent)); }
-html.fc-amp  .fc-spine__gild { opacity: 0.6; filter: drop-shadow(0 0 2.5px color-mix(in srgb, var(--gold-deep) 45%, transparent)); }
-html.fc-aged .fc-spine__gild { opacity: 0.72; filter: drop-shadow(0 0 3.5px color-mix(in srgb, var(--gold-deep) 55%, transparent)); }
+/* (kintsugi gold lives ONLY on the void CRACK — the actual break — never on the
+   continuous spine thread; gilding a thread that isn't broken read as an ugly dashed line.) */
 /* the DRAWING-TIP nib: signal red that flashes toward the cyan --pulse on the beat
    (cyan ONLY as a pulse), with a soft glow. JS drives cx/cy + opacity per frame. */
 .fc-spine__pulse {
@@ -1303,6 +1300,16 @@ html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 
   to   { transform: scale(var(--fc-ring-scale, 9)); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .fc-ocean { display: none; } }
+
+/* ===== Warm lens (new): the cursor CLARIFIES/warms the element it touches (additive light,
+   never a subtractive fog — so the pristine field + reading stay intact). Whisper-quiet. ===== */
+.fc-lit { transition: box-shadow var(--dur-300) var(--ease-react), text-shadow var(--dur-300) var(--ease-react); }
+.proof__cell.fc-lit, .principle.fc-lit, .phase.fc-lit, .about__photo.fc-lit, .stacktable.fc-lit, .toolchain.fc-lit, .identity.fc-lit {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sun) 9%, transparent), 0 6px 24px -14px color-mix(in srgb, var(--sun) 28%, transparent);
+}
+.wn-void.fc-lit { box-shadow: inset 0 0 140px -70px color-mix(in srgb, var(--sun) 20%, transparent); }
+.wn-breath.fc-lit { text-shadow: 0 0 20px color-mix(in srgb, var(--sun) 14%, transparent); }
+@media (prefers-reduced-motion: reduce) { .fc-lit { box-shadow: none; text-shadow: none; } }
 html.fc-aged .wn-card--visited .wn-card__patina::after {
   content: ""; position: absolute; right: 0; bottom: 0; width: 4px; height: 4px;
   background: var(--gold); opacity: 0.5; pointer-events: none;

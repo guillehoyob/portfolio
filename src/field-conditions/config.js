@@ -38,6 +38,7 @@ export const config = {
     // Stage 5 — weather (traces, governor-arbitrated)
     slipstream: true,     // scroll velocity → haze + heading scaleX (§5.4)
     crosswind: true,      // cursor radial + multiply warming spot (§5.3)
+    warmLens: true,       // the cursor CLARIFIES/warms the element it touches (reveal, not fog)
     particles: true,      // SKY-light motes — soft warm light blooms high in the field, energy-reactive (redesigned)
     ocean: true,          // click → faint sky ripple, the field responds (ocean), one-shot
     idleSigh: true,       // ONE non-looping breath of the field after ~8s of rest (the field responds)

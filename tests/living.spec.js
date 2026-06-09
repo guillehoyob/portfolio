@@ -400,18 +400,37 @@ try {
   await c.close();
 } catch (e) { rec('Spine nib', true, false, 'ERR ' + e.message, false); }
 
-/* ───────────────── 15d. Spine kintsugi gold vein (returning visitor) ───────────────── */
+/* ───────────────── 15d. Spine on EVERY page + no gold vein on the thread ───────────────── */
 try {
   const c = await newCtx();
-  await c.addInitScript(() => { try { localStorage.setItem('wn.visits', '5'); sessionStorage.setItem('wn.session', '1'); } catch {} });
+  const page = await c.newPage();
+  await page.goto(WORKIDX, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(300);
+  const onInner = await page.$$eval('.fc-spine__path', (e) => e.length);
+  const noGild = await page.$$eval('.fc-spine__gild', (e) => e.length);
+  const ok = onInner > 0 && noGild === 0;
+  rec('Spine everywhere', onInner > 0, ok, `spine on /work=${onInner > 0}; gold vein removed from thread=${noGild === 0}`, ok);
+  await c.close();
+} catch (e) { rec('Spine everywhere', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 15e. Warm lens (cursor clarifies the element) ───────────────── */
+try {
+  const c = await newCtx();
   const page = await c.newPage();
   await page.goto(HOME, { waitUntil: 'networkidle' });
   await page.waitForTimeout(300);
-  const gild = await page.evaluate(() => { const g = document.querySelector('.fc-spine__gild'); return g ? { has: true, dash: (g.style.strokeDasharray || '').split(' ').length, op: +getComputedStyle(g).opacity } : { has: false }; });
-  const ok = gild.has && gild.dash >= 4 && gild.op > 0.5;
-  rec('Spine gold vein', gild.has, ok, `φ-dashed gild present=${gild.has}; dashes=${gild.dash}; opacity=${gild.op}`, ok);
+  await page.evaluate(() => document.querySelector('.proof__cell, .principle, .wn-void').scrollIntoView({ block: 'center' }));
+  await page.waitForTimeout(300);
+  const box = await page.evaluate(() => { const el = document.querySelector('.proof__cell, .principle, .wn-void'); const r = el.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+  const before = await page.evaluate(() => { const el = document.querySelector('.proof__cell, .principle, .wn-void'); return getComputedStyle(el).boxShadow; });
+  await page.mouse.move(box.x, box.y, { steps: 4 });
+  await page.waitForTimeout(450);
+  const lit = await page.evaluate(() => !!document.querySelector('.fc-lit'));
+  const after = await page.evaluate(() => { const el = document.querySelector('.fc-lit'); return el ? getComputedStyle(el).boxShadow : ''; });
+  const ok = lit && after !== before;
+  rec('Warm lens', true, ok, `element lit on hover=${lit}; shadow changed=${after !== before}`, ok);
   await c.close();
-} catch (e) { rec('Spine gold vein', true, false, 'ERR ' + e.message, false); }
+} catch (e) { rec('Warm lens', true, false, 'ERR ' + e.message, false); }
 
 /* ───────────────── 16. Patina kintsugi deepening (new, §5.5 ext) ───────────────── */
 try {

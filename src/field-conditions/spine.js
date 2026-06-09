@@ -1,35 +1,33 @@
 /**
- * WHITE NOON — THE RED SPINE (Stage 3, new — §5.2 extension)
- * ONE continuous --signal thread down the whole home page, drawn by SCROLL
- * PROGRESS, growing from the hero route's level (a baton pass), carrying:
- *  - a DRAWING-TIP NIB at the leading edge — bright while you scroll, a quiet
- *    bead at rest (so you see WHERE the line is being drawn);
- *  - the shared cardiac heartbeat: a beat + diastolic breath (the line breathes
- *    with the dot), and an expanding RIPPLE ring emitted on each lub;
- *  - a true LOCAL bend toward the cursor (the path leans where the cursor is —
- *    not a rigid block translate);
- *  - on RETURNING visits, a kintsugi GOLD VEIN: φ-spaced gold flecks healing the
- *    red thread, clipped to the drawn portion, deepening by visit tier.
- * It sits ABOVE the void band's black (z-index:2) but under all text. Absolute,
- * full-document, on the field layer. Transform/opacity/dashoffset/path-d only,
- * one shared rAF + the one heartbeat clock. Reduced motion → a quiet, fully-drawn
- * static red rule, no nib/ripple/bend. Flag off / not home → never exists.
+ * WHITE NOON — THE RED SPINE (Stage 3 — §5.2 extension) — the red life-thread of the WHOLE site
+ * ONE continuous --signal thread running down EVERY page (the ocean's blood reaches everywhere),
+ * drawn by SCROLL PROGRESS, carrying: a DRAWING-TIP NIB at the leading edge (bright while you
+ * scroll, a quiet bead at rest); the shared cardiac heartbeat (beat + diastolic breath + an
+ * expanding RIPPLE on each lub); a true LOCAL bend toward the cursor; and on the home page a
+ * baton-pass from the hero route's level so it grows from where the route was drawn.
+ *
+ * Lives in the left page margin (left of all content at every breakpoint), z-index:2 so it
+ * threads IN FRONT of the void band's black but UNDER all text. Geometry uses φ (golden-ratio)
+ * decay so the meander tightens toward the foot like a settling plumb line. Transform / opacity
+ * / dashoffset / path-d only; one shared rAF + the one heartbeat clock. Reduced motion → a quiet,
+ * fully-drawn static red rule. NOTE: kintsugi gold lives ONLY on the void CRACK (the actual
+ * break) — the spine is a continuous thread, not a break, so it is never gilded.
  */
 import { addTicker, removeTicker, wake, heartbeatPhase, heartbeatBeat, heartbeatBreath, onReducedMotionChange, field } from './index.js';
 
 const SVGNS = 'http://www.w3.org/2000/svg';
-const SECTIONS = ['#proof', '#work', '#method', '.wn-void', '#about', '#contact'];
 const PHI = 1.618;
+// generic anchors present across pages — the thread nods at whichever exist, sorted by position
+const ANCHORS = ['#proof', '#work', '#method', '.wn-void', '#about', '#contact', '.identity', '.projbody', '.toolchain', '.stacktable', '.about', '.contact__row'];
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
 export function initSpine() {
-  const hero = document.getElementById('hero');
-  if (!hero) return;                                // home only
-  if (document.querySelector('.fc-spine')) return;  // idempotent
+  if (document.querySelector('.fc-spine')) return; // idempotent
+  if ((document.documentElement.scrollHeight - innerHeight) < 200) return; // nothing to thread on a short page
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
-  const returning = document.documentElement.classList.contains('fc-return'); // gild on return
+  const hero = document.getElementById('hero'); // home only → baton-pass + hero fade
 
   const mkPath = (cls) => {
     const p = document.createElementNS(SVGNS, 'path');
@@ -38,80 +36,59 @@ export function initSpine() {
     p.setAttribute('vector-effect', 'non-scaling-stroke');
     return p;
   };
-
   const svg = document.createElementNS(SVGNS, 'svg');
   svg.setAttribute('class', 'fc-spine');
   svg.setAttribute('aria-hidden', 'true');
   svg.setAttribute('focusable', 'false');
   svg.setAttribute('preserveAspectRatio', 'none');
   const path = mkPath('fc-spine__path');
-
-  let gild = null, clipRect = null;
-  if (returning) {
-    const defs = document.createElementNS(SVGNS, 'defs');
-    const clip = document.createElementNS(SVGNS, 'clipPath');
-    clip.setAttribute('id', 'fc-spine-clip');
-    clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
-    clipRect = document.createElementNS(SVGNS, 'rect');
-    clipRect.setAttribute('x', '0'); clipRect.setAttribute('y', '0');
-    clipRect.setAttribute('width', '100000'); clipRect.setAttribute('height', '0');
-    clip.appendChild(clipRect); defs.appendChild(clip); svg.appendChild(defs);
-    gild = mkPath('fc-spine__gild');
-    gild.setAttribute('clip-path', 'url(#fc-spine-clip)');
-  }
   const ripple = document.createElementNS(SVGNS, 'circle');
   ripple.setAttribute('class', 'fc-spine__ripple'); ripple.setAttribute('r', '3.5');
   const pulse = document.createElementNS(SVGNS, 'circle');
   pulse.setAttribute('class', 'fc-spine__pulse'); pulse.setAttribute('r', '3.5');
-
-  svg.append(path);
-  if (gild) svg.append(gild);
-  svg.append(ripple, pulse);
+  svg.append(path, ripple, pulse);
   document.body.appendChild(svg);
 
-  let LEN = 0, basePts = [], heroH = 0, unit = 1;
+  let LEN = 0, basePts = [], fadeRef = 0;
   const build = () => {
     const w = document.documentElement.clientWidth;
     const docH = document.documentElement.scrollHeight;
-    heroH = hero.offsetHeight;
-    const lane = w >= 1024 ? 0.12 : 0.05;   // left dead gutter (desktop) / margin (mobile)
-    const bow = w >= 1024 ? 0.030 : 0.014;  // a hand-drawn lean, not a ruler
+    const lane = w >= 1024 ? 0.06 : 0.045;   // a consistent left-margin lane on every page
+    const bow = w >= 1024 ? 0.030 : 0.014;
     const laneX = w * lane;
-    // baton pass: start the spine at the hero route's vertical LEVEL, in the gutter, so the
-    // thread reads as continuing downward from where the route was drawn
-    let headY = hero.offsetTop + heroH * 0.42;
-    const rb = document.querySelector('.hero__routeband');
-    if (rb) { const r = rb.getBoundingClientRect(); headY = r.top + r.height / 2 + scrollY; }
+    // start point: on home, the hero route's LEVEL (baton pass); else near the top
+    let headY = docH * 0.05;
+    if (hero) {
+      headY = hero.offsetTop + hero.offsetHeight * 0.42;
+      const rb = document.querySelector('.hero__routeband');
+      if (rb) { const r = rb.getBoundingClientRect(); headY = r.top + r.height / 2 + scrollY; }
+      fadeRef = hero.offsetHeight * 0.6;
+    } else {
+      fadeRef = innerHeight * 0.4;
+    }
+    const anchors = ANCHORS.map((s) => document.querySelector(s)).filter(Boolean)
+      .map((el) => el.offsetTop).filter((y) => y > headY + 40 && y < docH - 60).sort((a, b) => a - b);
+    const ys = anchors.length >= 2 ? anchors
+      : Array.from({ length: 5 }, (_, i) => headY + ((i + 1) / 6) * (docH - headY)); // even fallback
     const pts = [[laneX, headY]];
-    SECTIONS.forEach((sel, i) => {
-      const el = document.querySelector(sel);
-      const oy = el ? el.offsetTop : headY + ((i + 1) / (SECTIONS.length + 1)) * (docH - headY);
-      const t = (i + 1) / (SECTIONS.length + 1);
-      const ease = 0.5 - 0.5 * Math.cos(t * Math.PI);          // accelerate then settle
-      const mag = bow * Math.pow(1 / PHI, i * 0.5);            // φ-decay: tighter toward the foot
-      pts.push([laneX + (i % 2 ? -1 : 1) * w * mag * (0.6 + ease), oy]); // top leans toward the name
+    ys.forEach((oy, i) => {
+      const t = (i + 1) / (ys.length + 1);
+      const ease = 0.5 - 0.5 * Math.cos(t * Math.PI);
+      const mag = bow * Math.pow(1 / PHI, i * 0.5);          // φ-decay: tighter toward the foot
+      pts.push([laneX + (i % 2 ? -1 : 1) * w * mag * (0.6 + ease), oy]);
     });
     pts.push([laneX, docH - 24]);
     path.setAttribute('d', catmullRom(pts));
     svg.setAttribute('viewBox', `0 0 ${w} ${docH}`);
     svg.style.height = docH + 'px';
-    // resample into dense waypoints so the cursor bend is a smooth LOCAL bulge ANYWHERE
-    // along the thread, not only near the sparse section anchors
+    // resample dense so the cursor bend is a smooth LOCAL bulge anywhere
     const len0 = path.getTotalLength();
     const N = 24;
     basePts = [];
     for (let i = 0; i <= N; i++) { const q = path.getPointAtLength((i / N) * len0); basePts.push([q.x, q.y]); }
-    const d = catmullRom(basePts);
-    path.setAttribute('d', d);
+    path.setAttribute('d', catmullRom(basePts));
     LEN = path.getTotalLength();
-    unit = LEN / 233; // 233 = Fibonacci → scale-stable flecks
     svg.style.setProperty('--fc-spine-len', LEN.toFixed(1));
-    if (gild) {
-      gild.setAttribute('d', d);
-      const dash = [unit, unit * PHI, unit * PHI * PHI, unit * PHI * PHI * PHI]; // φ on/gap/on/gap
-      gild.style.strokeDasharray = dash.map((n) => n.toFixed(1)).join(' ');
-      clipRect.setAttribute('width', w.toString());
-    }
   };
   build();
 
@@ -131,7 +108,6 @@ export function initSpine() {
 
   const onScroll = () => { dDirty = true; wake(); };
   if (lenis) lenis.on('scroll', onScroll); else window.addEventListener('scroll', onScroll, { passive: true });
-
   if (fine) {
     window.addEventListener('pointermove', (e) => {
       cursorDocX = e.clientX + scrollX; cursorDocY = e.clientY + scrollY;
@@ -146,8 +122,6 @@ export function initSpine() {
     const dLen = LEN * clamp01(drawn);
     path.style.strokeDashoffset = (LEN - dLen).toFixed(1);
 
-    // local cursor bend: pull each waypoint toward the cursor, strongest near the cursor's
-    // row, zero far away — a real lean, not a block translate (S3). Rebuild d only when needed.
     influence += (targetInfluence - influence) * 0.06;
     if (fine && (dDirty || influence > 0.01)) {
       const bent = basePts.map(([x, y]) => {
@@ -155,16 +129,13 @@ export function initSpine() {
         const pull = Math.max(-MAXPULL, Math.min(MAXPULL, (cursorDocX - x) * 0.18 * wgt)) * influence;
         return [x + pull, y];
       });
-      const d = catmullRom(bent);
-      path.setAttribute('d', d);
-      if (gild) gild.setAttribute('d', d);
+      path.setAttribute('d', catmullRom(bent));
       dDirty = false;
     }
 
-    // continuity ramp: faint 0.10 trace in the hero → 0.42 past it (composed with breath in CSS)
-    svg.style.setProperty('--fc-spine-fade', (0.24 + 0.76 * clamp01(scrollY / (heroH * 0.6))).toFixed(3));
+    // continuity ramp: faint trace in the first viewport → 0.42 below it (composed with breath in CSS)
+    svg.style.setProperty('--fc-spine-fade', (0.24 + 0.76 * clamp01(scrollY / fadeRef)).toFixed(3));
 
-    // the shared cardiac heartbeat: beat (with recoil) + diastolic breath
     const phase = heartbeatPhase();
     const beat = heartbeatBeat(phase);
     const breath = heartbeatBreath(phase);
@@ -174,27 +145,18 @@ export function initSpine() {
     if (LEN > 1) {
       const tip = path.getPointAtLength(dLen);
       const tx = tip.x.toFixed(1), ty = tip.y.toFixed(1);
-      // NIB at the exact leading edge — bright while drawing (scroll velocity feeds it), quiet at rest
       pulse.setAttribute('cx', tx); pulse.setAttribute('cy', ty);
       const advancing = clamp01(Math.abs(drawn - prevDrawn) * 40 + velocity() * 0.08);
       let nibOp = 0.14 + 0.66 * Math.max(advancing, beat * 0.5 + breath * 0.1);
-      // a click near the spine's lane gives the nib a brief brightness blip — the one sanctioned
-      // "energy propagates between layers" edge (the ocean's touch reaches the red thread)
       for (const im of field.impulses) { if (Date.now() - im.t < 350 && Math.abs(im.x - tip.x) < 200) { nibOp = Math.min(0.95, nibOp + 0.35); break; } }
-      if (drawn > 0.985) nibOp *= clamp01((1 - drawn) / 0.015); // the pen lifts at the foot
+      if (drawn > 0.985) nibOp *= clamp01((1 - drawn) / 0.015);
       pulse.style.opacity = nibOp.toFixed(3);
-      // ripple ring re-armed on the lub rising edge, centred on the nib (the wave after the beat)
       ripple.setAttribute('cx', tx); ripple.setAttribute('cy', ty);
       if (phase < 0.06 && !rang) { ripple.classList.remove('go'); ripple.getBoundingClientRect(); ripple.classList.add('go'); rang = true; }
       if (phase > 0.12) rang = false;
-      // kintsugi gold vein: clip the φ flecks to the drawn region; drift one φ-unit per cycle
-      if (gild && clipRect) {
-        clipRect.setAttribute('height', Math.max(0, tip.y).toFixed(1));
-        gild.style.strokeDashoffset = (-phase * unit).toFixed(1);
-      }
     }
     prevDrawn = drawn;
-    return true; // heartbeat is continuous → keep the shared loop alive (suspends on tab-hide)
+    return true;
   };
   addTicker(ticker);
 
@@ -207,7 +169,7 @@ export function initSpine() {
     removeTicker(ticker);
     window.removeEventListener('resize', onResize);
     clearTimeout(rt);
-    path.setAttribute('d', catmullRom(basePts)); // undo any bend
+    path.setAttribute('d', catmullRom(basePts));
     path.style.strokeDashoffset = '0';
     svg.style.setProperty('--fc-spine-fade', '1');
     pulse.style.display = 'none'; ripple.style.display = 'none';

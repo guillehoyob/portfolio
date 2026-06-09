@@ -351,16 +351,22 @@ try {
   await c.close();
 } catch (e) { rec('One Heartbeat', true, false, 'ERR ' + e.message, false); }
 
-/* ───────────────── 15. Field motes — CUT (off-playbook on white) ───────────────── */
+/* ───────────────── 15. Sky light (redesigned motes) ───────────────── */
 try {
   const c = await newCtx();
   const page = await c.newPage();
   await page.goto(HOME, { waitUntil: 'networkidle' });
   await page.waitForTimeout(300);
+  await page.mouse.move(500, 400, { steps: 3 });
+  await page.waitForTimeout(150);
   const count = await page.$$eval('.fc-mote', (e) => e.length);
-  rec('Motes (cut)', count === 0, count === 0, `motes=${count} (off by config — read as screen-dirt; replaced by the spine nib + ocean)`, count === 0);
+  const tA = await page.evaluate(() => { const m = document.querySelector('.fc-mote'); return m ? m.style.transform : ''; });
+  await page.waitForTimeout(600);
+  const tB = await page.evaluate(() => { const m = document.querySelector('.fc-mote'); return m ? m.style.transform : ''; });
+  const ok = count > 0 && tA !== tB;
+  rec('Sky light', count > 0, ok, `sky motes=${count}; soft warm blooms drift=${tA !== tB}`, ok);
   await c.close();
-} catch (e) { rec('Motes (cut)', true, false, 'ERR ' + e.message, false); }
+} catch (e) { rec('Sky light', true, false, 'ERR ' + e.message, false); }
 
 /* ───────────────── 15b. Ocean click ripple (new) ───────────────── */
 try {
@@ -426,6 +432,48 @@ try {
   const deepens = ret.op != null && aged.op != null && aged.op > ret.op + 0.05;
   rec('Patina kintsugi', true, deepens, `seam opacity visit2=${ret.op} → visit5=${aged.op}; fc-aged=${/fc-aged/.test(aged.cls)}`, deepens && /fc-aged/.test(aged.cls));
 } catch (e) { rec('Patina kintsugi', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 17. Cross-page heartbeat continuity (ocean) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(200);
+  const a1 = await page.evaluate(() => sessionStorage.getItem('wn.beatAnchor'));
+  await page.goto(BASE + '/work/index.html', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(200);
+  const a2 = await page.evaluate(() => sessionStorage.getItem('wn.beatAnchor'));
+  const ok = !!a1 && a1 === a2;
+  rec('Heartbeat continuity', true, ok, `beatAnchor home=${a1} == work=${a2} ⇒ pulse never resets`, ok);
+  await c.close();
+} catch (e) { rec('Heartbeat continuity', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 18. Idle sigh (ocean: the field breathes at rest) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(9200); // stay completely still past the 8s idle threshold
+  let peak = 0;
+  for (let i = 0; i < 28; i++) { peak = Math.max(peak, await page.evaluate(() => +getComputedStyle(document.documentElement).getPropertyValue('--fc-haze-opacity') || 0.05)); await page.waitForTimeout(130); }
+  const ok = peak > 0.055 && peak <= 0.0802;
+  rec('Idle sigh', true, ok, `haze after 8s rest rose to ${num(peak)} (one breath ≤0.08)`, ok);
+  await c.close();
+} catch (e) { rec('Idle sigh', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 19. Vertical dive page transition (ocean) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(200);
+  const dive = await page.evaluate(() => {
+    const s = document.querySelector('style[data-fc="vault-blur"]');
+    return s ? /wn-dive-out[\s\S]*?translateY/.test(s.textContent) : false;
+  });
+  rec('Vertical dive', true, dive, `page transition sinks/surfaces (wn-dive translateY)=${dive}`, dive);
+  await c.close();
+} catch (e) { rec('Vertical dive', true, false, 'ERR ' + e.message, false); }
 
 /* ═════════════════ breakpoint matrix ═════════════════ */
 const matrix = [];

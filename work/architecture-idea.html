@@ -1230,9 +1230,9 @@ html.fc-return .greet-return { display: inline; }
 }
 /* the kintsugi GOLD VEIN — φ-dashed gold flecks healing the red thread, returning
    visitors only, clipped to the drawn portion in JS; deepens by visit tier. */
-.fc-spine__gild { stroke: var(--gold-deep); stroke-width: 1.5; opacity: 0.45; }
-html.fc-amp  .fc-spine__gild { opacity: 0.6; }
-html.fc-aged .fc-spine__gild { opacity: 0.72; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--gold-deep) 50%, transparent)); }
+.fc-spine__gild { stroke: var(--gold-deep); stroke-width: 1.5; opacity: 0.45; filter: drop-shadow(0 0 2px color-mix(in srgb, var(--gold-deep) 35%, transparent)); }
+html.fc-amp  .fc-spine__gild { opacity: 0.6; filter: drop-shadow(0 0 2.5px color-mix(in srgb, var(--gold-deep) 45%, transparent)); }
+html.fc-aged .fc-spine__gild { opacity: 0.72; filter: drop-shadow(0 0 3.5px color-mix(in srgb, var(--gold-deep) 55%, transparent)); }
 /* the DRAWING-TIP nib: signal red that flashes toward the cyan --pulse on the beat
    (cyan ONLY as a pulse), with a soft glow. JS drives cx/cy + opacity per frame. */
 .fc-spine__pulse {
@@ -1252,12 +1252,14 @@ html.fc-aged .fc-spine__gild { opacity: 0.72; filter: drop-shadow(0 0 3px color-
   .fc-spine__pulse, .fc-spine__ripple { display: none; }
 }
 
-/* ===== Field motes (new): faint warm dust behind content (in'ei, dust in light) ===== */
-.fc-motes { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+/* ===== SKY light (redesigned): soft warm light-blooms high in the field (in'ei) =====
+   The sky stratum's atmosphere — soft WARMTH, not hard specks (those read as screen-dirt on
+   white). z-index:-1 (the field/grain layer, behind content). JS drives the layer opacity by
+   the field's energy (the sky brightens when the field stirs). */
+.fc-sky { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; opacity: 0.55; transition: opacity var(--dur-600) var(--ease-run); }
 .fc-mote {
   position: absolute; top: 0; left: 0; border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--sun) 45%, var(--ink-ghost)), transparent 70%);
-  opacity: 0.18; /* translate3d auto-promotes while moving — no permanent will-change layer needed */
+  background: radial-gradient(circle, color-mix(in srgb, var(--sun) 22%, transparent), transparent 65%);
 }
 
 /* ===== Stage 6 — Patina kintsugi aging (§5.5 extension): healed history =====
@@ -1270,14 +1272,15 @@ html.fc-aged .fc-spine__gild { opacity: 0.72; filter: drop-shadow(0 0 3px color-
    a parallel gold seam below it. Reads as a healed, gilded break — deepens tier
    by tier. Gold (~44° hue) is unmistakably not the red signal (~9°). */
 /* glow kept tight so the gold reads as a SEAM tracing the break, not an ambient halo */
-html.fc-return .wn-void__crack { box-shadow: 0 0 4px color-mix(in srgb, var(--gold-deep) 40%, transparent); }
+/* the GLOW (the gold light of the mend) AND the seam — both kept, both deepen with use */
+html.fc-return .wn-void__crack { box-shadow: 0 0 6px color-mix(in srgb, var(--gold-deep) 48%, transparent); }
 html.fc-return .wn-void__crack::after {
   content: ""; position: absolute; left: 0; right: 0; top: 3px; height: 1px;
   background: var(--gold-deep); opacity: 0.6; pointer-events: none;
 }
-html.fc-amp  .wn-void__crack { box-shadow: 0 0 5px color-mix(in srgb, var(--gold-deep) 52%, transparent); }
+html.fc-amp  .wn-void__crack { box-shadow: 0 0 8px color-mix(in srgb, var(--gold-deep) 60%, transparent); }
 html.fc-amp  .wn-void__crack::after { opacity: 0.78; }
-html.fc-aged .wn-void__crack { box-shadow: 0 0 6px color-mix(in srgb, var(--gold-deep) 64%, transparent); }
+html.fc-aged .wn-void__crack { box-shadow: 0 0 11px color-mix(in srgb, var(--gold-deep) 72%, transparent); }
 html.fc-aged .wn-void__crack::after { opacity: 0.92; }
 /* deepest tier: a second hairline gold seam above the break — fully veined */
 html.fc-aged .wn-void__crack::before {
@@ -1294,11 +1297,12 @@ html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 
   position: fixed; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--sky) 70%, transparent);
   opacity: 0; will-change: transform, opacity;
-  animation: wn-ocean var(--dur-600) var(--ease-run) forwards;
+  /* scale / duration / start-opacity are written by JS from the field energy (heavy vs light) */
+  animation: wn-ocean var(--fc-ring-dur, 0.6s) var(--ease-run) forwards;
 }
 @keyframes wn-ocean {
-  from { transform: scale(0.4); opacity: 0.22; } /* sky stays a faint cool pulse */
-  to   { transform: scale(9);   opacity: 0; }
+  from { transform: scale(0.4); opacity: var(--fc-ring-op, 0.22); } /* sky stays a faint cool pulse */
+  to   { transform: scale(var(--fc-ring-scale, 9)); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .fc-ocean { display: none; } }
 html.fc-aged .wn-card--visited .wn-card__patina::after {

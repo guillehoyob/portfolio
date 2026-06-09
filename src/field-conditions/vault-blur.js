@@ -8,16 +8,19 @@
  * Durations: 80ms out / 160ms in (240ms total), --ease-run.
  */
 export function initVaultBlur(reduced) {
+  // A vertical DIVE between pages: the old page sinks down + blurs (descending through water),
+  // the new page surfaces from above into clarity — so home↔work reads as moving through ONE
+  // body of water, not a slide. Within the locked caps (blur ≤4px, translate ≤14px, scale ≥0.992).
   const css = reduced
     ? `@media (prefers-reduced-motion: reduce){
          @view-transition { navigation: none; }
          ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
        }`
     : `@view-transition { navigation: auto; }
-       ::view-transition-old(root) { animation: wn-vault-out 80ms cubic-bezier(0.22,1,0.36,1) both; }
-       ::view-transition-new(root) { animation: wn-vault-in 160ms cubic-bezier(0.22,1,0.36,1) both; }
-       @keyframes wn-vault-out { to { filter: blur(4px); opacity: 0.6; } }
-       @keyframes wn-vault-in { from { filter: blur(4px); opacity: 0.6; transform: translateX(-16px); } to { filter: blur(0); opacity: 1; transform: none; } }
+       ::view-transition-old(root) { animation: wn-dive-out 80ms cubic-bezier(0.22,1,0.36,1) both; }
+       ::view-transition-new(root) { animation: wn-dive-in 160ms cubic-bezier(0.22,1,0.36,1) both; }
+       @keyframes wn-dive-out { to { filter: blur(4px); opacity: 0.55; transform: translateY(12px) scale(0.992); } }
+       @keyframes wn-dive-in { from { filter: blur(4px); opacity: 0.55; transform: translateY(-14px) scale(0.992); } to { filter: blur(0); opacity: 1; transform: none; } }
        @media (prefers-reduced-motion: reduce) {
          @view-transition { navigation: none; }
          ::view-transition-old(root), ::view-transition-new(root) { animation: none; }

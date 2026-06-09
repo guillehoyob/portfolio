@@ -59,11 +59,20 @@ document.addEventListener('visibilitychange', () => {
    smaller dub close together, then a long diastole rest — reads as a calm heart
    while honouring the 4s ambient floor (§2.4). Phase wraps 0..1 every cycle. */
 const HEARTBEAT_MS = 4000;
-let beatEpoch = 0;
-export function heartbeatPhase(now) {
-  const t = now ?? performance.now();
-  if (!beatEpoch) beatEpoch = t;
-  return ((t - beatEpoch) % HEARTBEAT_MS) / HEARTBEAT_MS;
+let beatAnchor = 0;
+function beatInit() {
+  // WALL-CLOCK base (Date.now) so the phase is CONTINUOUS across page navigations — and
+  // persisted in sessionStorage when continuity is on, so the pulse never restarts when you
+  // move home↔work (the literal "same ocean"). performance.now() resets per document.
+  if (config.flags.continuity) {
+    try { const s = sessionStorage.getItem('wn.beatAnchor'); if (s) { beatAnchor = +s; return; } } catch { /* private mode */ }
+  }
+  beatAnchor = Date.now();
+  if (config.flags.continuity) { try { sessionStorage.setItem('wn.beatAnchor', String(beatAnchor)); } catch { /* */ } }
+}
+export function heartbeatPhase() {
+  if (!beatAnchor) beatInit();
+  return ((((Date.now() - beatAnchor) % HEARTBEAT_MS) + HEARTBEAT_MS) % HEARTBEAT_MS) / HEARTBEAT_MS;
 }
 const ping = (p, a, b) => (p < a || p > b ? 0 : 0.5 - 0.5 * Math.cos(((p - a) / (b - a)) * 2 * Math.PI));
 const recoil = (p, a, b) => (p < a || p > b ? 0 : -Math.sin(((p - a) / (b - a)) * Math.PI));
@@ -80,6 +89,39 @@ export function heartbeatBreath(phase) {
   if (phase < 0.24) return 0;
   const t = (phase - 0.24) / 0.76;
   return Math.sin(Math.pow(t, 0.78) * Math.PI);
+}
+
+/* ---- the FIELD: a read-only bulletin board for the environment (the "ocean medium") ----
+   ONE shared state object every behavior may READ. Carries cursor pos+speed, scroll speed,
+   recent click IMPULSES, and ONE decaying ENERGY scalar (0..1) raised by scroll/cursor/click
+   and decaying back to calm. The law (so it never breaches a §2 cap by stacking): energy
+   scales an amplitude ONLY where a hard cap already clamps it. Strata: SKY reads energy;
+   OCEAN reads energy + impulses; EARTH reads NEITHER (memory must not ripen on a fast scroll). */
+export const field = { cursorX: 0, cursorY: 0, cursorVel: 0, scrollVel: 0, energy: 0, impulses: [] };
+export function addImpulse(x, y, force) {
+  field.impulses.push({ x, y, force: force || 1, t: Date.now() });
+  if (field.impulses.length > 4) field.impulses.shift();
+  field.energy = Math.min(1, field.energy + 0.28 * (force || 1));
+  wake();
+}
+export function feedScroll(v) { // called from the Lenis scroll subscription (scroll.js)
+  field.scrollVel = Math.min(1, Math.abs(v || 0) / 8);
+  if (field.scrollVel > 0.02) field.energy = Math.min(1, field.energy + field.scrollVel * 0.05);
+}
+let _cx = 0, _cy = 0, _hasCursor = false;
+addEventListener('pointermove', (e) => {
+  if (_hasCursor) field.cursorVel = Math.min(1, Math.hypot(e.clientX - _cx, e.clientY - _cy) / 40);
+  _cx = field.cursorX = e.clientX; _cy = field.cursorY = e.clientY; _hasCursor = true;
+  if (field.cursorVel > 0.02) field.energy = Math.min(1, field.energy + field.cursorVel * 0.03);
+  wake();
+}, { passive: true });
+// the energy integrator — decays toward calm each frame; prunes spent impulses. NEVER keeps
+// the loop alive on its own (returns work only while energy/impulses persist), so idle-suspend holds.
+function integrateEnergy() {
+  if (field.energy > 0) { field.energy *= 0.94; if (field.energy < 0.0008) field.energy = 0; }
+  if (field.impulses.length) { const now = Date.now(); field.impulses = field.impulses.filter((im) => now - im.t < 700); }
+  field.cursorVel *= 0.9;
+  return field.energy > 0.001 || field.impulses.length > 0;
 }
 
 /* ---- the Governor (weather behaviors only; Heartbeat + Heliostat exempt) ----
@@ -119,6 +161,7 @@ const load = async (flag, importer, run) => {
 
 export async function boot() {
   const f = config.flags;
+  addTicker(integrateEnergy); // runs FIRST each frame — the field is fresh before behaviors read it
   // Stage 1 — Lenis + reveals + Vault Blur
   await load(!reduced, () => import('./scroll.js'), (m) => m.initScroll());
   await load(f.reveals, () => import('./reveals.js'), (m) => m.initReveals());
@@ -139,6 +182,7 @@ export async function boot() {
   await load(f.crosswind, () => import('./crosswind.js'), (m) => m.initCrosswind());
   await load(f.particles, () => import('./particles.js'), (m) => m.initParticles());
   await load(f.ocean, () => import('./ocean.js'), (m) => m.initOcean());
+  await load(f.idleSigh, () => import('./idle-sigh.js'), (m) => m.initIdleSigh());
   // Stage 6 — Patina (memory; the visit count + greeting swapped pre-paint)
   await load(f.patina, () => import('./patina.js'), (m) => m.initPatina(config));
 }

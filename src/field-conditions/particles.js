@@ -1,65 +1,58 @@
 /**
- * WHITE NOON — Field motes (Stage 5, new) — dust in a shaft of light (in'ei)
- * A few (8) faint warm motes drift slowly up through the field and lean gently
- * away from the cursor, like dust disturbed by a passing hand. Whisper-quiet:
- * 1.5–2.5px, ~18% warm alpha, behind content (the grain layer), fixed. Home only,
- * pointer-fine only; fully OFF under reduced motion (no element, no loop). Runs on
- * the ONE shared rAF; a handful of float ops per frame; suspends on tab-hide.
+ * WHITE NOON — Sky light (Stage 5, redesigned) — dust catching light, high in the field
+ * The SKY stratum's atmosphere: a FEW (5) very faint, SOFT warm light-blooms — not hard
+ * specks (which read as screen-dirt on white) but soft radial WARMTH, motes in a shaft of
+ * light (in'ei, Tanizaki). They belong to the sky and obey its law: they read the field's
+ * ENERGY (drift a touch quicker + the whole sky brightens when the field stirs) and otherwise
+ * just breathe — never the cursor, never the red. Behind content (the grain layer). Home only,
+ * pointer-fine; OFF under reduced motion. Shared rAF; one transform per mote/frame.
  */
-import { addTicker, removeTicker, wake, onReducedMotionChange } from './index.js';
+import { addTicker, removeTicker, field, onReducedMotionChange } from './index.js';
 
-const COUNT = 6;
+const COUNT = 5;
 
 export function initParticles() {
-  if (!document.getElementById('hero')) return; // home only (the landing field)
+  if (!document.getElementById('hero')) return; // the landing field
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return; // pointer devices only
-  if (document.querySelector('.fc-motes')) return;
+  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  if (document.querySelector('.fc-sky')) return;
 
   const layer = document.createElement('div');
-  layer.className = 'fc-motes';
+  layer.className = 'fc-sky';
   layer.setAttribute('aria-hidden', 'true');
   document.body.appendChild(layer);
 
-  // deterministic spread (no Math.random — quasi-random offsets keep it calm)
   const motes = Array.from({ length: COUNT }, (_, i) => {
     const el = document.createElement('span');
     el.className = 'fc-mote';
-    const size = 1.5 + (i % 3) * 0.5;
+    const size = 5 + (i % 3) * 2; // 5..9px soft blooms (light, not dots)
     el.style.width = el.style.height = size + 'px';
     layer.appendChild(el);
     return {
       el,
       x: (((i * 137.5) % 100) / 100) * innerWidth,
-      y: (((i * 53.7) % 100) / 100) * innerHeight,
-      vx: (i % 2 ? 1 : -1) * (0.04 + (i % 3) * 0.015),
-      vy: -(0.07 + (i % 4) * 0.025), // gentle upward drift (rising dust)
+      y: (((i * 61.8) % 100) / 100) * innerHeight * 0.7, // biased HIGH (sky)
+      vx: (i % 2 ? 1 : -1) * (0.02 + (i % 3) * 0.008),
+      vy: -(0.012 + (i % 4) * 0.008), // very slow rise
+      ph: i * 1.3,
     };
   });
 
-  let cx = -9999, cy = -9999;
-  window.addEventListener('pointermove', (e) => { cx = e.clientX; cy = e.clientY; wake(); }, { passive: true });
-  document.addEventListener('pointerleave', () => { cx = -9999; cy = -9999; });
-
   const ticker = (t) => {
+    const e = field.energy;          // sky reads ENERGY (never the cursor, never the red)
+    const spd = 1 + e * 1.6;         // the air quickens when the field stirs
     const w = innerWidth, h = innerHeight;
     for (const m of motes) {
-      m.x += m.vx + Math.sin(t / 3000 + m.y * 0.01) * 0.12; // drift + slow sway
-      m.y += m.vy;
-      // faint cursor avoidance (dust nudged by the hand)
-      const dx = m.x - cx, dy = m.y - cy, d2 = dx * dx + dy * dy;
-      if (d2 < 14000) {
-        const dist = Math.sqrt(d2) || 1, f = (1 - d2 / 14000) * 0.6;
-        m.x += (dx / dist) * f; m.y += (dy / dist) * f;
-      }
-      if (m.y < -4) { m.y = h + 4; m.x = (m.x + 53) % w; } // wrap to the bottom
-      if (m.x < -4) m.x = w + 4; else if (m.x > w + 4) m.x = -4;
+      m.x += (m.vx + Math.sin(t / 4000 + m.ph) * 0.05) * spd;
+      m.y += m.vy * spd;
+      if (m.y < -10) { m.y = h * 0.75; m.x = (m.x + 70) % w; } // recycle high
+      if (m.x < -10) m.x = w + 10; else if (m.x > w + 10) m.x = -10;
       m.el.style.transform = `translate3d(${m.x.toFixed(1)}px, ${m.y.toFixed(1)}px, 0)`;
     }
-    return true; // continuous ambient drift; suspends on tab-hide
+    layer.style.opacity = (0.55 + e * 0.45).toFixed(3); // sky drifts AND brightens with energy
+    return true; // continuous gentle drift (home only; suspends on tab-hide)
   };
   addTicker(ticker);
 
-  // live OS reduced-motion toggle → tear the motes down (§5 law 4)
   onReducedMotionChange((r) => { if (r) { removeTicker(ticker); layer.remove(); } });
 }

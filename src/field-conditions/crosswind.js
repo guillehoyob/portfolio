@@ -8,7 +8,7 @@
  * frames skip when displacement <0.1px. Governor: holds the weather slot while the
  * cursor is in the window, yields to Slipstream while scrolling, releases on leave.
  */
-import { addTicker, removeTicker, wake, registerWeather, requestWeather, releaseWeather, onReducedMotionChange } from './index.js';
+import { addTicker, removeTicker, wake, registerWeather, requestWeather, releaseWeather, onReducedMotionChange, field } from './index.js';
 
 export function initCrosswind() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -42,7 +42,10 @@ export function initCrosswind() {
   const ticker = () => {
     if (suspended || gone) return false;
     const ox = px, oy = py;
-    px += (cx - px) * 0.035; py += (cy - py) * 0.035; // slower sky lag → a trail that lingers ~1.1s
+    // SKY reads the field's energy: calm = heavy lag (a lingering trail); agitated = tighter lag
+    // (the air quickens with the field). Opacity/area untouched — only the lag changes.
+    const skyLerp = 0.020 + field.energy * 0.035;
+    px += (cx - px) * skyLerp; py += (cy - py) * skyLerp;
     wx += (cx - 40 - wx) * 0.05; wy += (cy - wy) * 0.05; // warm spot tracks tighter, 40px behind
     sky.style.transform = `translate3d(${px - 300}px, ${py - 300}px, 0)`;
     warm.style.transform = `translate3d(${wx - 120}px, ${wy - 120}px, 0)`;

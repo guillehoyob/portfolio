@@ -15,7 +15,7 @@
  * one shared rAF + the one heartbeat clock. Reduced motion → a quiet, fully-drawn
  * static red rule, no nib/ripple/bend. Flag off / not home → never exists.
  */
-import { addTicker, removeTicker, wake, heartbeatPhase, heartbeatBeat, heartbeatBreath, onReducedMotionChange } from './index.js';
+import { addTicker, removeTicker, wake, heartbeatPhase, heartbeatBeat, heartbeatBreath, onReducedMotionChange, field } from './index.js';
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 const SECTIONS = ['#proof', '#work', '#method', '.wn-void', '#about', '#contact'];
@@ -178,6 +178,9 @@ export function initSpine() {
       pulse.setAttribute('cx', tx); pulse.setAttribute('cy', ty);
       const advancing = clamp01(Math.abs(drawn - prevDrawn) * 40 + velocity() * 0.08);
       let nibOp = 0.14 + 0.66 * Math.max(advancing, beat * 0.5 + breath * 0.1);
+      // a click near the spine's lane gives the nib a brief brightness blip — the one sanctioned
+      // "energy propagates between layers" edge (the ocean's touch reaches the red thread)
+      for (const im of field.impulses) { if (Date.now() - im.t < 350 && Math.abs(im.x - tip.x) < 200) { nibOp = Math.min(0.95, nibOp + 0.35); break; } }
       if (drawn > 0.985) nibOp *= clamp01((1 - drawn) / 0.015); // the pen lifts at the foot
       pulse.style.opacity = nibOp.toFixed(3);
       // ripple ring re-armed on the lub rising edge, centred on the nib (the wave after the beat)

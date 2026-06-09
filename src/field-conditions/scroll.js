@@ -9,6 +9,7 @@
  */
 import Lenis from 'lenis';
 import { setupGsap } from './gsap-setup.js';
+import { feedScroll } from './index.js';
 
 export function initScroll() {
   const gsap = setupGsap();
@@ -22,6 +23,9 @@ export function initScroll() {
   const tick = (time) => lenis.raf(time * 1000);
   gsap.ticker.add(tick);
   gsap.ticker.lagSmoothing(0);
+
+  // feed scroll velocity into the field "ocean" bus (energy rises with how fast you move)
+  lenis.on('scroll', (e) => feedScroll(e.velocity));
 
   // smooth in-page anchor jumps without breaking native :target / history
   document.addEventListener('click', (e) => {

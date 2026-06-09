@@ -38,7 +38,8 @@ export const config = {
     // Stage 5 — weather (traces, governor-arbitrated)
     slipstream: true,     // scroll velocity → haze + heading scaleX (§5.4)
     crosswind: true,      // cursor radial + multiply warming spot (§5.3)
-    particles: true,      // a few faint warm field motes, cursor-reactive (home only)
+    particles: false,     // floating motes — OFF: read as screen-dirt on white + sub-perceptual (playbook ambient.md); module kept, revivable
+    ocean: true,          // click → faint sky ripple, the field responds (ocean), one-shot
     // Stage 6 — memory
     patina: true,         // returning-visitor state (§5.5)
   },

@@ -29,7 +29,7 @@ export function initSlipstream() {
   const onScroll = (e) => {
     if (typeof e.scroll === 'number') scroll = e.scroll;
     const v = e.velocity || 0;
-    if (v > 1.2) { target = Math.min(1, (v - 1.2) / 3); requestWeather('slipstream'); }
+    if (v > 1.0) { target = Math.min(1, (v - 1.0) / 3); requestWeather('slipstream'); } // a firm scroll trips it (was 1.2)
     else { target = 0; releaseWeather('slipstream'); }
     wake();
   };

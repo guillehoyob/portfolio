@@ -319,11 +319,12 @@ try {
   await page.waitForTimeout(650);
   const cyB = await page.evaluate(() => +document.querySelector('.fc-spine__pulse').getAttribute('cy'));
   const travels = cyA !== cyB;
-  await page.mouse.move(1250, 400, { steps: 4 }); await page.waitForTimeout(350);
-  const tA = await page.evaluate(() => getComputedStyle(document.querySelector('.fc-spine')).transform);
-  await page.mouse.move(80, 400, { steps: 6 }); await page.waitForTimeout(450);
-  const tB = await page.evaluate(() => getComputedStyle(document.querySelector('.fc-spine')).transform);
-  const bends = tA !== tB;
+  // local bend: the path `d` deforms toward the cursor (not a rigid block transform)
+  await page.mouse.move(1320, 340, { steps: 6 }); await page.waitForTimeout(750);
+  const dA = await page.$eval('.fc-spine__path', (p) => p.getAttribute('d'));
+  await page.mouse.move(110, 340, { steps: 8 }); await page.waitForTimeout(850);
+  const dB = await page.$eval('.fc-spine__path', (p) => p.getAttribute('d'));
+  const bends = dA !== dB;
   const pass = exists > 0 && hasPath && drew && travels && bends;
   rec('Red Spine', exists > 0 && hasPath, drew && travels && bends, `draws(off ${off0 | 0}→${off1 | 0})=${drew}; pulse travels=${travels}; cursor bend=${bends}`, pass);
   await c.close();
@@ -350,22 +351,61 @@ try {
   await c.close();
 } catch (e) { rec('One Heartbeat', true, false, 'ERR ' + e.message, false); }
 
-/* ───────────────── 15. Field motes / Particles (new) ───────────────── */
+/* ───────────────── 15. Field motes — CUT (off-playbook on white) ───────────────── */
 try {
   const c = await newCtx();
   const page = await c.newPage();
   await page.goto(HOME, { waitUntil: 'networkidle' });
   await page.waitForTimeout(300);
-  await page.mouse.move(500, 400, { steps: 3 }); // wake the shared loop
-  await page.waitForTimeout(120);
   const count = await page.$$eval('.fc-mote', (e) => e.length);
-  const tA = await page.evaluate(() => document.querySelector('.fc-mote') ? document.querySelector('.fc-mote').style.transform : '');
-  await page.waitForTimeout(600);
-  const tB = await page.evaluate(() => document.querySelector('.fc-mote') ? document.querySelector('.fc-mote').style.transform : '');
-  const moves = count > 0 && tA !== tB;
-  rec('Particles', count > 0, moves, `motes=${count}; drift moved=${moves}`, count > 0 && moves);
+  rec('Motes (cut)', count === 0, count === 0, `motes=${count} (off by config — read as screen-dirt; replaced by the spine nib + ocean)`, count === 0);
   await c.close();
-} catch (e) { rec('Particles', true, false, 'ERR ' + e.message, false); }
+} catch (e) { rec('Motes (cut)', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 15b. Ocean click ripple (new) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(300);
+  await page.mouse.move(700, 500, { steps: 2 });
+  await page.mouse.down(); await page.mouse.up();
+  await page.waitForTimeout(120);
+  const rings = await page.$$eval('.fc-ocean__ring', (e) => e.length);
+  const isSky = await page.evaluate(() => { const r = document.querySelector('.fc-ocean__ring'); return r ? getComputedStyle(r).borderColor : ''; });
+  rec('Ocean ripple', true, rings > 0, `ring spawned on click=${rings > 0}; sky-not-red border=${isSky}`, rings > 0);
+  await c.close();
+} catch (e) { rec('Ocean ripple', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 15c. Spine drawing-tip nib + ripple ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(300);
+  // nib brightens while scrolling (advancing), quiet at rest
+  await page.evaluate(() => { const l = window.__wn && window.__wn.lenis; if (l) l.scrollTo(2600, { duration: 0.7 }); else window.scrollTo(0, 2600); });
+  let peak = 0;
+  for (let i = 0; i < 12; i++) { peak = Math.max(peak, await page.evaluate(() => +document.querySelector('.fc-spine__pulse').style.opacity || 0)); await page.waitForTimeout(60); }
+  await page.waitForTimeout(900);
+  const rest = await page.evaluate(() => +document.querySelector('.fc-spine__pulse').style.opacity || 0);
+  const nibAlive = peak > rest + 0.1 && peak > 0.4;
+  rec('Spine nib', true, nibAlive, `nib opacity peak(drawing)=${num(peak)} > rest=${num(rest)}`, nibAlive);
+  await c.close();
+} catch (e) { rec('Spine nib', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 15d. Spine kintsugi gold vein (returning visitor) ───────────────── */
+try {
+  const c = await newCtx();
+  await c.addInitScript(() => { try { localStorage.setItem('wn.visits', '5'); sessionStorage.setItem('wn.session', '1'); } catch {} });
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(300);
+  const gild = await page.evaluate(() => { const g = document.querySelector('.fc-spine__gild'); return g ? { has: true, dash: (g.style.strokeDasharray || '').split(' ').length, op: +getComputedStyle(g).opacity } : { has: false }; });
+  const ok = gild.has && gild.dash >= 4 && gild.op > 0.5;
+  rec('Spine gold vein', gild.has, ok, `φ-dashed gild present=${gild.has}; dashes=${gild.dash}; opacity=${gild.op}`, ok);
+  await c.close();
+} catch (e) { rec('Spine gold vein', true, false, 'ERR ' + e.message, false); }
 
 /* ───────────────── 16. Patina kintsugi deepening (new, §5.5 ext) ───────────────── */
 try {

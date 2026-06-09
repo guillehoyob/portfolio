@@ -39,7 +39,6 @@ export function initFirstBreath() {
   const cleanup = () => {
     clearTimeout(timer);
     window.removeEventListener('scroll', onActivity);
-    window.removeEventListener('pointermove', onActivity);
   };
   const fire = () => {
     if (fired || exited) return;
@@ -48,8 +47,10 @@ export function initFirstBreath() {
     chevron.classList.add('fc-breathed');
     cleanup();
   };
+  // gate on SCROLL only, NOT pointer movement — requiring zero mouse motion meant the cue
+  // never appeared during active review (looking around moves the cursor). Now any 2s pause
+  // on the hero reveals it for virtually every visitor.
   const onActivity = () => { if (!fired) { clearTimeout(timer); timer = setTimeout(fire, 2000); } };
   window.addEventListener('scroll', onActivity, { passive: true });
-  window.addEventListener('pointermove', onActivity, { passive: true });
   timer = setTimeout(fire, 2000);
 }

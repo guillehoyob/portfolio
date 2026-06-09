@@ -61,8 +61,8 @@ html.fc-hero-revealed .hero__greet, html.fc-hero-revealed .hero__cta { animation
    the Red Spine reads): JS writes --fc-dot-beat each frame; CSS maps it to a
    scale + opacity swell. scale 1→1.4 on the lub, on the 8px flex-item dot. */
 html.fc-motion .wn-status__dot--live {
-  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4));
-  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha)));
+  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4 + var(--fc-dot-breath, 0) * 0.06));
+  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha)) + var(--fc-dot-breath, 0) * 0.05);
 }
 /* reduced motion: dot solid at full opacity, no beat; label still renders (§5.6) */
 @media (prefers-reduced-motion: reduce) {
@@ -72,10 +72,11 @@ html.fc-motion .wn-status__dot--live {
 /* ===== Stage 2 — First Breath scroll cue (§5.7) ===== */
 /* hidden until idle; fail-safe reveal at 4s so it can never stay invisible */
 @keyframes wn-chevron-reveal { to { opacity: 0.85; } }
+/* a slow 4px / 4s drift (ambient floor, not the forbidden 600ms–4s band) — breathing,
+   not nagging; far more findable than a single dip blinked past. Exits on first scroll. */
 @keyframes wn-firstbreath {
-  0%   { transform: translateX(-50%) translateY(0); }
-  50%  { transform: translateX(-50%) translateY(12px); }
-  100% { transform: translateX(-50%) translateY(0); }
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(4px); }
 }
 html.fc-firstbreath .hero__chevron {
   opacity: 0;
@@ -83,12 +84,20 @@ html.fc-firstbreath .hero__chevron {
 }
 html.fc-firstbreath .hero__chevron.fc-breathed {
   opacity: 0.85;
-  animation: wn-firstbreath var(--dur-600) var(--ease-run);
+  animation: wn-firstbreath var(--dur-ambient-min) var(--ease-run) infinite;
 }
 
 /* ===== Stage 2 — footer Scanline drift (§5.11) ===== */
-@keyframes wn-scanline { from { transform: translateX(0); } to { transform: translateX(var(--fc-scan-w, 1000px)); } }
-html.fc-motion .footer__scanline.fc-scan-run::after { animation: wn-scanline var(--dur-ambient-min) linear; will-change: transform; }
+/* a pulse of light that arrives and departs (ease + edge opacity fade + 0.5px drift),
+   never a constant-velocity bar — the fix for the "robotic" footer scan */
+@keyframes wn-scanline {
+  0%   { transform: translateX(0) translateY(0); opacity: 0; }
+  12%  { opacity: 0.5; }
+  50%  { transform: translateX(calc(var(--fc-scan-w, 1000px) * 0.5)) translateY(-0.5px); }
+  88%  { opacity: 0.5; }
+  100% { transform: translateX(var(--fc-scan-w, 1000px)) translateY(0); opacity: 0; }
+}
+html.fc-motion .footer__scanline.fc-scan-run::after { animation: wn-scanline var(--dur-ambient-min) var(--ease-run); will-change: transform, opacity; }
 
 /* ===== Stage 3 — New Route (§5.2) ===== */
 /* one index, two geometries: desktop (2 turns) ≥1024px, mobile (1 turn) below */
@@ -142,7 +151,7 @@ html.fc-amp[data-daypart="evening"] { --fc-tint: color-mix(in srgb, var(--sky) 5
 }
 .fc-crosswind--sky {
   width: 600px; height: 600px; z-index: var(--z-haze);
-  background: radial-gradient(circle, color-mix(in srgb, var(--sky) 8%, transparent), transparent 60%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--sky) 8%, transparent), color-mix(in srgb, var(--sky) 3%, transparent) 45%, transparent 72%);
 }
 .fc-crosswind--warm {
   width: 240px; height: 240px; z-index: var(--z-warm); mix-blend-mode: multiply;
@@ -156,30 +165,43 @@ html.fc-return .greet-first { display: none; }
 html.fc-return .greet-return { display: inline; }
 
 /* ===== Stage 3 — THE RED SPINE (new): one scroll-drawn thread down the page =====
-   Fixed full-viewport SVG on the field-grain layer (z-index:-1, behind content),
-   armed hidden (full dash) until scroll draws it. width/height:100% of the viewport
-   (not 100vw → no scrollbar overflow). Reduced motion → drawn complete, no pulse. */
+   Absolute full-document SVG. z-index:2 → IN FRONT of the void band's black, still
+   BEHIND all --z-content:10 text and the bumped void content (z-index:3). The line
+   is a faint TRACE that breathes; JS composes the hero fade-in via --fc-spine-fade.
+   Reduced motion → drawn complete, no nib/ripple/bend. */
 .fc-spine {
   position: absolute; top: 0; left: 0; width: 100%; /* height set by JS = document height */
-  z-index: -1; pointer-events: none; overflow: visible; will-change: transform;
+  z-index: 2; pointer-events: none; overflow: visible;
 }
 .fc-spine__path {
+  stroke: var(--signal); stroke-width: 2;
   stroke-dasharray: var(--fc-spine-len, 4000);
   stroke-dashoffset: var(--fc-spine-len, 4000);
-  opacity: 0.42; /* a faint red TRACE thread — the hero route stays the only full-red gesture;
-                    JS fades it 0 → this past the hero so the two reds never share a frame */
+  /* faint red trace that breathes with the heartbeat; hero fade-in via --fc-spine-fade */
+  opacity: calc((0.42 + var(--fc-spine-breath, 0) * 0.04) * var(--fc-spine-fade, 1));
 }
-/* the travelling heartbeat node: signal red that flashes toward the cyan --pulse
-   at the beat peak (cyan ONLY as a pulse), with a soft pulse-tinted glow. JS sets
-   its opacity per frame (a comet that brightens on the lub–dub, fades as it glides). */
+/* the kintsugi GOLD VEIN — φ-dashed gold flecks healing the red thread, returning
+   visitors only, clipped to the drawn portion in JS; deepens by visit tier. */
+.fc-spine__gild { stroke: var(--gold-deep); stroke-width: 1.5; opacity: 0.45; }
+html.fc-amp  .fc-spine__gild { opacity: 0.6; }
+html.fc-aged .fc-spine__gild { opacity: 0.72; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--gold-deep) 50%, transparent)); }
+/* the DRAWING-TIP nib: signal red that flashes toward the cyan --pulse on the beat
+   (cyan ONLY as a pulse), with a soft glow. JS drives cx/cy + opacity per frame. */
 .fc-spine__pulse {
   fill: color-mix(in srgb, var(--signal) calc(100% - var(--fc-spine-beat, 0) * 55%), var(--pulse));
   filter: drop-shadow(0 0 4px color-mix(in srgb, var(--pulse) calc(15% + var(--fc-spine-beat, 0) * 45%), transparent));
   opacity: 0;
 }
+/* the expanding RIPPLE ring emitted on each lub — the wave after the beat */
+.fc-spine__ripple { fill: none; stroke: var(--signal); stroke-width: 1; opacity: 0; }
+.fc-spine__ripple.go { animation: wn-spine-ripple var(--dur-600) var(--ease-run); }
+@keyframes wn-spine-ripple {
+  from { opacity: 0.30; r: 3.5; stroke-width: 1.4; }
+  to   { opacity: 0;    r: 22;  stroke-width: 0.4; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .fc-spine__path { stroke-dashoffset: 0; }
-  .fc-spine__pulse { display: none; }
+  .fc-spine__path { stroke-dashoffset: 0; opacity: 0.42; }
+  .fc-spine__pulse, .fc-spine__ripple { display: none; }
 }
 
 /* ===== Field motes (new): faint warm dust behind content (in'ei, dust in light) ===== */
@@ -216,7 +238,21 @@ html.fc-aged .wn-void__crack::before {
 }
 /* visited cards ripen: the moss border warms further on return; the deepest tier
    adds one tiny gold fleck to the patina tick (the card, too, has been repaired) */
-html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 38%, var(--hairline)); }
+html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 44%, var(--hairline)); }
+
+/* ===== Ocean (new): click → one faint SKY ripple (the field responds; never red) ===== */
+.fc-ocean { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
+.fc-ocean__ring {
+  position: fixed; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--sky) 70%, transparent);
+  opacity: 0; will-change: transform, opacity;
+  animation: wn-ocean var(--dur-600) var(--ease-run) forwards;
+}
+@keyframes wn-ocean {
+  from { transform: scale(0.4); opacity: 0.22; } /* sky stays a faint cool pulse */
+  to   { transform: scale(9);   opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .fc-ocean { display: none; } }
 html.fc-aged .wn-card--visited .wn-card__patina::after {
   content: ""; position: absolute; right: 0; bottom: 0; width: 4px; height: 4px;
   background: var(--gold); opacity: 0.5; pointer-events: none;

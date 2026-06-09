@@ -32,6 +32,8 @@ export function initHeroEntrance() {
     delay: 0.12,
     onComplete: () => { splits.forEach((s) => s.revert()); root.classList.remove('fc-hero'); },
   });
-  tl.from(lines, { yPercent: 110, duration: 0.65, stagger: 0.06, ease: 'run' }, 0);
-  tl.fromTo(rest, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, stagger: 0.06, ease: 'run', clearProps: 'transform,opacity' }, 0.08);
+  // wider φ-ish stagger (90ms) + an opacity lead so the two lines read as TWO deliberate
+  // events rising through light, and the name leads the rest of the stack (+0.14)
+  tl.from(lines, { yPercent: 110, opacity: 0, duration: 0.7, stagger: 0.09, ease: 'run' }, 0);
+  tl.fromTo(rest, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, stagger: 0.06, ease: 'run', clearProps: 'transform,opacity' }, 0.14);
 }

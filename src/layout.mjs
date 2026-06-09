@@ -50,8 +50,12 @@ export const prePaint = () => {
     : '';
   // Patina: increment visit count once per session (guarded) and set memory
   // classes pre-paint — the return greeting swaps with no content flash (§5.5).
+  // Patina visit tiers + a dev/test override: ?wn=return|amp|aged|fresh (or a number),
+  // and ?wn=clear to wipe real state. The override is ephemeral (never persisted) — drop
+  // the param and the real visit count returns. Lets the owner SEE return-visit gold
+  // without the console (which Chrome blocks pasting into).
   const patina = f.patina
-    ? `try{var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');if(vi>=5)d.classList.add('fc-aged');}catch(e){}`
+    ? `try{var qp=new URLSearchParams(location.search).get('wn');if(qp==='clear'){try{localStorage.removeItem('wn.visits');localStorage.removeItem('wn.visited');sessionStorage.removeItem('wn.session');}catch(e){}}var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(qp&&qp!=='clear'){var mp={fresh:1,'return':2,amp:3,aged:5};vi=mp[qp]||parseInt(qp,10)||vi;}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');if(vi>=5)d.classList.add('fc-aged');}catch(e){}`
     : '';
   return `<script>(function(){var d=document.documentElement;d.classList.add('has-js');${daypart}${seed}${patina}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');${addMotion}}}catch(e){}})();</script>`;
 };

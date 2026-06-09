@@ -15,19 +15,36 @@ export function initThresholdCut(config) {
 
   bands.forEach((band) => {
     band.classList.add('fc-cut-armed');
-    if (crackOn) band.classList.add('fc-crack-armed');
+    const crack = band.querySelector('.wn-void__crack');
+    if (crackOn && crack) band.classList.add('fc-crack-armed');
 
-    const io = new IntersectionObserver(
+    // the WORD detonates the instant the band enters (it's the headline)
+    const cutIO = new IntersectionObserver(
       (entries) => {
         for (const en of entries) {
           if (!en.isIntersecting) continue;
-          io.disconnect();
+          cutIO.disconnect();
           band.classList.add('fc-cut-in');
-          if (crackOn) setTimeout(() => band.classList.add('fc-crack'), 190); // 70ms cut + 120ms breath
         }
       },
       { threshold: 0.35 }
     );
-    io.observe(band);
+    cutIO.observe(band);
+
+    // the CRACK draws only once the crack LINE itself is in the reading zone — before, it
+    // armed while still below the fold (hidden under the giant word) and you missed it draw
+    if (crackOn && crack) {
+      const crackIO = new IntersectionObserver(
+        (entries) => {
+          for (const en of entries) {
+            if (!en.isIntersecting) continue;
+            crackIO.disconnect();
+            setTimeout(() => band.classList.add('fc-crack'), 120); // a held breath, then the blade
+          }
+        },
+        { threshold: 0, rootMargin: '0px 0px -35% 0px' } // fires when the crack is in the top ~65%
+      );
+      crackIO.observe(crack);
+    }
   });
 }

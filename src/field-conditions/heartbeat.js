@@ -10,7 +10,7 @@
  * default → no third-party call. Reduced motion → dot solid, no beat (CSS), label
  * still renders.
  */
-import { addTicker, removeTicker, heartbeatPhase, heartbeatBeat, onReducedMotionChange } from './index.js';
+import { addTicker, removeTicker, heartbeatPhase, heartbeatBeat, heartbeatBreath, onReducedMotionChange } from './index.js';
 
 export function initHeartbeat(config) {
   const dot = document.querySelector('.hero .wn-status__dot:not(.wn-status__dot--static)');
@@ -18,12 +18,14 @@ export function initHeartbeat(config) {
     dot.classList.add('wn-status__dot--live');
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
       const beat = () => {
-        dot.style.setProperty('--fc-dot-beat', heartbeatBeat(heartbeatPhase()).toFixed(3));
+        const ph = heartbeatPhase();
+        dot.style.setProperty('--fc-dot-beat', heartbeatBeat(ph).toFixed(3));
+        dot.style.setProperty('--fc-dot-breath', heartbeatBreath(ph).toFixed(3)); // diastolic breath
         return true; // continuous pulse — keeps the shared loop alive on the hero
       };
       addTicker(beat);
-      // live OS reduced-motion toggle → stop writing the beat var (CSS already neutralises it)
-      onReducedMotionChange((r) => { if (r) { removeTicker(beat); dot.style.removeProperty('--fc-dot-beat'); } });
+      // live OS reduced-motion toggle → stop writing the vars (CSS already neutralises them)
+      onReducedMotionChange((r) => { if (r) { removeTicker(beat); dot.style.removeProperty('--fc-dot-beat'); dot.style.removeProperty('--fc-dot-breath'); } });
     }
   }
 

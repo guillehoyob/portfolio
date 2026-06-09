@@ -30,9 +30,13 @@ export function initNewRoute() {
   document.documentElement.classList.add('fc-route-drawn');
   const gsap = setupGsap();
   const paths = [dPath, mPath].filter(Boolean);
-  gsap.fromTo(
-    paths,
-    { strokeDasharray: 3000, strokeDashoffset: 3000 },
-    { strokeDashoffset: 0, duration: 0.9, ease: 'run', delay: 0.12 }
-  );
+  // delay 0.45s so the line draws into CLEAR AIR after the name has settled (it was
+  // occluded mid-draw by the climbing H1 before), and dash to the REAL path length so
+  // the stroke advances 1:1 with visible pixels (the 3000 guess front-loaded off-screen)
+  paths.forEach((p) => {
+    const len = p.getTotalLength() || 3000;
+    gsap.fromTo(p,
+      { strokeDasharray: len, strokeDashoffset: len },
+      { strokeDashoffset: 0, duration: 0.9, ease: 'run', delay: 0.45 });
+  });
 }

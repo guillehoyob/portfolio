@@ -37,7 +37,9 @@ function markVisited(card) {
   const tick = document.createElement('span');
   tick.className = 'wn-card__patina';
   tick.setAttribute('aria-hidden', 'true');
-  tick.innerHTML = '<svg viewBox="0 0 12 12" width="12" height="12"><path d="M0 0 L12 0 L12 12 Z" fill="var(--moss)"/></svg>';
+  // two-tone moss: a filled corner + a 1px --moss-deep edge along the hypotenuse, so it reads
+  // as a small bloom of lichen (settled growth) rather than a hard UI flag
+  tick.innerHTML = '<svg viewBox="0 0 12 12" width="12" height="12"><path d="M0 0 L12 0 L12 12 Z" fill="var(--moss)"/><path d="M0 0 L12 12" stroke="var(--moss-deep)" stroke-width="1" fill="none"/></svg>';
   (card.querySelector('.wn-card__head') || card).appendChild(tick);
   const sr = document.createElement('span');
   sr.className = 'sr-only';

@@ -42,11 +42,11 @@ export function initCrosswind() {
   const ticker = () => {
     if (suspended || gone) return false;
     const ox = px, oy = py;
-    px += (cx - px) * 0.05; py += (cy - py) * 0.05;
-    wx += (cx - 40 - wx) * 0.05; wy += (cy - wy) * 0.05; // 40px behind, in travel
+    px += (cx - px) * 0.035; py += (cy - py) * 0.035; // slower sky lag → a trail that lingers ~1.1s
+    wx += (cx - 40 - wx) * 0.05; wy += (cy - wy) * 0.05; // warm spot tracks tighter, 40px behind
     sky.style.transform = `translate3d(${px - 300}px, ${py - 300}px, 0)`;
     warm.style.transform = `translate3d(${wx - 120}px, ${wy - 120}px, 0)`;
-    return Math.abs(px - ox) > 0.1 || Math.abs(py - oy) > 0.1; // idle pointer costs nothing
+    return Math.abs(px - ox) > 0.05 || Math.abs(py - oy) > 0.05; // idle pointer costs nothing
   };
   addTicker(ticker);
 

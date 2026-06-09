@@ -139,6 +139,13 @@ main { flex: 1 0 auto; }
 }
 .hero__lane { max-width: 60ch; }
 @media (min-width: 1024px) { .hero__lane { margin-left: var(--gutter-dead); } }
+/* tablet (768–1023): give the hero + stage a PARTIAL dead gutter so the up-left
+   axis bias survives — without it the block floats flush-left, reading as a
+   stretched phone layout (the dead gutter only existed ≥1024 before) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero__lane { margin-left: 8vw; }
+  .stage > .lane { margin-left: 8vw; }
+}
 .hero__pre { margin: 0 0 var(--space-6); }
 .hero__h1 {
   display: flex; flex-direction: column;
@@ -161,7 +168,10 @@ main { flex: 1 0 auto; }
   transform: translateX(-50%);
   pointer-events: none; overflow: visible;
 }
-.hero__sub { font-size: var(--text-body); line-height: var(--lh-body); color: var(--ink-ghost); max-width: 55ch; margin: var(--space-8) 0 0; }
+/* the proof sentence is the commercial point — lifted to --ink (full body weight,
+   not ghost) and pulled closer under the name so it reads 3rd: name → role → proof */
+.hero__sub { font-size: var(--text-body); line-height: var(--lh-body); color: var(--ink); max-width: 55ch; margin: var(--space-6) 0 0; }
+.hero__sub b { font-weight: var(--weight-ui); color: var(--ink); }
 .hero__greet { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: var(--ink-ghost); margin: var(--space-4) 0 0; }
 .hero__cta { display: flex; align-items: center; gap: var(--space-6); margin-top: var(--space-12); flex-wrap: wrap; }
 .hero__chevron { position: absolute; left: 50%; bottom: var(--space-8); transform: translateX(-50%); z-index: var(--z-content); display: block; line-height: 0; border-radius: var(--radius-tag); }
@@ -263,7 +273,7 @@ main { flex: 1 0 auto; }
 .footer__scanline { position: relative; height: 1px; background: var(--hairline); margin-top: var(--space-12); overflow: hidden; }
 /* static honest state: a 64px pulse segment sits at the footer's left edge */
 /* static honest state: the 64px pulse segment sits at the footer's left edge (§5.11) */
-.footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 96px; height: 1px; background: var(--pulse); opacity: 0.6; }
+.footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 72px; height: 1px; background: linear-gradient(90deg, transparent, var(--pulse), transparent); opacity: 0.5; }
 .footer__col + .footer__col { }
 
 /* ============ PROJECT PAGE (§3.20 / §4.3) ============ */

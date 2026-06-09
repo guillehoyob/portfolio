@@ -66,9 +66,20 @@ export function heartbeatPhase(now) {
   return ((t - beatEpoch) % HEARTBEAT_MS) / HEARTBEAT_MS;
 }
 const ping = (p, a, b) => (p < a || p > b ? 0 : 0.5 - 0.5 * Math.cos(((p - a) / (b - a)) * 2 * Math.PI));
+const recoil = (p, a, b) => (p < a || p > b ? 0 : -Math.sin(((p - a) / (b - a)) * Math.PI));
+// the cardiac beat: lub (full) + dub (0.6×), each followed by a short RECOIL undershoot
+// — the dip is what turns a mechanical "pum-pum" into a heartbeat with real recoil. ~[-0.18,1]
 export function heartbeatBeat(phase) {
-  // lub (full, 0–11% of cycle) then dub (0.6×, 15–24%), then rest — a cardiac rhythm
-  return Math.max(ping(phase, 0, 0.11), ping(phase, 0.15, 0.24) * 0.6);
+  const swell = Math.max(ping(phase, 0, 0.11), ping(phase, 0.15, 0.24) * 0.6);
+  const dip = recoil(phase, 0.11, 0.145) * 0.18 + recoil(phase, 0.24, 0.30) * 0.10;
+  return swell + dip;
+}
+// diastolic BREATH: a slow sine swell filling the ~3s rest interval so the pulse never
+// flatlines — crests near φ of the rest window. Shared by the dot AND the spine (one clock).
+export function heartbeatBreath(phase) {
+  if (phase < 0.24) return 0;
+  const t = (phase - 0.24) / 0.76;
+  return Math.sin(Math.pow(t, 0.78) * Math.PI);
 }
 
 /* ---- the Governor (weather behaviors only; Heartbeat + Heliostat exempt) ----
@@ -127,6 +138,7 @@ export async function boot() {
   await load(f.slipstream, () => import('./slipstream.js'), (m) => m.initSlipstream());
   await load(f.crosswind, () => import('./crosswind.js'), (m) => m.initCrosswind());
   await load(f.particles, () => import('./particles.js'), (m) => m.initParticles());
+  await load(f.ocean, () => import('./ocean.js'), (m) => m.initOcean());
   // Stage 6 — Patina (memory; the visit count + greeting swapped pre-paint)
   await load(f.patina, () => import('./patina.js'), (m) => m.initPatina(config));
 }

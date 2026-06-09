@@ -1421,6 +1421,29 @@ html.fc-aged .wn-card--visited::after {
    motion gate, so reduced-motion never promotes a compositor layer (honest Stage-0 stillness). */
 html.fc-motion #work .workgrid .wn-card { will-change: translate; }
 
+/* ===== Seams (void-essence): hairline section dividers that DRAW on scroll =====
+   A quiet echo of the void band's crack — a thin --hairline rule across the top of the
+   major sections that draws as the section enters view. NEVER red (the crack's red is the
+   ONE signal; this is a structural hairline). Lane-aligned. Pure CSS scroll-timeline; no
+   support → a static hairline; gated on fc-motion so reduced-motion / flag-off shows no
+   extra decoration (honest Stage-0). Echoes the crack's left-anchored scaleX draw. */
+html.fc-motion :is(#work, #method, #about, #contact) { position: relative; }
+html.fc-motion #work::before, html.fc-motion #method::before,
+html.fc-motion #about::before, html.fc-motion #contact::before {
+  content: ""; position: absolute; top: 0; left: 0;
+  width: min(100%, var(--lane-max)); height: 1px;
+  background: var(--hairline); transform-origin: left; pointer-events: none;
+}
+@supports (animation-timeline: view()) {
+  @keyframes wn-seam-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  html.fc-motion #work::before, html.fc-motion #method::before,
+  html.fc-motion #about::before, html.fc-motion #contact::before {
+    animation: wn-seam-draw linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 55%;
+  }
+}
+
   .cv-wrap { background: var(--field-2); min-height: 100vh; }
   .toolbar { max-width: 820px; margin: 0 auto; padding: var(--space-6) var(--space-8) 0; display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); }
   .toolbar a, .toolbar button { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); text-transform: uppercase; color: var(--ink-ghost); background: none; border: 1px solid var(--hairline); border-radius: var(--radius-tag); padding: var(--space-2) var(--space-4); cursor: pointer; text-decoration: none; min-height: 40px; display: inline-flex; align-items: center; }

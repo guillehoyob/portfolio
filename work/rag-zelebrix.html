@@ -1433,6 +1433,29 @@ html.fc-aged .wn-card--visited::after {
    scrollbar (transform-only, zero layout, CLS-safe). will-change is hinted ONLY under the
    motion gate, so reduced-motion never promotes a compositor layer (honest Stage-0 stillness). */
 html.fc-motion #work .workgrid .wn-card { will-change: translate; }
+
+/* ===== Seams (void-essence): hairline section dividers that DRAW on scroll =====
+   A quiet echo of the void band's crack — a thin --hairline rule across the top of the
+   major sections that draws as the section enters view. NEVER red (the crack's red is the
+   ONE signal; this is a structural hairline). Lane-aligned. Pure CSS scroll-timeline; no
+   support → a static hairline; gated on fc-motion so reduced-motion / flag-off shows no
+   extra decoration (honest Stage-0). Echoes the crack's left-anchored scaleX draw. */
+html.fc-motion :is(#work, #method, #about, #contact) { position: relative; }
+html.fc-motion #work::before, html.fc-motion #method::before,
+html.fc-motion #about::before, html.fc-motion #contact::before {
+  content: ""; position: absolute; top: 0; left: 0;
+  width: min(100%, var(--lane-max)); height: 1px;
+  background: var(--hairline); transform-origin: left; pointer-events: none;
+}
+@supports (animation-timeline: view()) {
+  @keyframes wn-seam-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  html.fc-motion #work::before, html.fc-motion #method::before,
+  html.fc-motion #about::before, html.fc-motion #contact::before {
+    animation: wn-seam-draw linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 55%;
+  }
+}
 </style>
 <script>(function(){var d=document.documentElement;d.classList.add('has-js');try{var qh=new URLSearchParams(location.search).get('fc-hour');var hh=(qh!=null&&qh!==''&&!isNaN(+qh))?((+qh%24)+24)%24:new Date().getHours();d.setAttribute('data-daypart',(hh>=5&&hh<9)?'dawn':(hh>=9&&hh<17)?'noon':(hh>=17&&hh<21)?'evening':'night');}catch(e){}try{var v=localStorage.getItem('wn.visitor');if(!v){v=(self.crypto&&crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('wn.visitor',v);}var n=new Date(),ds=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate(),k=ds+'|'+v,h=5381,i=0;for(;i<k.length;i++)h=((h<<5)+h+k.charCodeAt(i))>>>0;window.__wnRouteIndex=h%10;}catch(e){window.__wnRouteIndex=0;}try{var qp=new URLSearchParams(location.search).get('wn');if(qp==='clear'){try{localStorage.removeItem('wn.visits');localStorage.removeItem('wn.visited');sessionStorage.removeItem('wn.session');}catch(e){}}var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(qp&&qp!=='clear'){var mp={fresh:1,'return':2,amp:3,aged:5};vi=mp[qp]||parseInt(qp,10)||vi;}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');if(vi>=5)d.classList.add('fc-aged');}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');d.classList.add('fc-firstbreath');d.classList.add('fc-route');d.classList.add('fc-hero');}}catch(e){}})();</script>
 </head>

@@ -1,107 +1,81 @@
-# WHITE NOON — Portfolio Living Layer · HANDOFF
+# WHITE NOON — Portfolio Living Layer · HANDOFF (V5)
 
-> Hand-off for a fresh session. Read this first, then `src/field-conditions/index.js` and `config.js`.
-> Status: all green, deployed to `main` (through v4d, `aca2e48`). The owner (Guillermo) is **actively iterating on perceptibility** — he keeps reporting living-layer effects he still can't see and intends to keep going until each is clearly felt. **Read §8.0 before touching anything.**
+> Hand-off for a fresh session. Read this first, then `CONCEPT.md` (§7 = las leyes V5),
+> `src/field-conditions/config.js` (INTENSITY) and `src/field-conditions/index.js`.
+> Status: **V5 completa en local (40/40 harness ALL GREEN)** — auditoría → research →
+> panel de diseño → 4 writers paralelos → integración. Los specs completos viven en
+> `screenshots/audit-v5/{AUDIT,RESEARCH,DESIGN,CONTRACTS}-V5.md` (gitignored — solo local).
 
 ---
 
 ## 1. What this is
-- **Guillermo Hoyo Bravo**'s portfolio. Vite **vanilla-JS multi-page app (MPA)** with a Node page generator. Design system = **WHITE NOON**: warm-white field ≥90% of pixels, exactly **ONE red** signal (`--signal`, ≤1.5% viewport), Japanese *ma*, token-only color, **everything free** (GSAP 3.13 free plugins + Lenis), WCAG AA.
-- Identity: Guillermo Hoyo Bravo · `guillehoyob@gmail.com` · `github.com/guillehoyob`. (The operator email `juan@zelebrix.com` is a different person — do not surface it.)
-- Repo `github.com/guillehoyob/portfolio`, branch **main**. Deploy: **Cloudflare Pages** (Framework: None · Build: `npm run build` · Output: `dist`). Every push to main auto-redeploys.
-- **Edit** `src/pages/*.mjs`, `src/data/content.js`, `src/layout.mjs`, `src/styles/*.css`, `src/field-conditions/*.js`. The **root `*.html` and `work/*.html` are GENERATED** by `scripts/build-pages.mjs` (runs on `predev`/`prebuild`) — never hand-edit them, but DO commit them (they carry the inlined critical CSS + the pre-paint snippet).
-- **Every `[PLACEHOLDER]` must stay visible** — it's the owner's honesty device, launch-permitted. Never invent metrics/dates/URLs.
+- **Guillermo Hoyo Bravo**'s portfolio. Vite **vanilla-JS MPA** + Node page generator. Design system **WHITE NOON**: warm-white field ≥90%, exactly **ONE red** (`--signal`, ≤1.5% viewport, **BINARIO** — saturación plena o ausente, ley CONCEPT §7.5), Japanese *ma*, token-only color, GSAP free + Lenis, WCAG AA.
+- Identity: Guillermo Hoyo Bravo · `guillehoyob@gmail.com` · `github.com/guillehoyob`. (El email del operador `juan@zelebrix.com` es OTRA persona — no exponer.)
+- Repo `github.com/guillehoyob/portfolio`, branch **main**. Deploy: **Cloudflare Pages** (Build `npm run build` · Output `dist`). Push a main = deploy.
+- **Edit** `src/pages/*.mjs`, `src/data/content.js`, `src/data/route-viz.mjs`, `src/layout.mjs`, `src/styles/*.css`, `src/field-conditions/*.js`. Los `*.html` raíz son **GENERADOS** (`scripts/build-pages.mjs` en predev/prebuild) — jamás editarlos a mano, sí commitearlos.
+- **Todo `[PLACEHOLDER]` sigue visible** (dispositivo de honestidad). V5: en las filas identity va en **voz baja** (`.ph-quiet` "pendiente" + chip íntegro en title y en el cuerpo) — jerarquizado, nunca oculto.
 
 ## 2. Run / build / test
 ```
-npm run dev                              # http://localhost:5173 — instant, reflects everything
-npm run build                            # regenerates root html + dist (must pass before commit)
-npx vite preview --port 4178 --strictPort  # then, in another shell:
-npm run living                           # the verification harness (tests/living.spec.js)
+npm run dev                                # http://localhost:5173
+npm run build                              # regenera html + dist (debe pasar antes de commit)
+npx vite preview --port 4178 --strictPort  # y en otra shell:
+npm run living                             # el harness (tests/living.spec.js) — 40 filas
 ```
-- **`npm run living`** is the source of truth: Playwright drives EVERY behavior programmatically and prints `behavior | wired? | fires? | evidence | verdict` + a breakpoint matrix (1440/1024/768/390) + a reduced-motion table. **Currently 22/22 green, 0 console errors, CLS ≤0.0003, zero third-party.** When you change a behavior, keep this green (add/adjust an assertion).
-- **Test returning-visitor state WITHOUT the console** (Chrome blocks pasting): append **`?wn=return|amp|aged|fresh|clear`** to any URL (read in the pre-paint, ephemeral — not persisted). e.g. `/?wn=aged` shows the deepest kintsugi.
-- Reduced motion = OS setting; everything must degrade to an honest static state.
-- CRLF warnings on commit are harmless (Windows). Commit message trailer: `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
+- **`npm run living` es la fuente de verdad: 40/40 PASS**, 0 errores de consola en 9 rutas, matriz 1440/1024/768/390, tabla reduced-motion. Incluye: presupuesto del rojo MEDIDO en subtle Y boost (≤1.5%, Δ≤0.05pp), **perceptibilidad del boost como assert** (diff ≥Δ16 + ≥0.8% px), la única third-party medida (≤1 GET, solo api.open-meteo.com), cuota del sprite, respiración, reposo, touch, seams, 404, assets por proyecto. `tests/visual-helpers.mjs` (committeado) trae el differ y el clasificador de rojo.
+- **Scrubbers** (efímeros, por URL): `?fc-hour=0..24` (la luz de cualquier hora) · `?fc-wx=clear|partly|overcast|fog|rain|rain-heavy|snow|storm|off` (clima sin red) · `?fc-breath=0..1|cycle` (congela/encadena la respiración) · `?fc-rest=deep|asleep` (tiers de reposo) · `?wn=boost|subtle` (INTENSITY, efímero) · `?wn=return|amp|aged|fresh|<n>|clear` (memoria; `clear` también borra `wn.intensity`). QA combinada: p.ej. `/?fc-hour=16&fc-wx=storm&wn=boost`.
+- Reduced motion = estado estático digno; el botón FIELD sigue operativo (es UI de estado).
+- CRLF warnings en Windows = inofensivos. Trailer de commits: `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`.
 
-## 3. Architecture — the "living ocean"
-All living behaviors are in `src/field-conditions/`, each **flag-gated in `config.js`**, each independently deletable (flag off ⇒ byte-identical Stage-0). Boot path: `main.js` → `field-conditions/index.js → boot()` (dynamic-imports each behavior behind its flag, isolated try/catch).
+## 3. Architecture — the living ocean (V5)
+Todo en `src/field-conditions/`, flag-gated en `config.js`, hub `index.js` (un rAF compartido con **dt real** a cada ticker, bus `field` = {cursor, scroll, energy, breath, **rest**, **wx**, impulses}, governor, reloj cardiaco 4s persistido). **Novedades V5 del hub:** `INTENSITY` (registro central: presets `subtle`/`boost`, ~20 ejes; `applyIntensity()` único dueño de `html.fc-boost`; live binding `intensity`), `dtFactor`/`dtKeep` (física independiente del refresh), `registerCleanup` (teardown estándar), el rAF **duerme de verdad** en reposo (harness lo asierta: 0 mutaciones).
 
-**`index.js` is the engine:**
-- **ONE shared rAF** (`addTicker`/`removeTicker`/`wake`; dirty-flag idle-suspend after ~90 idle frames; suspends on tab-hide). A ticker returns `true` while it has work.
-- **Governor** (weather only): precedence `slipstream > crosswind`; Heartbeat + Heliostat exempt; Scanline self-arbitrates (decoupled).
-- **The heartbeat clock** (`heartbeatPhase/heartbeatBeat/heartbeatBreath`): 4s cardiac (lub + 0.618 dub + recoil undershoot) + a diastolic breath. Anchored to **`Date.now()` persisted in `sessionStorage 'wn.beatAnchor'`** when `config.flags.continuity` → **the pulse is continuous across page navigations** (gated by `continuity`).
-- **The field "bus"** (the ocean medium): `export const field = {cursorX,cursorY,cursorVel,scrollVel,energy,breath,impulses}`. `addImpulse(x,y,force)` (click/detonation), `feedScroll(v)` (from Lenis in scroll.js), `integrateEnergy()` ticker decays `energy *= 0.97` each frame. **Energy** rises with cursor/scroll speed + clicks; behaviors READ it (never multiply past a hard cap).
-- **Strata law** (a taxonomy, NOT painted layers): **SKY** reads energy only (heliostat tint, crosswind haze, motes); **OCEAN** reads energy+impulses (spine, heartbeat, ocean ripple, route); **EARTH** reads neither — memory must not ripen on a fast scroll (patina moss, kintsugi gold, grain).
-- **`field.breath`** = the slow sigh (set by `idle-sigh.js`); the **dot AND spine breathe with it** (one organism — owner's request).
+**CSS por planos** (propiedad disjunta, inlined en orden): `field-conditions.css` (core W0) → `fc-sky.css` (W1) → `fc-ocean.css` (W2) → `fc-earth.css` (W3) → `fc-breath.css` (W4) → `fc-ui.css` (W0).
 
-## 4. The behaviors (file → what + how to see)
+**Eventos** (protocolo único): `fc:intensity` (window, emite applyIntensity) · `wn:wx`, `fc:crest`, `fc:rest` (document) · `wn:route-redrawn` (window). **Storage:** `wn.intensity`, `wn.visited/visits/visitor`, `wn.beatAnchor`, `wn.routeStep`, `wn.wx`, `wn.sunTimes`, `wn.firstBreathDone`, `wn.sprite`.
+
+## 4. The behaviors (file → what + see it)
 | File | What | See it |
 |---|---|---|
-| `heartbeat.js` | Hero status dot beats (4s cardiac) + breathes; shared clock; couples to `field.breath` | Watch the "OPEN TO WORK" dot |
-| `spine.js` | **THE RED SPINE** on EVERY page: scroll-drawn red trace down the left margin (lane 6%/4.5%), drawing-tip **nib** (brightens with scroll velocity + a click near it), **local path-deform cursor bend** (24 dense resampled points), tidal breath, **baton-pass** from the hero route (home) / `.identity__route` (project pages). z-index:2 (over the void black, under text). **Skipped on `/cv`.** NO gold vein (removed). | Scroll any page; move cursor near the line |
-| `new-route.js` | Per-visit hero route, GSAP draw (delay 0.45, real `getTotalLength`) | Reload home |
-| `particles.js` | **SKY sparkles** — tiny TWINKLING motes beside the spine, in the hour's colour (`--fc-sky-hue`), brighter/faster with cursor speed+proximity. Home only. `mix-blend-mode:multiply`, z-warm | Move cursor fast in the left gutter |
-| `ocean.js` | Click → SKY ripple, **energy-scaled** (calm=small/quick, after-moving=wide/slow + a φ ghost ring). `addImpulse` on click. (Had a `live`-counter leak → fixed.) | Click empty space; vary your speed first |
-| `warm-lens.js` | Cursor **warms the element it touches** (broad: cards/prose/headings/lists/void) — additive light, NOT a fog | Hover any block |
-| `idle-sigh.js` | After 8s rest, ONE breath of the haze (0.05→0.11), **re-fires each cycle**, publishes `field.breath` | Stay still 8s on home |
-| `heliostat.js` | **CONTINUOUS top-down day wash** (warm dawn→clear noon→cool evening→dim night), minute-by-minute, masked gradient (`.fc-tint`), publishes `--fc-sky-hue` | Subtle; strongest at dawn/dusk |
-| `crosswind.js` | Cursor sky haze + ink-ghost multiply warm spot; lag tightens with energy | Move the cursor |
-| `slipstream.js` | Scroll velocity → haze (feeds the nib); scaleX capped 1.01 | Scroll fast |
-| `scanline.js` | Footer pulse of light, φ-jittered cadence | Footer |
-| `threshold-cut.js` | Void band detonation (word snap + crack draws when in view) + a field flinch (`addImpulse`) | Scroll to "SHIPPED" |
-| `reveals.js` | Forward-landing scroll reveals (Fib stagger) | Scroll |
-| `vault-blur.js` | **NO-OP now** — the vertical DIVE page transition is **static CSS** in `field-conditions.css` (`@view-transition` + `wn-dive-*`, sink/surface). Needs Chrome/Edge 126+ | Navigate between pages |
-| `patina.js` | Returning-visitor moss tick (two-tone) + warmed border; **kintsugi gold on the void crack only** (deepens fc-return/amp/aged) | `?wn=aged` then `/work`; void band |
+| `heliostat.js` | **Heliostat 2.0**: gradiente cenit→horizonte por anclas (12 filas × 8 canales, DATA sancionada §7.7), canal de sol propio (op por ancla, tamaño horario), **noche bella** (luna washi recorriendo lo alto + campo cálido jamás gris), **sombras heliostáticas** (cambian de lado al mediodía), `--hairline-lit`, reloj warpeado al sol REAL del visitante (wn.sunTimes) | `?fc-hour=7.5 / 13 / 18 / 2`; sombras de cards 9h vs 18h |
+| `weather.js` | **El clima real**: UN GET a Open-Meteo (sin key, cache 30min, tabla tz embebida — sin permisos) con Capa 0 sintética determinista de respaldo; estados → `data-wx` + `field.wx`; nubes con deriva, **lluvia caligráfica** en gutters, nieve (motas en régimen frío), tormenta (flash del void + trueno como impulso + **RED SPRITE 1/sesión**), niebla por sustracción, **iridiscencia** diurna | `?fc-wx=rain / storm / snow / fog`; sprite: `?fc-wx=storm&wn=boost` (~8s) |
+| `breath.js` | **Respiración 2.0**: ciclo de resonancia 10.4s con holds de *ma*, primera respiración anticipada al cargar (~0.9s), re-arma a 1.5s de quietud de scroll, `fc:crest` (transitorio anti change-blindness), tiers de reposo 30s/60s (la lámpara queda encendida), despertar <100ms | quédate quieto tras un scroll; mira sol+dot+hilo respirar JUNTOS |
+| `spine.js` | **El hilo rojo del destino**: nace DE la ruta del nombre (baton-pass real con codo), **nudos de meñique** (origen atado; el del destino se aprieta sobre el email al llegar), **puntada sashiko** deslizante (el siguiente waypoint), presencia desde el primer viewport (min-draw en px reales), bend al cursor (fine) o al último tap (touch), respira con ANCHURA en la cresta (§7.6) | recarga y mira el arranque; scrollea hasta el contacto |
+| `new-route.js` | **La ruta del nombre VIVA**: curvatura hacia el cursor + **redibujo del pool en click** sobre el hero (wn.routeStep), boost fuerza un redibujo | click en el espacio del hero |
+| `particles.js` | Motas doradas sitewide + **touch** (sin gate pointer-fine, 10 en móvil, surge al tap), suelo 0.18, nieve/niebla/viento/reposo acoplados vía field.wx | mueve el cursor por el gutter; `?fc-wx=snow` |
+| `ocean.js` | Ripple de click perceptible (0.45 base) + **la lluvia aviva el mar** (anillo extra + cresta +0.08) | click en vacío; `?fc-wx=rain` |
+| `patina.js` | Memoria + **demo-moss en boost** (2 cards efímeras si no hay memoria real) | `?wn=aged` /work; boost en /work |
+| `intensity-control.js` | **El botón FIELD: SUBTLE/LOUD** (cápsula inferior-dcha, disco de oro que se llena de sol; persiste; jamás rojo). Retiro: `flags.intensityControl:false` | clícalo: helio-snap + suspiro inmediato + demo-moss |
+| `vt-morph.js` | morph card→H1 con View Transitions (Chrome) | click en una card de /work |
+| resto | heartbeat (recede 0.7 en cresta + glint), warm-lens (dual: hover / tap transitorio), reveals/scanline/threshold-cut/crack/first-breath/hero-entrance/slipstream/crosswind como v4 + dt + intensity | — |
 
-## 5. Nature ratios (φ / Fibonacci) already applied
-Spine bow φ-decay; cardiac dub = 0.618; breath crest exp 0.786; reveal stagger 55ms / breath-pre 144ms; hero stagger 0.089 / lead 0.144; dive 120/200ms + 20/30px; ocean ring 8→15; scanline golden-ratio jitter; mote golden-angle (137.5°) seeding; energy injection φ⁻³.
+**Assets V5 (`src/data/route-viz.mjs`):** viz de ruta ÚNICA por proyecto en las cards (gramática de material: tinta=recorrido, oro=entregado, hairline discontinua=futuro, rojo SOLO la cabeza en hover de las in-progress) + `identity__route` única por ficha (con `data-head-y` que el spine lee) + favicon void-aware + og-image nueva. La **404**: ruta deshilachada (el único rojo) + banda void mini sin crack con marco byōbu.
 
-## 6. Budgets (all met — keep them)
-CLS ~0 (≤0.0003) · shipped JS ≈55 KB gz (<90) · fonts 133 KB (<220) · **zero third-party** · field ≥90% · red ≤1.5% · tints ≤5% · haze ≤8% · AA on all text. Transform/opacity/dashoffset/path-d only; no per-frame inherited custom-prop storms on big subtrees.
+## 5. Leyes y presupuestos (V5 — la fuente es CONCEPT.md §7)
+Campo ≥90% · **rojo ≤1.5% y BINARIO** (RED_LOCKED: el boost jamás lo multiplica; medido en harness) · tinte ≤6.5% (clamp 8 en boost) · AA · CLS≈0 · JS ~65KB gz (<90) · **una sola third-party sancionada** (api.open-meteo.com, atribuida en el colofón; `flags.weather:false` → cero red) · reduced-motion honesto · cero deps npm nuevas · banda 600ms–4s con las excepciones escritas (§7.3) · cupo de oro estático (1 traza/viewport) · jerarquía de entrada del void (§7.14).
 
-## 7. The owner (Guillermo) — how to work with him
-- Wants it **magical but felt-not-seen**, "natural like breathing", **simple-but-elaborate** (looks simple, many subtle things happen). Never obvious/overloaded/garish.
-- Loves: **golden ratio / Fibonacci everywhere**, **consistency across pages** (same effect-type ⇒ same, or explain why one is intentionally cleaner), **nature metaphors** (ocean / earth / sky strata; wabi-sabi / kintsugi).
-- He **tests hands-on and reports what he can't see** — treat each as either a real bug or a perceptibility miss; **debug with Playwright probes + screenshots**, don't hand-wave. (This session caught: ocean `live` leak, motes occluded by body bg, sigh firing once, warm-lens too narrow — all real.)
-- **Already REJECTED — do not re-propose:** red section titles (breaks one-red + AA on small text); a faster heartbeat (reads as alarm); gilding the hero route or a gold "vein" on the spine (ugly + kintsugi gilds *breaks* only → gold lives on the void crack); a persistent inverted-fog veil (hurts reading → shipped the additive **warm lens** instead).
-- **Likes / keep:** the warm lens, the ocean click ripple, the continuous day, the kintsugi glow on the crack, the spine on every page.
+## 6. The owner (Guillermo) — cómo trabajar con él
+- Quiere **claramente perceptible aunque sutil** (la era "felt-not-seen" terminó — pero jamás garish). Ama: φ/Fibonacci, consistencia, metáforas de naturaleza (océano/cielo/tierra, wabi-sabi/kintsugi, el hilo rojo del destino), Mirror's Edge, Edgerunners, el VOID.
+- **Método**: ship → él revisa EN VIVO → reporta "no veo X" → reproducir con scrubbers + probe + diffs, jamás a ojo. El botón FIELD/LOUD existe para que él calibre.
+- **Rechazado (no re-proponer):** títulos rojos de sección; latido más rápido; oro en el spine/nudos; niebla persistente que ensucie la lectura; `screen`/additive sobre blanco.
 
-## 8. Open items / HANDOFF for the next session
+## 7. CALIBRACIÓN PENDIENTE CON EL DUEÑO (los gates humanos de CONTRACTS §c.5.4)
+Todo está implementado y verde; estos puntos esperan su VEREDICTO en vivo (cada uno con su palanca de 1 número):
+1. **La noche** `?fc-hour=2` (luna + campo cálido) — el mayor cambio del cielo.
+2. **Sombras de card en reposo** (art-direction nueva de SKY-4; retirada = solo-hover).
+3. **El red sprite** `?fc-wx=storm&wn=boost` (~8s) — cuota 1/sesión en real.
+4. **Iridiscencia** `?fc-hour=13&wn=boost` (con `?fc-wx=clear`).
+5. **fogVeils** (`weather.fogVeils:false` — velos de niebla completos, OFF hasta su OK).
+6. **El pliego de las 5 geometrías** de rutas por proyecto (interpretación de W3 — enseñar capturas).
+7. **El morph** card→ficha en Chrome en vivo.
+8. **El encadenado de la respiración** en reposo + la dosis del glint (si lee "notificación": keyframe 0.85→0.7).
+9. Lluvia más visible: `fc-sky.css` op .30→.40 (1 línea) si la quiere más presente.
 
-### 8.0 ⚠️ READ THIS FIRST — the owner is NOT satisfied yet; this is ongoing
-Guillermo's standing words: **"sigo sin ver muchas cosas… voy a intentar seguir iterando hasta que lo consiga."** Every round, after we ship, he reviews the LIVE site and reports *more* living-layer effects he still can't perceive. **Treat the perceptibility work as OPEN and continuing, not done.** He will keep pushing each element until HE can clearly see/feel it.
+## 8. Lessons (orquestación)
+- Writers paralelos SIEMPRE en worktrees aislados con ficheros 100% disjuntos + lista CERRADA de cross-diffs; el hub/config/tokens/tests son solo del integrador. `.claude/worktrees/` está en .gitignore (un `git add -A` se los tragó una vez).
+- El split de `field-conditions.css` por planos fue lo que hizo posible 4 writers sin colisiones.
+- Sesiones largas chocan con límites: los workflows se RESUMEN con caché (`resumeFromRunId`) — no relanzar de cero.
+- Los `*.html` generados: regenerar y commitear SOLO desde el merge final (los writers los restauran a su base).
 
-**THE CORE TENSION (the most important thing to understand):** WHITE NOON's law is *felt-not-seen / ma / ≤5% tint / ≥90% warm field / ≤1.5% red / whisper-quiet*. For **Guillermo's taste, that spec lands too far toward "not seen."** He repeatedly asks to **exaggerate** — and has explicitly approved exceeding the original subtle budgets (e.g. the v4d "sun" glow runs at 0.10–0.22 opacity, well past the old ≤5% tint guideline). **So: lean MORE visible than the original spec.** Protect the hard invariants that are about *correctness* (exactly ONE red ≤1.5%; AA contrast; reduced-motion honest; harness 22/22; zero deps) — but the "everything ultra-subtle" guideline is **negotiable and he wants it dialed up.** When in doubt, make it more perceptible, deploy, and let him judge live.
-
-**Method that works with him:** he tests hands-on and reports "no veo X." Reproduce + debug with the **`?fc-hour=` scrubber**, `scripts/audit-probe.mjs` (hard numbers), and **before/after screenshot crops** — NEVER hand-wave or argue it "is" visible. Ship each round (push to main → Cloudflare); he reviews live and comes back with the next thing. Small, fast, deploy-each-round loop.
-
-### 8.1 STILL "ON PROBATION" — things he may still say he can't see (verify live each)
-- **The day-tint / light of the hour** — his #1 recurring complaint across EVERY round ("no veo el tinte"). v4 warmed it, v4d added the moving **"sun" glow** (`.fc-sun`, heliostat-driven, traverses low→high→low + east→west, op 0.10–0.22). **Unconfirmed he's happy** — likely the next thing he pushes. Lever: `heliostat.js` sun `warmth * 0.22` (raise for more), and the `.fc-sun` radial size/position; the flat `.fc-tint` wash is still there but faint.
-- **The breathing / idle-sigh** — he said "no veo el respirar" twice. v4b made the cardiac beat *recede* so the dot/spine SLOW into a deep breath after 8s idle (`--fc-dot-sigh` 0.22 scale / `--fc-spine-sigh`). **Requires staying perfectly still 8s** (cursor included) — a real discoverability problem he keeps hitting. Unconfirmed. Levers: the 8s threshold (`idle-sigh.js`), the sigh amplitudes, or a more findable channel.
-- **The moss / "visited"** — "no veo el musgo, nada verde." v4d added a clear **4px `--moss-deep` left band** + stronger creep. Unconfirmed he finds it clear enough.
-- **Motes** — wanted gold + glowing; v4 made them saturated gold (kept `multiply`; `screen` is invisible on near-white — don't "fix" that way). He didn't re-complain but may.
-- **Pulse wave** — was "too fast"; slowed 600→1300ms (v4b). Unconfirmed.
-
-### 8.2 Shipped so far (deployed to main; harness 22/22, budgets met)
-Commits: `aca2e48` (v4d) ← `e8f82f4` (seams) ← `8d14f27` (v4c) ← `7109b6c` (v4b) ← `671861d` (v4). See `CONCEPT.md` for the three-layer law.
-- **v4 perceptibility:** warm afternoon/evening tint; gold motes; ocean ripple crests as a ring + energy→width/dur/wake; spine bend contained; kintsugi gold off the red crack; `og-image` (`scripts/make-og.mjs`). Fase-6 independently audited clean.
-- **v4b:** ripple slowed; idle-sigh via beat-recede; motes on every page; **`?fc-hour=` dev day-scrubber**.
-- **v4c redesign:** tighter rhythm + unified `--lane-max:72ch` lane; card paper-tooth grain (`.wn-card::before`); creep-only patina (badge removed); scroll-drawn **seams**. *(Removed in v4d: the ocean work-drift — he said it "broke the steadiness/the soul.")*
-- **v4d:** removed work-drift; **clear green visited band**; **hero ALIGNED** (it sat ~115px right of every section — `.stage` zeros padding-left but `.hero__inner` kept it; now hero = 259px = sections @1440); **breath line one centered line**; **proof-grid cells get left padding**; **"sun" glow** for a visible day-cycle.
-
-### 8.3 His call / tunables (he may ask for these)
-- **Sun intensity** (too much / too little) — one number in `heliostat.js`. **Tint warm vs cool** — ANCHORS warmth 16/18h.
-- **Work grid** is 2-col at `--lane-max:72ch` — bump toward 80–84ch for wider cards.
-- **Breath line** is centered within the lane — he may want it centered on the full page instead.
-
-### 8.4 Deferred / candidates
-Slim unused `public/motifs/*` SVGs; populate empty `public/references/`; og:image is root-relative (make absolute if a custom domain is set); flagged inverted-fog veil prototype (he was curious); project `identity__route` as inline SVG.
-
-### 8.5 Tools, artifacts & lessons
-- **Verify scripts:** `scripts/baseline-shots.mjs` (36 labelled shots), `scripts/audit-probe.mjs` (hard numbers + crops), `scripts/verify-v4b.mjs`/`verify-v4c.mjs`, `scripts/make-og.mjs`. Outputs under `screenshots/` (gitignored).
-- **`?fc-hour=<0–24>`** previews any hour's light instantly (ephemeral, dev). `?wn=aged|return|amp|fresh|clear` for visit state.
-- **LESSON:** parallel WRITE agents/workflows MUST use `isolation:'worktree'` — a redesign workflow without it raced on the shared tree (recovered by re-applying the returned edit-specs deterministically). Read-only audit agents are safe to parallelize freely.
-
-## 9. Recent commits (main, newest first)
-`aca2e48` v4d (hero align, clear green visited, "sun" glow, remove work-drift) · `e8f82f4` seams · `8d14f27` v4c redesign (lane/rhythm, grain, drift, creep patina) · `7109b6c` v4b (slow pulse, perceptible breath, motes everywhere, ?fc-hour scrubber) · `671861d` v4 perceptibility (Fase-1 audit fixes) · `8f86842` HANDOFF · `02869e5` living-ocean v3.
+## 9. Commits V5 (main, newest first)
+`4cb4663` integración W0 (cross-diffs + harness 40) · `8a5954a` W3 tierra/páginas · `d124f0f` W2 hilo rojo · `906df2a` W4 respiración/touch · `65dd1a4` W1 cielo/clima · `4e37e21`+`5a74b0c` leyes V5 + higiene · `33e2ca6` Fase 0 (INTENSITY+split+harness 29) · `11c4b45` motor (dt + rAF-sleep) · `2500b5c` 16 quick-wins medidos · `0698008` (v4d, la base).

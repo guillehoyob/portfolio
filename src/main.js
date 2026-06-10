@@ -41,9 +41,10 @@ function initMobileMenu() {
     if (nav.dataset.menuOpen !== 'true') return;
     if (e.key === 'Escape') { setOpen(false); return; }
     if (e.key === 'Tab') {
-      // trap focus within the open overlay (§6.3)
-      const items = [...links.querySelectorAll('a')];
-      if (!items.length) return;
+      // trap focus within the open overlay (§6.3) — INCLUDING the visible close
+      // button: trapping only the links made the one visible control unreachable
+      // by keyboard (audit A11Y-2)
+      const items = [toggle, ...links.querySelectorAll('a')];
       const first = items[0];
       const last = items[items.length - 1];
       if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }

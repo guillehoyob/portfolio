@@ -148,6 +148,10 @@ html[data-daypart="night"]   { --fc-field: var(--field-0-dim); --fc-pulse-alpha:
 /* the field itself crossfades at the night boundary */
 html.fc-motion body { transition: background-color var(--dur-ambient-min) linear; }
 @media (prefers-reduced-motion: reduce) { .fc-tint, body { transition: none; } }
+/* first heliostat apply lands instantly — no 4s ramp from transparent on page load
+   (audit CIE-01); the class is dropped two frames later so the day still crossfades */
+html.fc-helio-instant .fc-tint, html.fc-helio-instant .fc-sun,
+html.fc-helio-instant body { transition: none !important; }
 
 /* ===== "Sun" — the hour's light made VISIBLE in one part of the field (the flat top-down
    tint was imperceptible). A soft warm radial that travels low→high→low and east→west through

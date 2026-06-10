@@ -24,24 +24,21 @@ export function initReveals() {
   );
   if (!items.length) return;
 
-  // 60ms stagger among siblings sharing a parent, after the 120ms breath
-  const groups = new Map();
-  for (const el of items) {
-    const p = el.parentElement;
-    if (!groups.has(p)) groups.set(p, []);
-    groups.get(p).push(el);
-  }
-  for (const list of groups.values()) {
-    list.forEach((el, i) => {
-      el.style.transitionDelay = `calc(${i} * var(--stagger-sib) + var(--breath-pre))`;
-    });
-  }
   for (const el of items) el.classList.add('fc-reveal');
 
+  // stagger by INTERSECTION BATCH, not absolute sibling index (audit DC-03): with a
+  // pre-assigned index, the 20th sibling of a long list carried a fixed ~1.4s delay
+  // even when it intersected alone much later — Related/Next arrived visibly empty.
+  // Each observer callback restarts the cascade and caps it at 8 steps (~440ms).
   const io = new IntersectionObserver(
     (entries) => {
+      let i = 0;
       for (const en of entries) {
-        if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); }
+        if (en.isIntersecting) {
+          en.target.style.transitionDelay = `calc(${Math.min(i++, 8)} * var(--stagger-sib) + var(--breath-pre))`;
+          en.target.classList.add('is-in');
+          io.unobserve(en.target);
+        }
       }
     },
     { rootMargin: '0px 0px -8% 0px', threshold: 0.06 }

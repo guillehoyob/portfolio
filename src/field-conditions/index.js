@@ -19,6 +19,10 @@ const rmListeners = new Set();
 export const onReducedMotionChange = (fn) => rmListeners.add(fn);
 RM.addEventListener?.('change', (e) => {
   reduced = e.matches;
+  // the master motion gate must follow a LIVE change too — the pre-paint class kept
+  // every CSS-driven behavior (seams, dot beat, transitions) running after the user
+  // asked for reduced motion (audit A11Y-1)
+  document.documentElement.classList.toggle('fc-motion', !reduced);
   rmListeners.forEach((fn) => fn(reduced));
 });
 

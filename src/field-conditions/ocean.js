@@ -28,7 +28,7 @@ export function initOcean() {
     // a WIDER, SLOWER, DIMMER swell; a calm tap makes a SMALL, QUICK, BRIGHT one ("resembles what
     // is happening"). The click also feeds the ocean (raises energy + a nib blip near the spine).
     const en = field.energy;
-    const dur = 0.5 + en * 0.39; // Fibonacci-capped: heavy swell ≈0.89s, calm tap 0.5s
+    const dur = 0.7 + en * 0.19; // heavy swell ≈0.89s (sanctioned cap); calm tap 0.7s — the old 0.5s died before the eye landed (audit VIS-04)
     const spawn = (opMul, delay) => {
       live++;
       const ring = document.createElement('span');
@@ -37,7 +37,7 @@ export function initOcean() {
       ring.style.top = e.clientY + 'px';
       ring.style.setProperty('--fc-ring-scale', (8 + en * 7).toFixed(1)); // 8→15: a clearly wider swell when you were moving
       ring.style.setProperty('--fc-ring-dur', dur.toFixed(2) + 's');
-      ring.style.setProperty('--fc-ring-op', ((0.30 + en * 0.03) * opMul).toFixed(3)); // energy varies WIDTH/DURATION/wake, not brightness — a heavier touch is no longer dimmer
+      ring.style.setProperty('--fc-ring-op', ((0.45 + en * 0.03) * opMul).toFixed(3)); // energy varies WIDTH/DURATION/wake, not brightness; base raised 0.30→0.45 — the calm ring measured Δ12, below perception (audit VIS-04)
       ring.style.setProperty('--fc-ring-delay', delay.toFixed(2) + 's');
       let done = false;
       const finish = () => { if (done) return; done = true; ring.remove(); live = Math.max(0, live - 1); };

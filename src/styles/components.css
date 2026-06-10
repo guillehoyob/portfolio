@@ -257,7 +257,16 @@
 }
 .wn-card__viz { display: block; width: 100%; height: auto; background: var(--field-2); }
 .wn-card__foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
-.wn-card__arrow { font-family: var(--font-body); font-size: var(--text-h2); line-height: 1; color: var(--ink); }
+/* the arrow answers the hover (audit DC-13) with the card's own asymmetric physics:
+   arrives fast (ease-react), settles slow (ease-lift) — zero red cost */
+.wn-card__arrow {
+  font-family: var(--font-body); font-size: var(--text-h2); line-height: 1; color: var(--ink);
+  transition: transform var(--dur-300) var(--ease-lift);
+}
+.wn-card:hover .wn-card__arrow, .wn-card:focus-visible .wn-card__arrow {
+  transform: translateX(4px);
+  transition: transform var(--dur-180) var(--ease-react);
+}
 /* planned variant — muted, no signal underline (nothing to visit at depth yet) */
 .wn-card--planned .wn-card__body { opacity: 0.88; }
 .wn-card--planned .wn-card__title::after { display: none; }
@@ -345,7 +354,10 @@
   color: var(--washi);
   margin: 0;
 }
-.wn-void__crack { height: 1px; background: var(--signal); border: none; width: 100%; margin: var(--space-8) 0; }
+/* overflow:visible defeats the UA's `hr { overflow: hidden }` — without it the kintsugi
+   gold seams (::before/::after at top:±5px in field-conditions.css) are clipped to the
+   1px box and the mend can never paint (audit VIS-01: Δ8 → Δ153 with this one line). */
+.wn-void__crack { height: 1px; background: var(--signal); border: none; width: 100%; margin: var(--space-8) 0; overflow: visible; }
 .wn-void__body { font-family: var(--font-body); font-size: var(--text-body); line-height: var(--lh-body); color: var(--washi); max-width: 55ch; }
 /* the collab grid (3 columns) must not be trapped by the 55ch prose cap — let it
    breathe to the full band; each column stays ≤~34ch internally (§3.15) */

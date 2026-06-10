@@ -13,9 +13,14 @@ export function initPatina() {
   let visited;
   try { visited = JSON.parse(localStorage.getItem('wn.visited') || '[]'); } catch { return; }
   if (!Array.isArray(visited)) visited = [];
+  // normalize legacy entries recorded with an extension (audit BUG-1) so old
+  // memory still lights the extensionless card hrefs
+  visited = visited.map((s) => String(s).replace(/\.html?$/, ''));
 
-  // record this project-page visit (not the hub/index)
-  const m = location.pathname.match(/^\/work\/([^/]+)\/?$/);
+  // record this project-page visit (not the hub/index). The path may arrive WITH
+  // its .html extension (static hosting serves both) — strip it or the stored slug
+  // never matches the extensionless card hrefs and no moss ever grows (BUG-1).
+  const m = location.pathname.match(/^\/work\/([^/]+?)(?:\.html?)?\/?$/);
   if (m && m[1] && m[1] !== 'personal' && m[1] !== 'index') {
     if (!visited.includes(m[1])) {
       visited.push(m[1]);
@@ -24,10 +29,18 @@ export function initPatina() {
     }
   }
 
+  // dev/QA scrubber parity (audit VIS-09): ?wn=return|amp|aged|<n≥2> should also light
+  // the cards, not only the crack — EPHEMERAL (never persisted), like the visit tiers.
+  let forceAll = false;
+  try {
+    const qp = new URLSearchParams(location.search).get('wn');
+    if (qp && qp !== 'clear' && qp !== 'fresh' && qp !== '1') forceAll = true;
+  } catch { /* */ }
+
   // mark already-visited cards across the site
   document.querySelectorAll('a.wn-card[href^="/work/"]').forEach((card) => {
     const cm = card.getAttribute('href').match(/^\/work\/([^/#]+)/);
-    if (cm && visited.includes(cm[1])) markVisited(card);
+    if (forceAll || (cm && visited.includes(cm[1].replace(/\.html?$/, '')))) markVisited(card);
   });
 }
 

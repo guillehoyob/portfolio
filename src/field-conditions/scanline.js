@@ -18,10 +18,11 @@ export function initScanline() {
   let visible = false;
   let timer = 0;
   let running = false;
+  let dead = false; // set when reduced-motion turns on mid-session — the IO kept rearming the pulse after "teardown" (audit BUG-3)
   let phi = 0.618; // golden-ratio walk → irregular but evenly-spread intervals
 
   const run = () => {
-    if (!visible || running) return;
+    if (dead || !visible || running) return;
     running = true;
     scan.style.setProperty('--fc-scan-w', `${Math.max(0, scan.clientWidth - 72)}px`);
     scan.classList.add('fc-scan-run');
@@ -42,6 +43,8 @@ export function initScanline() {
 
   onReducedMotionChange((r) => {
     if (!r) return;
+    dead = true;
+    io.disconnect();
     clearTimeout(timer); timer = 0;
     scan.classList.remove('fc-scan-run');
     running = false;

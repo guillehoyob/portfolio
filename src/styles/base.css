@@ -61,8 +61,11 @@ h1, h2, h3, .h2, .hero__h1, .identity__title, .wn-card__title,
   height: 100%;
   pointer-events: none;
   user-select: none;
-  opacity: 0.035;
-  mix-blend-mode: overlay;
+  /* multiply, not overlay: overlay over a 247/255 field compresses the noise to ±8
+     and the layer measured Δ0 — literally invisible at any opacity (audit VIS-07).
+     multiply at 0.02 is the same quiet paper tooth the cards already use. */
+  opacity: 0.02;
+  mix-blend-mode: multiply;
 }
 
 img, svg { display: block; max-width: 100%; }

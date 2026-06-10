@@ -10,8 +10,11 @@
 .page { min-height: 100vh; display: flex; flex-direction: column; }
 main { flex: 1 0 auto; }
 .shell { max-width: 1440px; margin: 0 auto; padding: 0 var(--gutter-page); }
-/* the dead-gutter stage (home + method + project pages): content hangs from col 3 */
-.stage { padding-left: 0; }
+/* the dead-gutter stage (home + method + project pages): content hangs from col 3.
+   Zero the left padding ONLY where a lane margin replaces it (≥768px) — below that
+   the lane has no margin, so an unconditional zero left every stage section flush
+   against the phone's edge (audit DC-01: email/COPY touching the bezel at 390px). */
+@media (min-width: 768px) { .stage { padding-left: 0; } }
 @media (min-width: 1024px) { .stage > .lane { margin-left: var(--gutter-dead); } }
 
 /* the ONE content lane — every section on the stage shares this measure, so the
@@ -270,8 +273,10 @@ main { flex: 1 0 auto; }
 
 /* ============ CONTACT (§3.18) ============ */
 .contact__email {
-  font-family: var(--font-display); font-weight: var(--weight-label); font-size: var(--text-h2);
+  /* clamp: at 390px the fixed 2rem email overflowed the viewport (audit DC-01) */
+  font-family: var(--font-display); font-weight: var(--weight-label); font-size: clamp(1.35rem, 7vw, 2rem);
   letter-spacing: var(--ls-h2); color: var(--ink); text-decoration: none; position: relative; display: inline-block;
+  overflow-wrap: anywhere;
 }
 .contact__email::after { content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 2px; background: var(--signal); transform: scaleX(0); transform-origin: left; transition: transform var(--dur-180) var(--ease-react); }
 .contact__email:hover::after, .contact__email:focus-visible::after { transform: scaleX(1); }
@@ -290,14 +295,14 @@ main { flex: 1 0 auto; }
 .footer { border-top: 1px solid var(--hairline); padding: var(--space-16) var(--gutter-page); margin-top: var(--space-section); }
 .footer__inner { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); align-items: start; }
 @media (max-width: 768px) { .footer__inner { grid-template-columns: 1fr; } }
-.footer__links { display: flex; flex-direction: column; gap: var(--space-3); }
+/* flex-start: stretched links carried 581px underlines/hit-areas for 150-226px texts (audit DC-04) */
+.footer__links { display: flex; flex-direction: column; gap: var(--space-3); align-items: flex-start; }
 .footer__mono { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: var(--ink-ghost); }
 .footer__colophon { font-size: var(--text-body); color: var(--ink-ghost); max-width: 40ch; line-height: var(--lh-body); margin: 0; }
 .footer__scanline { position: relative; height: 1px; background: var(--hairline); margin-top: var(--space-12); overflow: hidden; }
 /* static honest state: a 64px pulse segment sits at the footer's left edge */
 /* static honest state: the 64px pulse segment sits at the footer's left edge (§5.11) */
 .footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 72px; height: 1px; background: linear-gradient(90deg, transparent, var(--pulse), transparent); opacity: 0.5; }
-.footer__col + .footer__col { }
 
 /* ============ PROJECT PAGE (§3.20 / §4.3) ============ */
 .identity { padding-top: var(--space-16); position: relative; }

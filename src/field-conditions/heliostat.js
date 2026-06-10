@@ -64,7 +64,13 @@ export function initHeliostat() {
     root.style.setProperty('--fc-sun-op', (warmth * 0.22 * sUp).toFixed(3));   // visible (~0.10–0.22), warmest at dawn/dusk
     root.dataset.daypart = daypartFor(Math.floor(t));
   };
+  // FIRST paint lands instantly (audit CIE-01): the 4s ambient crossfade starts every
+  // page-load from transparent, so for ~4s the hour's light is a fraction of itself —
+  // exactly when the owner looks. Apply the first value with transitions off, then
+  // re-enable them for the minute-by-minute flow.
+  root.classList.add('fc-helio-instant');
   apply();
+  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('fc-helio-instant')));
   setInterval(apply, 60000); // minute by minute — the day flows
   document.addEventListener('visibilitychange', () => { if (!document.hidden) apply(); });
 }

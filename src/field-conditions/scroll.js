@@ -29,6 +29,9 @@ export function initScroll() {
 
   // smooth in-page anchor jumps without breaking native :target / history
   document.addEventListener('click', (e) => {
+    // modified clicks belong to the browser (open-in-new-tab etc.) — hijacking them
+    // into a smooth scroll steals a native affordance (audit A11Y-2)
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     const a = e.target.closest('a[href*="#"]');
     if (!a) return;
     const url = new URL(a.href, location.href);

@@ -53,6 +53,10 @@ export function initSpine() {
   let LEN = 0, basePts = [], fadeRef = 0;
   const build = () => {
     const w = document.documentElement.clientWidth;
+    // collapse our own height before measuring: the absolutely-positioned svg keeps the
+    // OLD document height alive in scrollHeight, so a page that shrank (e.g. the /work
+    // filter) could never reclaim its ghost scroll (audit BUG-2)
+    svg.style.height = '0px';
     const docH = document.documentElement.scrollHeight;
     const lane = w >= 1024 ? 0.06 : 0.045;   // a consistent left-margin lane on every page
     const bow = w >= 1024 ? 0.030 : 0.014;
@@ -122,7 +126,10 @@ export function initSpine() {
   }
 
   const ticker = () => {
-    const p = progress();
+    // the thread EXISTS before the first scroll (audit VIS-11): a minimum draw down to
+    // ~the first anchor, so the first viewport is never threadless right where the owner
+    // judges. It still grows from 0 on load (the ease below seeps toward the floor).
+    const p = Math.max(progress(), 0.04);
     // velocity-eased draw: a fast flick lets the nib race ahead and settle; a slow scroll seeps
     drawn += (p - drawn) * (0.146 + 0.114 * clamp01(velocity() * 0.1));
     const dLen = LEN * clamp01(drawn);
@@ -172,13 +179,18 @@ export function initSpine() {
   addTicker(ticker);
 
   let rt = 0;
-  const onResize = () => { clearTimeout(rt); rt = setTimeout(build, 200); };
+  const onResize = () => { clearTimeout(rt); rt = setTimeout(() => { build(); dDirty = true; wake(); }, 200); };
   window.addEventListener('resize', onResize, { passive: true });
+  // the document can shrink WITHOUT a window resize (the /work filter) — watch the body
+  // box and rebuild, or the thread runs past the footer into ghost scroll (audit BUG-2)
+  const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(onResize) : null;
+  if (ro) ro.observe(document.body);
 
   onReducedMotionChange((r) => {
     if (!r) return;
     removeTicker(ticker);
     window.removeEventListener('resize', onResize);
+    if (ro) ro.disconnect();
     clearTimeout(rt);
     path.setAttribute('d', catmullRom(basePts));
     path.style.strokeDashoffset = '0';

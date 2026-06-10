@@ -16,7 +16,9 @@
 :root {
   /* ============ COLOR — FIELD (≥90% of every viewport) ============ */
   --field-0:        #F7F7F5;  /* page background — the dominant surface */
-  --field-0-dim:    #F2F1EF;  /* Heliostat night variant of field-0 */
+  /* night variant: hue-warm (~40°), not neutral-grey — Mirror's Edge Catalyst's
+     white-balance lesson (SKY-3): white under warm lamp light, never washed-out */
+  --field-0-dim:    #F3F0EA;
   --field-1:        #EDECEA;  /* cards, panels, elevated planes */
   --field-2:        #E4E2DE;  /* pressed/recessed states, input wells */
   --hairline:       #D6D4D0;  /* 1px strokes, dividers, rules — decorative only */
@@ -124,7 +126,11 @@
 
   /* ============ SHADOW / ELEVATION (reactive states only) ============ */
   --shadow-0:     none;
-  --shadow-card:  0 2px 12px rgba(26, 25, 23, 0.06);          /* card hover lift only */
+  /* card hover lift — HELIOSTATIC (SKY-4): heliostat writes --fc-shadow-* by the hour
+     (direction opposite the sun, blur by its height, sky-tinted never black); the
+     static fallbacks above reproduce the old neutral shadow with zero JS */
+  --shadow-card:  var(--fc-shadow-dx, 0px) 4px var(--fc-shadow-blur, 12px) -6px
+                  color-mix(in srgb, var(--fc-shadow-tint, var(--ink)) calc(9% * var(--fc-int-shadow, 1)), transparent);
   --shadow-bloom: 0 6px 20px -6px rgba(232, 52, 26, 0.28);    /* primary CTA hover only */
   --halo-focus:   0 0 0 6px color-mix(in srgb, var(--pulse) 25%, transparent);
 
@@ -153,10 +159,51 @@
 
   /* ============ FIELD CONDITIONS RUNTIME (JS writes ONLY these) ============ */
   --fc-field:        var(--field-0);  /* Heliostat → --field-0-dim at night */
-  --fc-tint:         transparent;     /* Heliostat dawn/evening overlay (≤5% alpha) */
-  --fc-haze-opacity: 0.05;            /* Slipstream raises to max 0.11 */
+  --fc-tint:         transparent;     /* Heliostat dawn/evening overlay (≤ --fc-tint-cap) */
+  --fc-haze-opacity: 0.05;            /* Slipstream raises to max 0.16 (× --fc-int-haze) */
   --fc-slip-scale:   1;               /* Slipstream heading scaleX, max 1.01 */
   --fc-pulse-alpha:  0.85;            /* Heartbeat dot rest opacity; 1.0 at night */
+
+  /* ============ INTENSITY REGISTRY (INT-1/INT-2) ============
+     applyIntensity() vuelca el preset activo; estos defaults = subtle = identidad.
+     CSS multiplica por var(--fc-int-*, 1); JS lee `intensity.<eje>` (live binding).
+     El rojo es BINARIO: nib/spine/knot/stitch están BLOQUEADOS a 1 en ambos presets. */
+  --fc-int-tint: 1; --fc-int-tintfloor: 0; --fc-int-sun: 1; --fc-int-mote: 1;
+  --fc-int-motesize: 1; --fc-int-ring: 1; --fc-int-beat: 1; --fc-int-breath: 1;
+  --fc-int-haze: 1; --fc-int-lag: 1; --fc-int-nib: 1; --fc-int-spine: 1;
+  --fc-int-knot: 1; --fc-int-stitch: 1; --fc-int-routepull: 1; --fc-int-tappull: 1;
+  --fc-int-kintsugi: 1; --fc-int-moss: 1; --fc-int-shadow: 1; --fc-int-weather: 1;
+
+  /* ============ RESPIRACIÓN (BRE-1/BRE-4 — breath.js escribe las dos primeras) ============ */
+  --fc-breath: 0;       /* la curva 10.4s 0→1→0 */
+  --fc-breath-amp: 1;   /* amplitud del ciclo (primera respiración 1.25, asleep 1.15) */
+  --fc-rest-warm: 0;    /* calidez del reposo profundo (cap duro 0.07) */
+
+  /* ============ DÍA / CLIMA (heliostat/weather escriben en runtime — fallbacks estáticos) ============ */
+  --fc-sun-size: 38vw;
+  --fc-shadow-dx: 0px;          /* sombra opuesta al sol; estática sin JS */
+  --fc-shadow-blur: 12px;
+  --fc-shadow-tint: var(--ink);
+  --fc-wx-wind: 0;
+  --fc-wx-clouds: 0;
+
+  /* ============ LEYES TOKENIZADAS (excepciones sancionadas — CONTRACTS §f) ============ */
+  --fc-tint-cap: 6.5;   /* % — deroga el viejo ≤5%; clamp duro 8 en boost (§f.1) */
+  --dur-ripple: 1300ms; /* excepción aprobada a la banda 600ms–4s, ahora escrita (§f.3) */
+  --text-h1-sub: clamp(2.5rem, 4.5vw, 3.5rem); /* peldaño H1 de páginas índice (DC-12) */
+}
+
+/* El preset BOOST como CSS para el PRE-PAINT (cero flash): la clase llega del head
+   snippet (localStorage/?wn=boost) ANTES de que cargue el JS; applyIntensity() la
+   re-escribe inline después (misma fuente: config.INTENSITY.boost). SOLO
+   applyIntensity() pone/quita esta clase en runtime. */
+html.fc-boost {
+  --fc-int-tint: 1.6; --fc-int-tintfloor: 2.5; --fc-int-sun: 1.6; --fc-int-mote: 1.5;
+  --fc-int-motesize: 1.4; --fc-int-ring: 1.5; --fc-int-beat: 1.25; --fc-int-breath: 1.4;
+  --fc-int-haze: 1.7; --fc-int-lag: 1.6;
+  /* nib/spine/knot/stitch: el rojo NO escala — quedan en 1 (RED_LOCKED) */
+  --fc-int-routepull: 1.5; --fc-int-tappull: 1.4;
+  --fc-int-kintsugi: 1.4; --fc-int-moss: 1.45; --fc-int-shadow: 1.3; --fc-int-weather: 1.5;
 }
 
 /* ================================================================

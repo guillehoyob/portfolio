@@ -1,0 +1,43 @@
+/**
+ * WHITE NOON — fc-ui (W0): calibration chrome. Currently only the FIELD:
+ * SUBTLE/LOUD capsule (INT-3). State UI — works under reduced motion. NEVER
+ * red (chrome never spends the signal). Removed entirely by
+ * flags.intensityControl:false.
+ */
+.fc-intensity {
+  position: fixed;
+  right: calc(var(--space-4) + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-nav);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 40px; /* touch target */
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--ls-mono);
+  text-transform: uppercase;
+  color: var(--ink-ghost);
+  background: color-mix(in srgb, var(--field-0) 88%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-tag);
+  cursor: pointer;
+}
+.fc-intensity:hover { color: var(--ink); border-color: var(--ink); }
+/* the glyph: a hollow gold disc that FILLS with the sun when LOUD */
+.fc-intensity__glyph {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--gold-deep);
+  background: transparent;
+  transition: background var(--dur-180) var(--ease-react), box-shadow var(--dur-180) var(--ease-react);
+}
+html.fc-boost .fc-intensity__glyph {
+  background: var(--sun);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--sun) 70%, transparent);
+}
+@media print { .fc-intensity { display: none; } }

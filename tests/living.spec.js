@@ -8,6 +8,8 @@
  * server up:  npm run build && npx vite preview --port 4178 --strictPort)
  */
 import { chromium } from 'playwright';
+import { makeDiffer, HIDE_LIVING, sleep as vhSleep } from './visual-helpers.mjs';
+import { INTENSITY, RED_LOCKED } from '../src/field-conditions/config.js';
 
 const BASE = process.env.BASE || 'http://localhost:4178';
 const HOME = BASE + '/';
@@ -488,6 +490,162 @@ try {
   rec('Vertical dive', true, dive, `page transition sinks/surfaces (wn-dive translateY)=${dive}`, dive);
   await c.close();
 } catch (e) { rec('Vertical dive', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 20. Patina .html slug (BUG-1 regression) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(BASE + '/work/rag-zelebrix.html', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(400);
+  const stored = await page.evaluate(() => localStorage.getItem('wn.visited') || '[]');
+  const clean = JSON.parse(stored);
+  const hasSlug = clean.includes('rag-zelebrix') && !clean.some((s) => /\.html?$/.test(s));
+  await page.goto(WORKIDX, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(400);
+  const lit = await page.$$eval('.wn-card--visited', (e) => e.length);
+  const pass = hasSlug && lit >= 1;
+  rec('Patina .html slug', true, pass, `visited=${stored.slice(0, 26)} (no ext=${hasSlug}); hub cards lit=${lit}`, pass);
+  await c.close();
+} catch (e) { rec('Patina .html slug', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 21. Field rest (PERF-1): stillness writes nothing ─────────────────
+   /method has no live hero dot: after the motes settle (~2.6s) and the spine seep ends,
+   NOTHING may keep mutating styles in the body subtree (root writes are heliostat's,
+   excluded — it ticks once a minute). 0 mutations in 2s ⇒ the field truly rests. */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(BASE + '/method.html?fc-hour=13', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(4500);
+  const muts = await page.evaluate(() => new Promise((res) => {
+    let n = 0;
+    const mo = new MutationObserver((list) => { n += list.length; });
+    mo.observe(document.body, { attributes: true, attributeFilter: ['style'], subtree: true });
+    setTimeout(() => { mo.disconnect(); res(n); }, 2000);
+  }));
+  const pass = muts === 0;
+  rec('Field rest (PERF-1)', true, pass, `style mutations in 2s of stillness on /method = ${muts} (0 ⇒ the field sleeps)`, pass);
+  await c.close();
+} catch (e) { rec('Field rest (PERF-1)', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 22. Intensity toggle (INT-6 Fila A) ─────────────────
+   NOTE: the forced-sigh assert (--fc-breath > 0 within 1.5s of the click) is added
+   when W4's breath.js merges — the channel does not exist in Fase 0. */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(WORKIDX, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(600);
+  const pre = await page.evaluate(() => ({
+    boost: document.documentElement.classList.contains('fc-boost'),
+    btn: !!document.querySelector('.fc-intensity'),
+    label: (document.querySelector('.fc-intensity__label') || {}).textContent || '',
+  }));
+  await page.click('.fc-intensity');
+  await page.waitForTimeout(600);
+  const on = await page.evaluate(() => ({
+    boost: document.documentElement.classList.contains('fc-boost'),
+    sun: getComputedStyle(document.documentElement).getPropertyValue('--fc-int-sun').trim(),
+    store: localStorage.getItem('wn.intensity'),
+    label: (document.querySelector('.fc-intensity__label') || {}).textContent || '',
+    demo: document.querySelectorAll('.wn-card[data-demo]').length,
+  }));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  const prePaint = await page.evaluate(() => document.documentElement.classList.contains('fc-boost'));
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(600);
+  await page.click('.fc-intensity');
+  await page.waitForTimeout(400);
+  const off = await page.evaluate(() => ({
+    boost: document.documentElement.classList.contains('fc-boost'),
+    store: localStorage.getItem('wn.intensity'),
+    demo: document.querySelectorAll('.wn-card[data-demo]').length,
+  }));
+  const pass = pre.btn && !pre.boost && /SUBTLE/.test(pre.label)
+    && on.boost && on.sun === '1.6' && on.store === 'boost' && /LOUD/.test(on.label) && on.demo >= 1
+    && prePaint && !off.boost && off.demo === 0 && off.store === 'subtle';
+  rec('Intensity toggle', pre.btn, pass,
+    `boost=${on.boost} sun=${on.sun} store=${on.store} demo=${on.demo} prePaint=${prePaint} revert=${!off.boost}/${off.demo}`, pass);
+  await c.close();
+} catch (e) { rec('Intensity toggle', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 23. Boost red guard (INT-6 Fila B) ─────────────────
+   Level 1: RED_LOCKED axes identical across presets. Level 2: no CSS declaration
+   couples --signal to a --fc-int-* axis outside RED_LOCKED ∪ {breath}. Level 3:
+   measured red budget ≤1.5% in BOTH presets, |delta| ≤ 0.05pp. (?fc-breath=0
+   freeze added with W4 — the old sigh needs 8s idle and cannot pollute the shot.) */
+try {
+  const locked = RED_LOCKED.every((k) => INTENSITY.subtle[k] === 1 && INTENSITY.boost[k] === 1);
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  const coupling = await page.evaluate((allowed) => {
+    const bad = [];
+    for (const s of document.querySelectorAll('style')) {
+      for (const m of s.textContent.matchAll(/[^;{}]*--signal[^;{}]*/g)) {
+        const decl = m[0];
+        for (const a of decl.matchAll(/--fc-int-([a-z]+)/g)) {
+          if (!allowed.includes(a[1])) bad.push(decl.trim().slice(0, 60));
+        }
+      }
+    }
+    return bad;
+  }, [...RED_LOCKED.map((k) => k.toLowerCase()), 'breath']);
+  // identical settle in BOTH states: the hero route finishes its GSAP draw at
+  // ~1.4s (0.45 delay + 0.9s) — shooting earlier catches it mid-draw and the
+  // red delta measures the draw, not the boost
+  await page.waitForTimeout(2200);
+  const shotSub = await page.screenshot();
+  await page.goto(HOME + '?wn=boost', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(2200);
+  const shotBoost = await page.screenshot();
+  await c.close();
+  const differ = await makeDiffer(browser);
+  const rSub = await differ.redMask(shotSub);
+  const rBoost = await differ.redMask(shotBoost);
+  await differ.close();
+  const delta = Math.abs(rBoost.redPct - rSub.redPct);
+  const pass = locked && coupling.length === 0 && rSub.redPct <= 1.5 && rBoost.redPct <= 1.5 && delta <= 0.05;
+  rec('Boost red guard', true, pass,
+    `locked=${locked}; couplings=${coupling.length}; red subtle=${rSub.redPct}% boost=${rBoost.redPct}% Δ=${delta.toFixed(3)}pp`, pass);
+} catch (e) { rec('Boost red guard', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 24. RM live switch (A11Y-1 / BUG-3 regression) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(500);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.waitForTimeout(400);
+  const s = await page.evaluate(() => ({
+    fcMotion: document.documentElement.classList.contains('fc-motion'),
+    intensityOk: !!document.querySelector('.fc-intensity'),
+  }));
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.waitForTimeout(1600);
+  const scanRearmed = await page.$eval('.footer__scanline', (el) => el.classList.contains('fc-scan-run')).catch(() => false);
+  const pass = !s.fcMotion && s.intensityOk && !scanRearmed;
+  rec('RM live switch', true, pass,
+    `fc-motion removed=${!s.fcMotion}; intensity UI alive=${s.intensityOk}; scanline rearmed=${scanRearmed}`, pass);
+  await c.close();
+} catch (e) { rec('RM live switch', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 25. Card arrow answers hover (DC-13 regression) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(WORKIDX, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(800);
+  const card = page.locator('a.wn-card').first();
+  await card.scrollIntoViewIfNeeded();
+  await card.hover();
+  await page.waitForTimeout(350);
+  const tf = await page.$eval('a.wn-card .wn-card__arrow', (el) => getComputedStyle(el).transform);
+  const pass = /matrix\(1,\s*0,\s*0,\s*1,\s*4,\s*0\)/.test(tf);
+  rec('Card arrow hover', true, pass, `arrow transform on card hover = ${tf}`, pass);
+  await c.close();
+} catch (e) { rec('Card arrow hover', true, false, 'ERR ' + e.message, false); }
 
 /* ═════════════════ breakpoint matrix ═════════════════ */
 const matrix = [];

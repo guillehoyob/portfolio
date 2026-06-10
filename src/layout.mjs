@@ -12,8 +12,12 @@ import fcConfig from './field-conditions/config.js';
 /* the hero route-line pool (§5.2) — index 0 ships as the static default */
 const routes = JSON.parse(readFileSync(new URL('./field-conditions/routes.json', import.meta.url), 'utf8'));
 
-/* ---- inline the full token→layout CSS cascade (order matters) ---- */
-const CSS = ['tokens', 'fonts', 'base', 'components', 'layout', 'field-conditions']
+/* ---- inline the full token→layout CSS cascade (order matters) ----
+   field-conditions.css is the living-layer CORE (gates/reveals/dive); the per-plane
+   sheets that follow are owned one-per-writer (CONTRACTS §c.1): sky=W1, ocean=W2,
+   earth=W3, breath=W4, ui=W0. */
+const CSS = ['tokens', 'fonts', 'base', 'components', 'layout', 'field-conditions',
+  'fc-sky', 'fc-ocean', 'fc-earth', 'fc-breath', 'fc-ui']
   .map((n) => readFileSync(new URL(`./styles/${n}.css`, import.meta.url), 'utf8'))
   .join('\n');
 
@@ -57,7 +61,11 @@ export const prePaint = () => {
   const patina = f.patina
     ? `try{var qp=new URLSearchParams(location.search).get('wn');if(qp==='clear'){try{localStorage.removeItem('wn.visits');localStorage.removeItem('wn.visited');sessionStorage.removeItem('wn.session');}catch(e){}}var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(qp&&qp!=='clear'){var mp={fresh:1,'return':2,amp:3,aged:5};vi=mp[qp]||parseInt(qp,10)||vi;}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');if(vi>=5)d.classList.add('fc-aged');}catch(e){}`
     : '';
-  return `<script>(function(){var d=document.documentElement;d.classList.add('has-js');${daypart}${seed}${patina}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');${addMotion}}}catch(e){}})();</script>`;
+  // INTENSITY pre-paint (INT-2): boost is STATE — the class lands before first paint
+  // (tokens.css carries the boost var preset) so a persisted LOUD never flashes subtle.
+  // ?wn=boost|subtle are EPHEMERAL scrubbers (never persisted); ?wn=clear wipes the store.
+  const intensityState = `try{var qi=new URLSearchParams(location.search).get('wn');if(qi==='clear'){try{localStorage.removeItem('wn.intensity');}catch(e){}}var im=(qi==='boost'||qi==='subtle')?qi:null;if(!im){try{im=localStorage.getItem('wn.intensity');}catch(e){}}if(im==='boost')d.classList.add('fc-boost');}catch(e){}`;
+  return `<script>(function(){var d=document.documentElement;d.classList.add('has-js');${intensityState}${daypart}${seed}${patina}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');${addMotion}}}catch(e){}})();</script>`;
 };
 
 /* ---- shared chrome ---- */

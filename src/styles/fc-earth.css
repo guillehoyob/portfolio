@@ -1,0 +1,109 @@
+/**
+ * WHITE NOON — fc-earth (plane: TIERRA · owner: W3-tierra-paginas)
+ * Split verbatim from field-conditions.css (CONTRACTS §c.1): the void band's
+ * cut/crack, kintsugi tiers, moss/visited tiers, warm-lens, and the seams.
+ * Everything new for the void traces (byōbu frame, urushi shadow, maki-e dust,
+ * bleed, nf-route, seams 2.0, identity-route draw-in) lands HERE and only here.
+ */
+
+/* ===== Stage 3 — Threshold Cut (§5.8): the void detonates, no fade/stagger ===== */
+html.fc-motion .wn-void.fc-cut-armed .wn-void__word,
+html.fc-motion .wn-void.fc-cut-armed .wn-void__body { opacity: 0; transform: scale(0.98); }
+html.fc-motion .wn-void.fc-cut-in .wn-void__word,
+html.fc-motion .wn-void.fc-cut-in .wn-void__body {
+  opacity: 1; transform: none;
+  transition: opacity var(--dur-cut) var(--ease-cut), transform var(--dur-cut) var(--ease-cut);
+}
+
+/* ===== Stage 3 — Crack (§5.9): the 1px signal line draws across ===== */
+html.fc-motion .wn-void.fc-crack-armed .wn-void__crack { transform: scaleX(0); transform-origin: left; }
+html.fc-motion .wn-void.fc-crack .wn-void__crack { transform: scaleX(1); transition: transform var(--dur-crack) var(--ease-crack); }
+
+/* ===== Stage 6 — Patina greeting (§5.5): memory state, pre-paint swap, zero CLS ===== */
+.greet-return { display: none; }
+html.fc-return .greet-first { display: none; }
+html.fc-return .greet-return { display: inline; }
+
+/* ===== Stage 6 — Patina kintsugi aging (§5.5 extension): healed history =====
+   The void-band crack is the break; on return visits a faint GOLD seam traces it
+   (the mend). Pure state, no transition/animation → identical under reduced motion.
+   Deepens by visit tier: fc-return (>=2) → fc-amp (>=3) → fc-aged (>=5). Gold is a
+   decorative trace (hue ~44°, not a second red); footprint << 0.1% of viewport. */
+.wn-void__crack { position: relative; }
+/* the break, honoured in gold: a soft gold GLOW on the red crack (the gild) plus
+   a parallel gold seam below it. Reads as a healed, gilded break — deepens tier
+   by tier. Gold (~44° hue) is unmistakably not the red signal (~9°). */
+/* glow kept tight so the gold reads as a SEAM tracing the break, not an ambient halo */
+/* the GLOW (the gold light of the mend) AND the seam — both kept, both deepen with use */
+html.fc-return .wn-void__crack { box-shadow: 0 0 9px color-mix(in srgb, var(--gold-deep) calc(52% * var(--fc-int-kintsugi, 1)), transparent); }
+html.fc-return .wn-void__crack::after {
+  /* a parallel gold thread CLEAR of the red crack (top 5px, 1.5px) so the mend reads as its own
+     seam, not a red-fused edge (Fase 1: the gold sat 3px under the red and merged into it) */
+  content: ""; position: absolute; left: 0; right: 0; top: 5px; height: 1.5px;
+  background: var(--gold-deep); opacity: calc(0.62 * var(--fc-int-kintsugi, 1)); pointer-events: none;
+}
+html.fc-amp  .wn-void__crack { box-shadow: 0 0 8px color-mix(in srgb, var(--gold-deep) calc(60% * var(--fc-int-kintsugi, 1)), transparent); }
+html.fc-amp  .wn-void__crack::after { opacity: calc(0.78 * var(--fc-int-kintsugi, 1)); }
+html.fc-aged .wn-void__crack { box-shadow: 0 0 11px color-mix(in srgb, var(--gold-deep) calc(72% * var(--fc-int-kintsugi, 1)), transparent); }
+html.fc-aged .wn-void__crack::after { opacity: calc(0.92 * var(--fc-int-kintsugi, 1)); }
+/* deepest tier: a second hairline gold seam above the break — fully veined */
+html.fc-aged .wn-void__crack::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -5px; height: 1.5px;
+  background: var(--gold); opacity: calc(0.5 * var(--fc-int-kintsugi, 1)); pointer-events: none;
+}
+/* visited cards ripen: the moss border warms further on return; the deepest tier
+   settles one tiny gold glint INTO the moss creep (the card, too, has been repaired) */
+html.fc-return .wn-card--visited { border-color: color-mix(in srgb, var(--moss) 52%, var(--hairline)); }
+/* the moss creep deepens with the visit tier — the longer you've been away, the more it has aged */
+html.fc-amp  .wn-card--visited, html.fc-amp  .wn-card--visited:hover  { background-image: radial-gradient(92% 70% at 4% 100%, color-mix(in srgb, var(--moss) calc(30% * var(--fc-int-moss, 1)), transparent), transparent 66%); }
+html.fc-aged .wn-card--visited, html.fc-aged .wn-card--visited:hover { background-image: radial-gradient(98% 80% at 4% 100%, color-mix(in srgb, var(--moss) calc(40% * var(--fc-int-moss, 1)), transparent), transparent 70%); }
+/* keep the clear green LEFT band across every tier (the tier border-color above would otherwise
+   lighten it). The 4px band itself is NOT multiplied — it is already CLEAR (INT-1 table). */
+html.fc-return .wn-card--visited, html.fc-amp .wn-card--visited, html.fc-aged .wn-card--visited { border-left-color: var(--moss-deep); }
+
+/* deepest tier: a faint gold GLINT settled INTO the lower-left moss creep (where the
+   patina has aged most) — a tiny soft fleck, not a corner badge; pure state so it is
+   identical under reduced motion. Gold (~44° hue) is decorative, unmistakably not the
+   red signal (~9°); footprint << 0.1% of viewport, felt-not-seen. */
+html.fc-aged .wn-card--visited::after {
+  content: ""; position: absolute; left: var(--space-4); bottom: var(--space-4);
+  width: 6px; height: 6px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--gold) 50%, transparent), transparent 70%);
+}
+
+/* ===== Warm lens (new): the cursor CLARIFIES/warms the element it touches (additive light,
+   never a subtractive fog — so the pristine field + reading stay intact). Whisper-quiet. ===== */
+/* EVERY warmed element gets a faint warm text-glow (so it reads the same everywhere you hover);
+   bounded blocks add a warm frame, cards warm their border (complementing their own lift). */
+.fc-lit { transition: box-shadow var(--dur-300) var(--ease-react), text-shadow var(--dur-300) var(--ease-react), border-color var(--dur-300) var(--ease-react); text-shadow: 0 0 16px color-mix(in srgb, var(--sun) 16%, transparent); }
+.wn-card.fc-lit { border-color: color-mix(in srgb, var(--sun) 35%, var(--hairline)); }
+.proof__cell.fc-lit, .principle.fc-lit, .phase.fc-lit, .about__photo.fc-lit, .stacktable.fc-lit, .toolchain.fc-lit, .identity.fc-lit, .related-cards.fc-lit {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sun) 18%, transparent), 0 8px 30px -12px color-mix(in srgb, var(--sun) 45%, transparent);
+}
+.wn-void.fc-lit { box-shadow: inset 0 0 180px -60px color-mix(in srgb, var(--sun) 30%, transparent); }
+@media (prefers-reduced-motion: reduce) { .fc-lit { box-shadow: none; text-shadow: none; } }
+
+/* ===== Seams (void-essence): hairline section dividers that DRAW on scroll =====
+   A quiet echo of the void band's crack — a thin --hairline rule across the top of the
+   major sections that draws as the section enters view. NEVER red (the crack's red is the
+   ONE signal; this is a structural hairline). Lane-aligned. Pure CSS scroll-timeline; no
+   support → a static hairline; gated on fc-motion so reduced-motion / flag-off shows no
+   extra decoration (honest Stage-0). Echoes the crack's left-anchored scaleX draw.
+   NOTE (VOID-1a, W3): these ID selectors are home-only DEBT — W3 replaces them with the
+   build-emitted .wn-seam class sitewide and fixes the draw's view-timeline subject. */
+html.fc-motion :is(#work, #method, #about, #contact) { position: relative; }
+html.fc-motion #work::before, html.fc-motion #method::before,
+html.fc-motion #about::before, html.fc-motion #contact::before {
+  content: ""; position: absolute; top: 0; left: 0;
+  width: min(100%, var(--lane-max)); height: 1px;
+  background: var(--hairline); transform-origin: left; pointer-events: none;
+}
+@supports (animation-timeline: view()) {
+  @keyframes wn-seam-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  html.fc-motion #work::before, html.fc-motion #method::before,
+  html.fc-motion #about::before, html.fc-motion #contact::before {
+    animation: wn-seam-draw linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 55%;
+  }
+}

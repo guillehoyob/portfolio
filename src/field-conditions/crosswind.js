@@ -8,7 +8,7 @@
  * frames skip when displacement <0.1px. Governor: holds the weather slot while the
  * cursor is in the window, yields to Slipstream while scrolling, releases on leave.
  */
-import { addTicker, removeTicker, wake, registerWeather, requestWeather, releaseWeather, onReducedMotionChange, field } from './index.js';
+import { addTicker, removeTicker, wake, registerWeather, requestWeather, releaseWeather, onReducedMotionChange, field, intensity, dtFactor } from './index.js';
 
 export function initCrosswind() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -39,14 +39,16 @@ export function initCrosswind() {
     releaseWeather('crosswind'); // free the slot so the footer Scanline can drift
   });
 
-  const ticker = () => {
+  const ticker = (t, dt) => {
     if (suspended || gone) return false;
     const ox = px, oy = py;
     // SKY reads the field's energy: calm = heavy lag (a lingering trail); agitated = tighter lag
     // (the air quickens with the field). Opacity/area untouched — only the lag changes.
-    const skyLerp = 0.020 + field.energy * 0.035;
+    // intensity.lag tightens the CALM base in boost (the haze answers visibly faster).
+    const skyLerp = dtFactor(Math.min(0.5, 0.020 * intensity.lag + field.energy * 0.035), dt);
     px += (cx - px) * skyLerp; py += (cy - py) * skyLerp;
-    wx += (cx - 34 - wx) * 0.05; wy += (cy - wy) * 0.05; // warm spot tracks tighter, 34px behind (Fib)
+    const wLerp = dtFactor(0.05, dt);
+    wx += (cx - 34 - wx) * wLerp; wy += (cy - wy) * wLerp; // warm spot tracks tighter, 34px behind (Fib)
     sky.style.transform = `translate3d(${px - 300}px, ${py - 300}px, 0)`;
     warm.style.transform = `translate3d(${wx - 120}px, ${wy - 120}px, 0)`;
     return Math.abs(px - ox) > 0.05 || Math.abs(py - oy) > 0.05; // idle pointer costs nothing

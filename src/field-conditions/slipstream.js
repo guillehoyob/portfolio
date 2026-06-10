@@ -9,7 +9,7 @@
  * Reduced motion: off (haze fixed at 0.05, no parallax, headings never scale).
  * Governor: wins the slot while scrolling; Crosswind resumes at rest.
  */
-import { addTicker, removeTicker, wake, requestWeather, releaseWeather, onReducedMotionChange } from './index.js';
+import { addTicker, removeTicker, wake, requestWeather, releaseWeather, onReducedMotionChange, intensity, dtFactor } from './index.js';
 
 export function initSlipstream() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -36,11 +36,12 @@ export function initSlipstream() {
   if (lenis) lenis.on('scroll', onScroll);
   else window.addEventListener('scroll', () => { scroll = window.scrollY; wake(); }, { passive: true });
 
-  const ticker = () => {
+  const ticker = (t, dt) => {
     const rate = target > current ? 0.35 : 0.12; // rise fast, decay ~300ms (--ease-lift feel)
-    current += (target - current) * rate;
+    current += (target - current) * dtFactor(rate, dt);
     if (sky) sky.style.transform = `translateY(${scroll * -0.4}px)`; // ~0.6× parallax
-    root.style.setProperty('--fc-haze-opacity', (0.05 + current * 0.06).toFixed(4));
+    // intensity.haze scales the swing only; hard cap 0.16 (CONTRACTS §a) holds in boost
+    root.style.setProperty('--fc-haze-opacity', Math.min(0.16, 0.05 + current * 0.06 * intensity.haze).toFixed(4));
     const scale = (1 + current * 0.01).toFixed(4); // max 1.01 (the documented cap; the spine nib now carries the visible cue)
     root.style.setProperty('--fc-slip-scale', scale);
     if (prevHead && prevHead !== activeHead) prevHead.style.transform = '';

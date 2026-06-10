@@ -1,0 +1,64 @@
+/**
+ * WHITE NOON — fc-ocean (plane: OCÉANO · owner: W2-hilo-rojo)
+ * Split verbatim from field-conditions.css (CONTRACTS §c.1): THE RED SPINE
+ * (path/nib/ripple) and the click-ripple ocean ring. Knots/stitch (HILO-3/5a)
+ * land HERE and only here.
+ */
+
+/* ===== Stage 3 — THE RED SPINE (new): one scroll-drawn thread down the page =====
+   Absolute full-document SVG. z-index:2 → IN FRONT of the void band's black, still
+   BEHIND all --z-content:10 text and the bumped void content (z-index:3). The line
+   is a faint TRACE that breathes; JS composes the hero fade-in via --fc-spine-fade.
+   Reduced motion → drawn complete, no nib/ripple/bend. */
+.fc-spine {
+  position: absolute; top: 0; left: 0; width: 100%; /* height set by JS = document height */
+  z-index: 2; pointer-events: none; overflow: visible;
+}
+.fc-spine__path {
+  stroke: var(--signal); stroke-width: 2;
+  stroke-dasharray: var(--fc-spine-len, 4000);
+  stroke-dashoffset: var(--fc-spine-len, 4000);
+  /* faint red trace that breathes with the heartbeat; hero fade-in via --fc-spine-fade.
+     --fc-spine-sigh: the thread breathes DEEPER as the field rests (idle sigh) — opacity only, so
+     the red AREA is unchanged (stays ≤1.5%); the whole organism visibly rests with you. */
+  opacity: calc((0.42 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-spine-sigh, 0) * 0.16) * var(--fc-spine-fade, 1));
+}
+/* (kintsugi gold lives ONLY on the void CRACK — the actual break — never on the
+   continuous spine thread; gilding a thread that isn't broken read as an ugly dashed line.) */
+/* the DRAWING-TIP nib: signal red that flashes toward the cyan --pulse on the beat
+   (cyan ONLY as a pulse), with a soft glow. JS drives cx/cy + opacity per frame. */
+.fc-spine__pulse {
+  fill: color-mix(in srgb, var(--signal) calc(100% - var(--fc-spine-beat, 0) * 55%), var(--pulse));
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--pulse) calc(15% + var(--fc-spine-beat, 0) * 45%), transparent));
+  opacity: 0;
+}
+/* the expanding RIPPLE ring emitted on each lub — the wave after the beat */
+.fc-spine__ripple { fill: none; stroke: var(--signal); stroke-width: 1; opacity: 0; }
+.fc-spine__ripple.go { animation: wn-spine-ripple var(--dur-ripple, 1300ms) var(--ease-run); } /* slower, languid water-ring (was 600ms — read as too fast) */
+@keyframes wn-spine-ripple {
+  from { opacity: 0.24; r: 3.5; stroke-width: 1.1; }
+  to   { opacity: 0;    r: 19;  stroke-width: 0.3; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fc-spine__path { stroke-dashoffset: 0; opacity: 0.42; }
+  .fc-spine__pulse, .fc-spine__ripple { display: none; }
+}
+
+/* ===== Ocean (new): click → one faint SKY ripple (the field responds; never red) ===== */
+.fc-ocean { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
+.fc-ocean__ring {
+  position: fixed; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--sky) 70%, transparent);
+  opacity: 0; will-change: transform, opacity;
+  /* scale / duration / start-opacity are written by JS from the field energy (heavy vs light) */
+  animation: wn-ocean var(--fc-ring-dur, 0.6s) var(--ease-run) var(--fc-ring-delay, 0s) forwards;
+}
+/* opacity crests at MID-expansion (when it is a recognizable RING), not at the first 5px-dot frame —
+   the Fase 1 fix for "brightest when tiny, invisible when a swell". Scale grows steadily. */
+@keyframes wn-ocean {
+  0%   { transform: scale(0.4); opacity: 0; }
+  20%  { transform: scale(calc(var(--fc-ring-scale, 9) * 0.42)); opacity: var(--fc-ring-op, 0.30); }
+  55%  { transform: scale(calc(var(--fc-ring-scale, 9) * 0.78)); opacity: calc(var(--fc-ring-op, 0.30) * 0.6); }
+  100% { transform: scale(var(--fc-ring-scale, 9)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .fc-ocean { display: none; } }

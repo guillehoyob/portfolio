@@ -1,0 +1,66 @@
+/**
+ * WHITE NOON — fc-sky (plane: CIELO · owner: W1-cielo-clima)
+ * Split verbatim from field-conditions.css (CONTRACTS §c.1): heliostat tint/sun,
+ * the daypart night swap, and the sky motes. Everything new for the living sky
+ * (clouds/rain/fog/iris/sprite/voidflash/thunder, heliostatic shadows,
+ * --hairline-lit) lands HERE and only here.
+ */
+
+/* Register the Heliostat tint as a typed <color> so the 4s daypart crossfade
+   interpolates through warm in-betweens, not desaturated grey (craft §9). The
+   alpha hard cap (--fc-tint-cap) is unchanged — this only prettifies the transition path. */
+@property --fc-tint {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: transparent;
+}
+
+/* ===== Stage 4 — Heliostat (§5.1): time-of-day field state, tints from tokens ===== */
+.fc-tint {
+  position: fixed; inset: 0; z-index: var(--z-haze);
+  background: var(--fc-tint); pointer-events: none;
+  transition: background-color var(--dur-ambient-min) linear; /* the hour's colour crossfades smoothly */
+  /* TOP-DOWN wash: the sky's light comes from above and fades toward the foot */
+  /* mask floor lowered (82%→92%, mid 40%@55%) so the wash survives further down the hero →
+     ~doubles the effective alpha without raising the peak cap (Fase 1: the mask halved the tint) */
+  -webkit-mask-image: linear-gradient(180deg, #000, color-mix(in srgb, #000 40%, transparent) 55%, transparent 92%);
+  mask-image: linear-gradient(180deg, #000, color-mix(in srgb, #000 40%, transparent) 55%, transparent 92%);
+}
+/* NOTE: Heliostat writes --fc-tint as an INLINE style every minute, which out-specifies any
+   html[data-daypart] --fc-tint rule — so per-daypart tint rules here would be DEAD CODE (Fase 1).
+   Only the night --fc-field / --fc-pulse-alpha swap below is reachable (JS doesn't set those). */
+html[data-daypart="night"]   { --fc-field: var(--field-0-dim); --fc-pulse-alpha: 1; }
+/* the field itself crossfades at the night boundary */
+html.fc-motion body { transition: background-color var(--dur-ambient-min) linear; }
+@media (prefers-reduced-motion: reduce) { .fc-tint, body { transition: none; } }
+/* first heliostat apply lands instantly — no 4s ramp from transparent on page load
+   (audit CIE-01); the class is dropped two frames later so the day still crossfades */
+html.fc-helio-instant .fc-tint, html.fc-helio-instant .fc-sun,
+html.fc-helio-instant body { transition: none !important; }
+
+/* ===== "Sun" — the hour's light made VISIBLE in one part of the field (the flat top-down
+   tint was imperceptible). A soft warm radial that travels low→high→low and east→west through
+   the day and warms at dawn/dusk. Warm-on-warm so the field stays warm-white (no new hue, no
+   red); JS (heliostat) drives position + intensity. Behind all content (z-haze). */
+.fc-sun {
+  position: fixed; inset: 0; z-index: var(--z-haze); pointer-events: none;
+  background: radial-gradient(var(--fc-sun-size, 38vw) calc(var(--fc-sun-size, 38vw) * 0.9) at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 62%);
+  opacity: var(--fc-sun-op, 0);
+  transition: opacity var(--dur-ambient-min) linear;
+}
+@media (prefers-reduced-motion: reduce) { .fc-sun { transition: none; } }
+
+/* ===== SKY light (redesigned): soft warm light-blooms high in the field (in'ei) =====
+   The sky stratum's atmosphere — soft WARMTH, not hard specks (those read as screen-dirt on
+   white). JS drives the layer opacity by the field's energy (the sky brightens when the field stirs). */
+/* z-index ABOVE content (so they're not occluded by the opaque body bg, the old bug) +
+   mix-blend-mode: multiply → soft WARM dust that only ever DARKENS (so text contrast can only
+   improve — AA-safe over everything). Pointer-events:none, faint, transient. */
+.fc-sky { position: fixed; inset: 0; z-index: var(--z-warm); pointer-events: none; overflow: hidden; }
+.fc-mote {
+  position: absolute; top: 0; left: 0; border-radius: 50%; mix-blend-mode: multiply; opacity: 0; /* JS drives the twinkle */
+  /* saturated GOLD core (multiply of gold over white → a warm gold speck that catches light, AA-safe).
+     Stays hour-aware via --fc-sky-hue but gold-dominant so it reads gold, not khaki (Fase 1).
+     (screen/additive was rejected: on a near-white field it lightens toward white = invisible.) */
+  background: radial-gradient(circle, color-mix(in srgb, var(--sun) 82%, var(--fc-sky-hue, var(--sun))), transparent 60%);
+}

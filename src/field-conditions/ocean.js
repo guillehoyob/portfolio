@@ -7,7 +7,7 @@
  * + never on interactive targets (those own their own feedback). Pure CSS one-shots
  * (no rAF). Reduced motion → no-op. Flag off → never inits (Stage-0 exact).
  */
-import { field, addImpulse } from './index.js';
+import { field, addImpulse, intensity } from './index.js';
 
 export function initOcean() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -37,7 +37,7 @@ export function initOcean() {
       ring.style.top = e.clientY + 'px';
       ring.style.setProperty('--fc-ring-scale', (8 + en * 7).toFixed(1)); // 8→15: a clearly wider swell when you were moving
       ring.style.setProperty('--fc-ring-dur', dur.toFixed(2) + 's');
-      ring.style.setProperty('--fc-ring-op', ((0.45 + en * 0.03) * opMul).toFixed(3)); // energy varies WIDTH/DURATION/wake, not brightness; base raised 0.30→0.45 — the calm ring measured Δ12, below perception (audit VIS-04)
+      ring.style.setProperty('--fc-ring-op', Math.min(0.8, (0.45 + en * 0.03) * intensity.ring * opMul).toFixed(3)); // base raised 0.30→0.45 (audit VIS-04); intensity.ring scales it, hard cap 0.8 (CONTRACTS §a)
       ring.style.setProperty('--fc-ring-delay', delay.toFixed(2) + 's');
       let done = false;
       const finish = () => { if (done) return; done = true; ring.remove(); live = Math.max(0, live - 1); };

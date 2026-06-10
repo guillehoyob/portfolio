@@ -10,21 +10,48 @@
  * Every behavior is independently flag-gated in config.js; a flag off reproduces
  * the Stage-0 static state exactly.
  */
-import config from './config.js';
+import config, { INTENSITY } from './config.js';
 
 const RM = matchMedia('(prefers-reduced-motion: reduce)');
 export let reduced = RM.matches;
 export const motionAllowed = () => !reduced;
 const rmListeners = new Set();
 export const onReducedMotionChange = (fn) => rmListeners.add(fn);
+/* ---- standard teardown (CONTRACTS §d.4): a behavior registers ONE cleanup that
+   removes its listeners/timers/observers/DOM; reduced-motion-on runs them all.
+   New behaviors MUST use this instead of rolling another teardown pattern. */
+const cleanups = new Map();
+export function registerCleanup(name, fn) { cleanups.set(name, fn); }
 RM.addEventListener?.('change', (e) => {
   reduced = e.matches;
   // the master motion gate must follow a LIVE change too — the pre-paint class kept
   // every CSS-driven behavior (seams, dot beat, transitions) running after the user
   // asked for reduced motion (audit A11Y-1)
   document.documentElement.classList.toggle('fc-motion', !reduced);
+  if (reduced) { cleanups.forEach((fn) => { try { fn(); } catch { /* isolated */ } }); cleanups.clear(); }
   rmListeners.forEach((fn) => fn(reduced));
 });
+
+/* ---- INTENSITY runtime (INT-2): ONE live binding every behavior reads at the point
+   of use, ONE event, ONE class. RULE: only applyIntensity() touches `fc-boost`. ---- */
+export let intensity = INTENSITY.subtle;
+export function applyIntensity(mode, opts) {
+  const m = mode === 'boost' ? 'boost' : 'subtle';
+  intensity = INTENSITY[m];
+  const root = document.documentElement;
+  for (const k of Object.keys(intensity)) root.style.setProperty('--fc-int-' + k.toLowerCase(), String(intensity[k]));
+  root.classList.toggle('fc-boost', m === 'boost');
+  if (!opts || opts.persist !== false) { try { localStorage.setItem('wn.intensity', m); } catch { /* private mode */ } }
+  dispatchEvent(new CustomEvent('fc:intensity', { detail: { mode: m, intensity } }));
+  wake();
+}
+function initialIntensityMode() {
+  // ?wn=boost|subtle is an EPHEMERAL scrubber (never persisted); the stored choice
+  // (the FIELD button) wins otherwise. ?wn=clear wipes the store in the pre-paint.
+  try { const q = new URLSearchParams(location.search).get('wn'); if (q === 'boost' || q === 'subtle') return q; } catch { /* */ }
+  try { if (localStorage.getItem('wn.intensity') === 'boost') return 'boost'; } catch { /* */ }
+  return 'subtle';
+}
 
 /* ---- the one shared rAF loop (Crosswind + Slipstream) ----
    Dirty-flag: a ticker returns true when it did meaningful work; after ~1.5s of
@@ -54,6 +81,9 @@ export function wake() {
    (e.g. energy *= 0.97) decays identically at 90/120/144Hz (audit PERF-2) — without
    this, every "óptimo" the owner approves would feel different on his next monitor. */
 export const dtKeep = (k, dt) => Math.pow(k, (dt || 16.7) / 16.7);
+/* dt-normalized LERP gain (CONTRACTS §d.1): for `x += (target - x) * k` easings —
+   the complementary form of dtKeep. Both are the same law; pick by formula shape. */
+export const dtFactor = (k, dt) => 1 - Math.pow(1 - k, (dt || 16.7) / 16.7);
 export function addTicker(fn) { tickers.add(fn); wake(); }
 export function removeTicker(fn) {
   tickers.delete(fn);
@@ -174,29 +204,34 @@ const load = async (flag, importer, run) => {
 
 export async function boot() {
   const f = config.flags;
+  applyIntensity(initialIntensityMode(), { persist: false }); // FIRST — every behavior reads `intensity` live from frame one
   addTicker(integrateEnergy); // runs FIRST each frame — the field is fresh before behaviors read it
-  // Stage 1 — Lenis + reveals + Vault Blur
+  // Stage 1 — Lenis + reveals + VT morph (the page dive is static CSS; vault-blur died — CODE-1)
   await load(!reduced, () => import('./scroll.js'), (m) => m.initScroll());
   await load(f.reveals, () => import('./reveals.js'), (m) => m.initReveals());
   await load(f.heroEntrance, () => import('./hero-entrance.js'), (m) => m.initHeroEntrance());
-  await load(f.vaultBlur, () => import('./vault-blur.js'), (m) => m.initVaultBlur(reduced));
+  await load(f.vtMorph, () => import('./vt-morph.js'), (m) => m.initVtMorph());
   // Stage 2 — pulse (Heartbeat governor-exempt; First Breath + Scanline one-shots)
   await load(f.heartbeat, () => import('./heartbeat.js'), (m) => m.initHeartbeat(config));
   await load(f.firstBreath, () => import('./first-breath.js'), (m) => m.initFirstBreath());
   await load(f.scanline, () => import('./scanline.js'), (m) => m.initScanline());
   // Stage 3 — identity (New Route swaps the pre-armed line; the Spine extends it down the page; Threshold Cut + Crack detonate the void)
   await load(f.thresholdCut, () => import('./threshold-cut.js'), (m) => m.initThresholdCut(config));
-  await load(f.newRoute, () => import('./new-route.js'), (m) => m.initNewRoute());
+  await load(f.newRoute, () => import('./new-route.js'), (m) => m.initNewRoute(config));
   await load(f.spine, () => import('./spine.js'), (m) => m.initSpine());
-  // Stage 4 — Heliostat (field-state, governor-exempt)
+  // Stage 4 — field state (Heliostat governor-exempt; Weather feeds field.wx — SKY-5)
   await load(f.heliostat, () => import('./heliostat.js'), (m) => m.initHeliostat());
+  await load(f.weather, () => import('./weather.js'), (m) => m.initWeather(config));
   // Stage 5 — weather traces (Governor: slipstream > crosswind > scanline)
   await load(f.slipstream, () => import('./slipstream.js'), (m) => m.initSlipstream());
   await load(f.crosswind, () => import('./crosswind.js'), (m) => m.initCrosswind());
   await load(f.warmLens, () => import('./warm-lens.js'), (m) => m.initWarmLens());
   await load(f.particles, () => import('./particles.js'), (m) => m.initParticles());
   await load(f.ocean, () => import('./ocean.js'), (m) => m.initOcean());
-  await load(f.idleSigh, () => import('./idle-sigh.js'), (m) => m.initIdleSigh());
+  await load(f.breath, () => import('./breath.js'), (m) => m.initBreath(config));
   // Stage 6 — Patina (memory; the visit count + greeting swapped pre-paint)
   await load(f.patina, () => import('./patina.js'), (m) => m.initPatina(config));
+  // Calibration UI — last, never on the print sheet
+  await load(f.intensityControl && !document.body.classList.contains('cv-wrap'),
+    () => import('./intensity-control.js'), (m) => m.initIntensityControl());
 }

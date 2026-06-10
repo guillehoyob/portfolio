@@ -1559,46 +1559,23 @@ html.fc-motion #about::before, html.fc-motion #contact::before {
 
 /**
  * WHITE NOON — fc-breath (plane: TEMPORAL/respiración · owner: W4-respiracion-touch)
- * The DOT channels of the canonical breath table (BRE-2 §5.2 — ONE formula table
- * for all planes: the sun lives in fc-sky.css/W1, the spine in fc-ocean.css/W2,
- * the dot HERE). --fc-breath is the global 10.4s cycle published by breath.js;
- * every breath amplitude multiplies var(--fc-int-breath, 1) so the boost
- * amplifies it without touching code. The old per-element sigh channels
- * (--fc-dot-sigh / --fc-spine-sigh) are DEAD — retired by BRE-1.
- * Rest tiers (BRE-4) carry no dot CSS: --fc-rest-warm is consumed by .fc-sun
- * (fc-sky.css/W1) and --fc-pulse-alpha is written inline by heliostat.
+ * Split verbatim from field-conditions.css (CONTRACTS §c.1): the heartbeat dot
+ * channels. The breath 2.0 channels (halo, fc:crest transient, rest tiers) land
+ * HERE and only here; the old sigh channels (--fc-dot-sigh) are retired by BRE-1.
  */
 
-/* the dot beats on the SHARED heartbeat clock (one rAF, the same cardiac phase the
-   Red Spine reads): JS writes --fc-dot-beat/--fc-dot-breath each frame; breath.js
-   writes the global --fc-breath. In the crest the dot swells 8→12px while the
-   cardiac beat RECEDES (heartbeat.js, ×(1 − 0.7·breath)) — nested frequencies. */
-html.fc-motion .wn-status__dot--live { position: relative;
-  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4 * var(--fc-int-beat, 1)
-    + var(--fc-dot-breath, 0) * 0.06 * var(--fc-int-beat, 1)
-    + var(--fc-breath, 0) * 0.5 * var(--fc-int-breath, 1)));
-  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha))
-    + var(--fc-dot-breath, 0) * 0.05 + var(--fc-breath, 0) * 0.25 * var(--fc-int-breath, 1));
+/* the dot beats on the SHARED heartbeat clock (one rAF, the same cardiac phase
+   the Red Spine reads): JS writes --fc-dot-beat each frame; CSS maps it to a
+   scale + opacity swell. scale 1→1.4 on the lub, on the 8px flex-item dot. */
+html.fc-motion .wn-status__dot--live {
+  /* --fc-dot-sigh: the field's slow 6s rest-breath (idle ≥8s) given its OWN visible swell —
+     a calm ~16% size / 10% opacity bloom, distinct from the fast cardiac beat (no new fog) */
+  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4 + var(--fc-dot-breath, 0) * 0.06 + var(--fc-dot-sigh, 0) * 0.22));
+  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha)) + var(--fc-dot-breath, 0) * 0.05 + var(--fc-dot-sigh, 0) * 0.13);
 }
-/* the breath HALO — an Apple-Watch bloom around the dot, 20px at the crest, 0 at
-   rest (reference frame: the static OPEN TO WORK label right beside it). At op
-   ≤0.45 the label's contrast barely moves (>15:1 — AA safe). */
-html.fc-motion .wn-status__dot--live::after {
-  content: ""; position: absolute; inset: -6px; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(circle, color-mix(in srgb, var(--sun) 45%, transparent), transparent 70%);
-  opacity: calc(var(--fc-breath, 0) * 0.45);
-  transform: scale(calc(0.6 + var(--fc-breath, 0) * 0.8));
-}
-
-/* BRE-3 — the crest glint: breath.js fires fc:crest once per cycle at the
-   hold→release notch; heartbeat.js answers with .fc-crest for 500ms. */
-@keyframes wn-halo-glint { 0% { opacity: 0.45; } 30% { opacity: 0.85; } 100% { opacity: 0.45; } }
-html.fc-motion .wn-status__dot--live.fc-crest::after { animation: wn-halo-glint 450ms var(--ease-run); }
-
-/* reduced motion: dot solid at full opacity, no beat, no halo; label still renders (§5.6) */
+/* reduced motion: dot solid at full opacity, no beat; label still renders (§5.6) */
 @media (prefers-reduced-motion: reduce) {
   .wn-status__dot { opacity: 1; transform: none; }
-  .wn-status__dot--live::after { content: none; }
 }
 
 /**

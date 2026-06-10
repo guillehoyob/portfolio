@@ -10,7 +10,7 @@
  * default → no third-party call. Reduced motion → dot solid, no beat (CSS), label
  * still renders.
  */
-import { addTicker, removeTicker, heartbeatPhase, heartbeatBeat, heartbeatBreath, onReducedMotionChange, field } from './index.js';
+import { addTicker, removeTicker, heartbeatPhase, heartbeatBeat, heartbeatBreath, registerCleanup, field } from './index.js';
 
 export function initHeartbeat(config) {
   const dot = document.querySelector('.hero .wn-status__dot:not(.wn-status__dot--static)');
@@ -20,14 +20,33 @@ export function initHeartbeat(config) {
       const beat = () => {
         const ph = heartbeatPhase();
         const calm = 1 - 0.4 * field.energy; // the rest-breath recedes while you work, surfaces when you pause
-        dot.style.setProperty('--fc-dot-beat', (heartbeatBeat(ph) * (1 - 0.6 * field.breath)).toFixed(3)); // the sharp cardiac beat RECEDES as the field rest-breathes → the slow swell takes over (a heart visibly slowing, not a 2nd pulse on top)
+        // the sharp cardiac beat RECEDES during the breath crest, 0.6→0.7 (BRE-2): in the
+        // crest the heart almost stills — nested frequencies read as ONE organism slowing.
+        // The slow swell itself is the GLOBAL --fc-breath channel (breath.js) in fc-breath.css;
+        // the old per-dot --fc-dot-sigh channel is dead.
+        dot.style.setProperty('--fc-dot-beat', (heartbeatBeat(ph) * (1 - 0.7 * field.breath)).toFixed(3));
         dot.style.setProperty('--fc-dot-breath', (heartbeatBreath(ph) * calm).toFixed(3)); // cardiac diastole
-        dot.style.setProperty('--fc-dot-sigh', field.breath.toFixed(3));   // the field's slow rest-breath — a dedicated, PERCEPTIBLE channel (the dot swells slowly as the field rests with you)
         return true; // continuous pulse — keeps the shared loop alive on the hero
       };
       addTicker(beat);
-      // live OS reduced-motion toggle → stop writing the vars (CSS already neutralises them)
-      onReducedMotionChange((r) => { if (r) { removeTicker(beat); dot.style.removeProperty('--fc-dot-beat'); dot.style.removeProperty('--fc-dot-breath'); dot.style.removeProperty('--fc-dot-sigh'); } });
+      // BRE-3: the crest transient — fc:crest (breath.js, once per cycle) → a 500ms
+      // glint class on the dot's halo (CSS wn-halo-glint in fc-breath.css)
+      let glintT = 0;
+      const onCrest = () => {
+        dot.classList.add('fc-crest');
+        clearTimeout(glintT);
+        glintT = setTimeout(() => dot.classList.remove('fc-crest'), 500);
+      };
+      document.addEventListener('fc:crest', onCrest);
+      // standard teardown (live OS reduced-motion toggle) — CSS already neutralises the vars
+      registerCleanup('heartbeat', () => {
+        removeTicker(beat);
+        document.removeEventListener('fc:crest', onCrest);
+        clearTimeout(glintT);
+        dot.classList.remove('fc-crest');
+        dot.style.removeProperty('--fc-dot-beat');
+        dot.style.removeProperty('--fc-dot-breath');
+      });
     }
   }
 

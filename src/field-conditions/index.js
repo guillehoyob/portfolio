@@ -140,7 +140,7 @@ export function heartbeatBreath(phase) {
    and decaying back to calm. The law (so it never breaches a §2 cap by stacking): energy
    scales an amplitude ONLY where a hard cap already clamps it. Strata: SKY reads energy;
    OCEAN reads energy + impulses; EARTH reads NEITHER (memory must not ripen on a fast scroll). */
-export const field = { cursorX: 0, cursorY: 0, cursorVel: 0, scrollVel: 0, energy: 0, breath: 0, impulses: [] };
+export const field = { cursorX: 0, cursorY: 0, cursorVel: 0, scrollVel: 0, energy: 0, breath: 0, rest: 0, impulses: [] };
 export function addImpulse(x, y, force) {
   field.impulses.push({ x, y, force: force || 1, t: Date.now() });
   if (field.impulses.length > 4) field.impulses.shift();

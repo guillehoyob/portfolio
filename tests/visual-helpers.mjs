@@ -91,7 +91,9 @@ export function verdict(d) {
     isolates exactly the channel under test. */
 export const HIDE_LIVING = `
   .hero__chevron, .wn-status__dot, .fc-spine, .hero__routeband, .fc-sky,
-  .fc-ocean, .fc-crosswind, .fc-intensity { visibility: hidden !important; }
+  .fc-ocean, .fc-crosswind, .fc-intensity,
+  .fc-clouds, .fc-rain, .fc-iris, .fc-sprite, .fc-fog, .fc-voidflash,
+  .fc-bleed { visibility: hidden !important; }
 `;
 
 /** scroll the full page once (trigger reveals/crack/spine), back to top, settle. */

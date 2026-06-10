@@ -155,7 +155,7 @@
      (direction opposite the sun, blur by its height, sky-tinted never black); the
      static fallbacks above reproduce the old neutral shadow with zero JS */
   --shadow-card:  var(--fc-shadow-dx, 0px) 4px var(--fc-shadow-blur, 12px) -6px
-                  color-mix(in srgb, var(--fc-shadow-tint, var(--ink)) calc(9% * var(--fc-int-shadow, 1)), transparent);
+                  color-mix(in srgb, var(--fc-shadow-tint, var(--ink)) calc(14% * var(--fc-int-shadow, 1)), transparent);
   --shadow-bloom: 0 6px 20px -6px rgba(232, 52, 26, 0.28);    /* primary CTA hover only */
   --halo-focus:   0 0 0 6px color-mix(in srgb, var(--pulse) 25%, transparent);
 
@@ -176,7 +176,7 @@
   --dur-route: 900ms; /* the ONLY sanctioned >600ms UI motion */
   /* FORBIDDEN MIDDLE BAND: nothing between 600ms and 4s. */
   --dur-ambient-min: 4s;  /* floor for any ambient/looping cycle */
-  --dur-breathe:     6s;  /* Heartbeat dot cycle */
+  --dur-breathe:     10.4s; /* the field's resonance-breath cycle (BREATH_PARAMS.cycleMs) */
 
   /* ============ MOTION — stagger ============ */
   --stagger-sib: 55ms;   --breath-pre: 144ms;  /* Fibonacci: a wider inhale, a φ-spaced cascade */
@@ -1699,6 +1699,8 @@ html.fc-boost .fc-clouds, html.fc-boost .fc-rain, html.fc-boost .fc-fog, html.fc
  * Split verbatim from field-conditions.css (CONTRACTS §c.1): THE RED SPINE
  * (path/nib/ripple) and the click-ripple ocean ring. Knots/stitch (HILO-3/5a)
  * land HERE and only here.
+ * V5: the canonical spine-breath channel (HILO-4 × BRE-2 single table), the two
+ * pinky-promise knots (HILO-3) and the sliding sashiko stitch (HILO-5a).
  */
 
 /* ===== Stage 3 — THE RED SPINE (new): one scroll-drawn thread down the page =====
@@ -1710,14 +1712,37 @@ html.fc-boost .fc-clouds, html.fc-boost .fc-rain, html.fc-boost .fc-fog, html.fc
   position: absolute; top: 0; left: 0; width: 100%; /* height set by JS = document height */
   z-index: 2; pointer-events: none; overflow: visible;
 }
+/* THE canonical spine-breath channel (HILO-4 × BRE-2 — la tabla única).
+   --fc-breath is the field's global 10.4s breath (breath.js, BRE-1); --fc-spine-breath
+   is the micro cardiac diastole (kept); --fc-spine-sigh DIED (replaced by --fc-breath).
+   At the crest the thread gains op +0.20 and WIDTH +1px — área real, in phase with
+   the dot. EXCEPCIÓN SANCIONADA (CONTRACTS §f.6): the × var(--fc-int-breath, 1) terms
+   let boost reach ~+0.28 / +1.4px during ≤6s of the 10.4s cycle — transitory, never
+   resting red area. OPT-OUT de 1 línea: quitar `* var(--fc-int-breath, 1)` de los DOS
+   términos (width y opacity). El harness mide el rojo con ?fc-breath=0. */
 .fc-spine__path {
-  stroke: var(--signal); stroke-width: 2;
+  stroke: var(--signal);
+  stroke-width: calc(2px + var(--fc-breath, 0) * 1px * var(--fc-int-breath, 1));
   stroke-dasharray: var(--fc-spine-len, 4000);
   stroke-dashoffset: var(--fc-spine-len, 4000);
-  /* faint red trace that breathes with the heartbeat; hero fade-in via --fc-spine-fade.
-     --fc-spine-sigh: the thread breathes DEEPER as the field rests (idle sigh) — opacity only, so
-     the red AREA is unchanged (stays ≤1.5%); the whole organism visibly rests with you. */
-  opacity: calc((0.42 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-spine-sigh, 0) * 0.16) * var(--fc-spine-fade, 1));
+  opacity: calc((0.42 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-breath, 0) * 0.20 * var(--fc-int-breath, 1)) * var(--fc-spine-fade, 1));
+}
+/* HILO-3 — the pinky-promise knots: full-red ring, perforated loop (fill = field),
+   NO gold (owner veto). Eje `knot` BLOQUEADO (RED_LOCKED): boost never scales it —
+   it breathes ONLY with --fc-breath (the sanctioned channel). */
+.fc-spine__knot {
+  stroke: var(--signal); stroke-width: 2; fill: var(--fc-field, var(--field-0));
+  transform-box: fill-box; transform-origin: center;
+}
+.fc-spine__knot--origin { opacity: 0.9; transform: scale(calc(1 + var(--fc-breath, 0) * 0.14)); } /* does NOT multiply --fc-spine-fade: puntuación, visible at scroll 0 */
+.fc-spine__knot--dest { opacity: 0; transition: opacity var(--dur-600) var(--ease-run); }
+.fc-spine__knot--dest.is-tied { opacity: 0.9; animation: wn-knot-tighten var(--dur-600) var(--ease-run); }
+@keyframes wn-knot-tighten { from { transform: scale(1.35); } 60% { transform: scale(0.92); } to { transform: scale(1); } }
+/* HILO-5a — the sliding sashiko stitch: ONE 12px dash resting on the NEXT anchor,
+   ahead of the nib, ON the thread. Eje `stitch` BLOQUEADO: no boost scaling. */
+.fc-spine__stitch {
+  stroke: var(--signal); stroke-width: 4; opacity: 0;
+  transition: opacity var(--dur-240) var(--ease-react);
 }
 /* (kintsugi gold lives ONLY on the void CRACK — the actual break — never on the
    continuous spine thread; gilding a thread that isn't broken read as an ugly dashed line.) */
@@ -1736,8 +1761,11 @@ html.fc-boost .fc-clouds, html.fc-boost .fc-rain, html.fc-boost .fc-fog, html.fc
   to   { opacity: 0;    r: 19;  stroke-width: 0.3; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fc-spine__path { stroke-dashoffset: 0; opacity: 0.42; }
+  .fc-spine__path { stroke-dashoffset: 0; opacity: 0.42; stroke-width: 2; }
   .fc-spine__pulse, .fc-spine__ripple { display: none; }
+  .fc-spine__stitch { display: none; } /* without motion there is no "next" waypoint */
+  .fc-spine__knot--origin { transform: none; }
+  .fc-spine__knot--dest { opacity: 0.9; animation: none; transition: none; } /* tied, static, dignified */
 }
 
 /* ===== Ocean (new): click → one faint SKY ripple (the field responds; never red) ===== */
@@ -2021,23 +2049,46 @@ html.fc-motion .identity__route .route-headdot { animation: wn-idroute-pulse var
 
 /**
  * WHITE NOON — fc-breath (plane: TEMPORAL/respiración · owner: W4-respiracion-touch)
- * Split verbatim from field-conditions.css (CONTRACTS §c.1): the heartbeat dot
- * channels. The breath 2.0 channels (halo, fc:crest transient, rest tiers) land
- * HERE and only here; the old sigh channels (--fc-dot-sigh) are retired by BRE-1.
+ * The DOT channels of the canonical breath table (BRE-2 §5.2 — ONE formula table
+ * for all planes: the sun lives in fc-sky.css/W1, the spine in fc-ocean.css/W2,
+ * the dot HERE). --fc-breath is the global 10.4s cycle published by breath.js;
+ * every breath amplitude multiplies var(--fc-int-breath, 1) so the boost
+ * amplifies it without touching code. The old per-element sigh channels
+ * (--fc-dot-sigh / --fc-spine-sigh) are DEAD — retired by BRE-1.
+ * Rest tiers (BRE-4) carry no dot CSS: --fc-rest-warm is consumed by .fc-sun
+ * (fc-sky.css/W1) and --fc-pulse-alpha is written inline by heliostat.
  */
 
-/* the dot beats on the SHARED heartbeat clock (one rAF, the same cardiac phase
-   the Red Spine reads): JS writes --fc-dot-beat each frame; CSS maps it to a
-   scale + opacity swell. scale 1→1.4 on the lub, on the 8px flex-item dot. */
-html.fc-motion .wn-status__dot--live {
-  /* --fc-dot-sigh: the field's slow 6s rest-breath (idle ≥8s) given its OWN visible swell —
-     a calm ~16% size / 10% opacity bloom, distinct from the fast cardiac beat (no new fog) */
-  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4 + var(--fc-dot-breath, 0) * 0.06 + var(--fc-dot-sigh, 0) * 0.22));
-  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha)) + var(--fc-dot-breath, 0) * 0.05 + var(--fc-dot-sigh, 0) * 0.13);
+/* the dot beats on the SHARED heartbeat clock (one rAF, the same cardiac phase the
+   Red Spine reads): JS writes --fc-dot-beat/--fc-dot-breath each frame; breath.js
+   writes the global --fc-breath. In the crest the dot swells 8→12px while the
+   cardiac beat RECEDES (heartbeat.js, ×(1 − 0.7·breath)) — nested frequencies. */
+html.fc-motion .wn-status__dot--live { position: relative;
+  transform: scale(calc(1 + var(--fc-dot-beat, 0) * 0.4 * var(--fc-int-beat, 1)
+    + var(--fc-dot-breath, 0) * 0.06 * var(--fc-int-beat, 1)
+    + var(--fc-breath, 0) * 0.5 * var(--fc-int-breath, 1)));
+  opacity: calc(var(--fc-pulse-alpha) + var(--fc-dot-beat, 0) * (1 - var(--fc-pulse-alpha))
+    + var(--fc-dot-breath, 0) * 0.05 + var(--fc-breath, 0) * 0.25 * var(--fc-int-breath, 1));
 }
-/* reduced motion: dot solid at full opacity, no beat; label still renders (§5.6) */
+/* the breath HALO — an Apple-Watch bloom around the dot, 20px at the crest, 0 at
+   rest (reference frame: the static OPEN TO WORK label right beside it). At op
+   ≤0.45 the label's contrast barely moves (>15:1 — AA safe). */
+html.fc-motion .wn-status__dot--live::after {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--sun) 45%, transparent), transparent 70%);
+  opacity: calc(var(--fc-breath, 0) * 0.45);
+  transform: scale(calc(0.6 + var(--fc-breath, 0) * 0.8));
+}
+
+/* BRE-3 — the crest glint: breath.js fires fc:crest once per cycle at the
+   hold→release notch; heartbeat.js answers with .fc-crest for 500ms. */
+@keyframes wn-halo-glint { 0% { opacity: 0.45; } 30% { opacity: 0.85; } 100% { opacity: 0.45; } }
+html.fc-motion .wn-status__dot--live.fc-crest::after { animation: wn-halo-glint 450ms var(--ease-run); }
+
+/* reduced motion: dot solid at full opacity, no beat, no halo; label still renders (§5.6) */
 @media (prefers-reduced-motion: reduce) {
   .wn-status__dot { opacity: 1; transform: none; }
+  .wn-status__dot--live::after { content: none; }
 }
 
 /**

@@ -8,6 +8,7 @@
  * server up:  npm run build && npx vite preview --port 4178 --strictPort)
  */
 import { chromium } from 'playwright';
+import { readFileSync } from 'node:fs';
 import { makeDiffer, HIDE_LIVING, sleep as vhSleep } from './visual-helpers.mjs';
 import { INTENSITY, RED_LOCKED } from '../src/field-conditions/config.js';
 
@@ -312,13 +313,13 @@ try {
   const hasPath = await page.$eval('.fc-spine__path', (p) => (p.getAttribute('d') || '').length > 20).catch(() => false);
   const off0 = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.fc-spine__path')).strokeDashoffset) || 0);
   await page.evaluate(() => { const l = window.__wn && window.__wn.lenis; if (l) l.scrollTo(3000, { duration: 0.6 }); else window.scrollTo(0, 3000); });
-  await page.waitForTimeout(950);
+  // robust 'travels': sample WHILE the draw seeps (the tip must ride the growing
+  // thread) — sampling only after the wait was flaky once the seep converged early
+  const cys = [];
+  for (let i = 0; i < 6; i++) { await page.waitForTimeout(300); cys.push(await page.evaluate(() => +document.querySelector('.fc-spine__pulse').getAttribute('cy'))); }
+  const travels = new Set(cys).size >= 2;
   const off1 = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('.fc-spine__path')).strokeDashoffset) || 0);
   const drew = off1 < off0 - 1;
-  const cyA = await page.evaluate(() => +document.querySelector('.fc-spine__pulse').getAttribute('cy'));
-  await page.waitForTimeout(650);
-  const cyB = await page.evaluate(() => +document.querySelector('.fc-spine__pulse').getAttribute('cy'));
-  const travels = cyA !== cyB;
   // local bend: the path `d` deforms toward the cursor (not a rigid block transform)
   await page.mouse.move(1320, 340, { steps: 6 }); await page.waitForTimeout(750);
   const dA = await page.$eval('.fc-spine__path', (p) => p.getAttribute('d'));
@@ -330,11 +331,13 @@ try {
   await c.close();
 } catch (e) { rec('Red Spine', true, false, 'ERR ' + e.message, false); }
 
-/* ───────────────── 14. ONE HEARTBEAT — dot & spine share one clock ───────────────── */
+/* ───────────────── 14. ONE HEARTBEAT — dot & spine share one clock ─────────────────
+   ?fc-breath=0 freezes the breath channel: with breath at 0 the dot and spine recede
+   terms are identical by construction (deterministic — W4 harness delta 3). */
 try {
   const c = await newCtx();
   const page = await c.newPage();
-  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.goto(HOME + '?fc-breath=0', { waitUntil: 'networkidle' });
   await page.waitForTimeout(400);
   let maxDiff = 0, beats = 0;
   for (let i = 0; i < 26; i++) {
@@ -467,18 +470,29 @@ try {
   await c.close();
 } catch (e) { rec('Heartbeat continuity', true, false, 'ERR ' + e.message, false); }
 
-/* ───────────────── 18. Idle sigh (ocean: the field breathes at rest) ───────────────── */
+/* ───────────────── 18. Breath (BRE-1 §e.10 — replaced the old idle-sigh row) ─────────────────
+   The first anticipated breath rises ~0.9s after load; after a scroll the engine
+   re-arms from the 1.5s scroll-idle channel: >0 within ≤2.5s, ≥0.95 within ≤5s. */
 try {
   const c = await newCtx();
   const page = await c.newPage();
   await page.goto(HOME, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(9200); // stay completely still past the 8s idle threshold
-  let peak = 0;
-  for (let i = 0; i < 28; i++) { peak = Math.max(peak, await page.evaluate(() => +getComputedStyle(document.documentElement).getPropertyValue('--fc-haze-opacity') || 0.05)); await page.waitForTimeout(130); }
-  const ok = peak > 0.07 && peak <= 0.1102;
-  rec('Idle sigh', true, ok, `haze after 8s rest rose to ${num(peak)} (one breath, ≤0.11 cap)`, ok);
+  await page.waitForTimeout(2000);
+  const first = await page.evaluate(() => +getComputedStyle(document.documentElement).getPropertyValue('--fc-breath') || 0);
+  await page.evaluate(() => { const l = window.__wn && window.__wn.lenis; if (l) l.scrollTo(900, { duration: 0.4 }); else window.scrollTo(0, 900); });
+  await page.waitForTimeout(700); // let the scroll land — idle starts from stillness
+  let tRise = -1, tPeak = -1;
+  const t0 = Date.now();
+  while (Date.now() - t0 < 5600) {
+    const b = await page.evaluate(() => +getComputedStyle(document.documentElement).getPropertyValue('--fc-breath') || 0);
+    if (tRise < 0 && b > 0) tRise = (Date.now() - t0) / 1000;
+    if (tPeak < 0 && b >= 0.95) { tPeak = (Date.now() - t0) / 1000; break; }
+    await page.waitForTimeout(120);
+  }
+  const pass = first > 0 && tRise > 0 && tRise <= 2.5 && tPeak > 0 && tPeak <= 5;
+  rec('Breath', true, pass, `first@2s=${num(first)}; after scroll: >0 @${num(tRise)}s (≤2.5) peak @${num(tPeak)}s (≤5)`, pass);
   await c.close();
-} catch (e) { rec('Idle sigh', true, false, 'ERR ' + e.message, false); }
+} catch (e) { rec('Breath', true, false, 'ERR ' + e.message, false); }
 
 /* ───────────────── 19. Vertical dive page transition (ocean) ───────────────── */
 try {
@@ -515,7 +529,7 @@ try {
 try {
   const c = await newCtx();
   const page = await c.newPage();
-  await page.goto(BASE + '/method.html?fc-hour=13', { waitUntil: 'networkidle' });
+  await page.goto(BASE + '/method.html?fc-hour=13&fc-breath=0&fc-wx=clear', { waitUntil: 'networkidle' });
   await page.waitForTimeout(4500);
   const muts = await page.evaluate(() => new Promise((res) => {
     let n = 0;
@@ -550,6 +564,9 @@ try {
     label: (document.querySelector('.fc-intensity__label') || {}).textContent || '',
     demo: document.querySelectorAll('.wn-card[data-demo]').length,
   }));
+  // INT-4: activating boost forces an immediate sigh — the owner SEES the breath on demand
+  await page.waitForTimeout(800); // total ≤1.5s after the click
+  const sigh = await page.evaluate(() => +getComputedStyle(document.documentElement).getPropertyValue('--fc-breath') || 0);
   await page.reload({ waitUntil: 'domcontentloaded' });
   const prePaint = await page.evaluate(() => document.documentElement.classList.contains('fc-boost'));
   await page.waitForLoadState('networkidle');
@@ -563,9 +580,9 @@ try {
   }));
   const pass = pre.btn && !pre.boost && /SUBTLE/.test(pre.label)
     && on.boost && on.sun === '1.6' && on.store === 'boost' && /LOUD/.test(on.label) && on.demo >= 1
-    && prePaint && !off.boost && off.demo === 0 && off.store === 'subtle';
+    && sigh > 0 && prePaint && !off.boost && off.demo === 0 && off.store === 'subtle';
   rec('Intensity toggle', pre.btn, pass,
-    `boost=${on.boost} sun=${on.sun} store=${on.store} demo=${on.demo} prePaint=${prePaint} revert=${!off.boost}/${off.demo}`, pass);
+    `boost=${on.boost} sun=${on.sun} store=${on.store} demo=${on.demo} sigh@1.4s=${num(sigh)} prePaint=${prePaint} revert=${!off.boost}/${off.demo}`, pass);
   await c.close();
 } catch (e) { rec('Intensity toggle', true, false, 'ERR ' + e.message, false); }
 
@@ -578,7 +595,7 @@ try {
   const locked = RED_LOCKED.every((k) => INTENSITY.subtle[k] === 1 && INTENSITY.boost[k] === 1);
   const c = await newCtx();
   const page = await c.newPage();
-  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.goto(HOME + '?fc-breath=0&fc-wx=clear', { waitUntil: 'networkidle' }); // freeze the sanctioned transitory exception (§f.6) + deterministic sky
   const coupling = await page.evaluate((allowed) => {
     const bad = [];
     for (const s of document.querySelectorAll('style')) {
@@ -596,7 +613,7 @@ try {
   // red delta measures the draw, not the boost
   await page.waitForTimeout(2200);
   const shotSub = await page.screenshot();
-  await page.goto(HOME + '?wn=boost', { waitUntil: 'networkidle' });
+  await page.goto(HOME + '?wn=boost&fc-breath=0&fc-wx=clear', { waitUntil: 'networkidle' });
   await page.waitForTimeout(2200);
   const shotBoost = await page.screenshot();
   await c.close();
@@ -646,6 +663,269 @@ try {
   rec('Card arrow hover', true, pass, `arrow transform on card hover = ${tf}`, pass);
   await c.close();
 } catch (e) { rec('Card arrow hover', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 26. Heliostat day arc (SKY-1/2/4 — §e.3) ───────────────── */
+try {
+  const differ = await makeDiffer(browser);
+  const c = await newCtx();
+  const page = await c.newPage();
+  const shots = [];
+  for (const h of [7, 10, 13, 16, 19]) {
+    await page.goto(HOME + `?fc-hour=${h}&fc-wx=clear&fc-breath=0`, { waitUntil: 'networkidle' });
+    await page.addStyleTag({ content: HIDE_LIVING });
+    await page.waitForTimeout(500);
+    shots.push(await page.screenshot({ clip: { x: 0, y: 0, width: 1440, height: 225 } }));
+  }
+  let minMax = Infinity;
+  for (let i = 1; i < shots.length; i++) { const d = await differ.diff(shots[i - 1], shots[i]); minMax = Math.min(minMax, d.max); }
+  const dx9 = await page.evaluate(async () => { const u = new URL(location.href); u.searchParams.set('fc-hour', '9'); history.replaceState(null, '', u); return 0; }).then(() => 0);
+  await page.goto(HOME + '?fc-hour=9&fc-wx=clear', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(400);
+  const sh9 = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fc-shadow-dx')) || 0);
+  await page.goto(HOME + '?fc-hour=18&fc-wx=clear', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(400);
+  const sh18 = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fc-shadow-dx')) || 0);
+  await c.close(); await differ.close();
+  const pass = minMax >= 25 && sh9 > 0 && sh18 < 0;
+  rec('Heliostat day arc', true, pass, `min consecutive-3h diff max=${minMax} (≥25); shadow-dx 9h=${sh9.toFixed(1)} > 0 > 18h=${sh18.toFixed(1)}`, pass);
+} catch (e) { rec('Heliostat day arc', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 27. Weather state + the ONE sanctioned third-party (§e.4) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME + '?fc-wx=storm', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(400);
+  const storm = await page.evaluate(() => document.documentElement.dataset.wx);
+  await page.goto(HOME + '?fc-wx=off', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(400);
+  const off = await page.evaluate(() => document.documentElement.hasAttribute('data-wx'));
+  await c.close();
+  // network discipline: WITHOUT a scrubber, a 2-navigation session makes ≤1 cross-origin
+  // request and ONLY to api.open-meteo.com (the single sanctioned third-party, §f.4)
+  const c2 = await newCtx();
+  const page2 = await c2.newPage();
+  const xo = [];
+  page2.on('request', (r) => { const u = new URL(r.url()); if (u.origin !== new URL(BASE).origin) xo.push(u.origin); });
+  await page2.goto(HOME, { waitUntil: 'networkidle' });
+  await page2.waitForTimeout(1200);
+  await page2.goto(BASE + '/method.html', { waitUntil: 'networkidle' });
+  await page2.waitForTimeout(800);
+  await c2.close();
+  const foreign = xo.filter((o) => o !== 'https://api.open-meteo.com');
+  const pass = storm === 'storm' && !off && xo.length <= 1 && foreign.length === 0;
+  rec('Weather state', true, pass, `storm=${storm}; off attr=${off}; cross-origin=${xo.length} (≤1) foreign=${foreign.length}`, pass);
+} catch (e) { rec('Weather state', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 28. Sprite quota — the red phenomenon is RARE (§e.5) ───────────────── */
+try {
+  const c = await newCtx();
+  await c.addInitScript(() => { try { sessionStorage.setItem('wn.sprite', '1'); } catch { /* */ } });
+  const page = await c.newPage();
+  await page.goto(HOME + '?fc-wx=storm', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(9000);
+  const blocked = await page.$$eval('.fc-sprite', (e) => e.length);
+  await c.close();
+  const c2 = await newCtx();
+  const page2 = await c2.newPage();
+  await page2.goto(HOME + '?fc-wx=storm&wn=boost', { waitUntil: 'networkidle' });
+  const seen = await page2.evaluate(() => new Promise((res) => {
+    let n = 0;
+    const mo = new MutationObserver((muts) => {
+      for (const m of muts) for (const node of m.addedNodes) {
+        if (node.nodeType === 1 && node.classList && node.classList.contains('fc-sprite')) n++;
+      }
+    });
+    mo.observe(document.body, { childList: true });
+    setTimeout(() => { mo.disconnect(); res(n); }, 10500);
+  }));
+  const shot = await page2.screenshot();
+  await c2.close();
+  const differ = await makeDiffer(browser);
+  const red = await differ.redMask(shot);
+  await differ.close();
+  const pass = blocked === 0 && seen === 1 && red.redPct <= 1.5;
+  rec('Sprite quota', true, pass, `quota-blocked=${blocked} (0); boost demo appearances=${seen} (1); red with storm=${red.redPct}%`, pass);
+} catch (e) { rec('Sprite quota', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 29. Rest tiers (BRE-4 §e.11) ───────────────── */
+try {
+  const c = await newCtx();
+  await c.addInitScript(() => { try { sessionStorage.setItem('wn.firstBreathDone', '1'); } catch { /* */ } });
+  const page = await c.newPage();
+  await page.goto(HOME + '?fc-rest=asleep', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1200);
+  const s = await page.evaluate(() => ({
+    tier: document.documentElement.dataset.fcRest,
+    warm: getComputedStyle(document.documentElement).getPropertyValue('--fc-rest-warm').trim(),
+    pulse: getComputedStyle(document.documentElement).getPropertyValue('--fc-pulse-alpha').trim(),
+  }));
+  const t0 = Date.now();
+  await page.mouse.move(640, 400);
+  await page.mouse.down(); await page.mouse.up();
+  await page.waitForTimeout(90);
+  const awake = await page.evaluate(() => !document.documentElement.hasAttribute('data-fc-rest'));
+  const wakeMs = Date.now() - t0;
+  await c.close();
+  const pass = s.tier === 'asleep' && parseFloat(s.warm) === 0.04 && s.pulse === '0.70' && awake;
+  rec('Rest tiers', true, pass, `tier=${s.tier} warm=${s.warm} pulse-alpha=${s.pulse}; awake ≤${wakeMs}ms=${awake}`, pass);
+} catch (e) { rec('Rest tiers', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 30. Touch census (TOU-5 §e.12) ───────────────── */
+try {
+  const c = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15' });
+  const page = await c.newPage();
+  await page.goto(BASE + '/method.html', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1500);
+  const motes = await page.$$eval('.fc-mote', (els) => ({ n: els.length, maxOp: Math.max(...els.map((e) => +e.style.opacity || 0)) }));
+  const dBefore = await page.$eval('.fc-spine__path', (p) => p.getAttribute('d'));
+  await page.touchscreen.tap(60, 500);
+  await page.waitForTimeout(420);
+  const dAfter = await page.$eval('.fc-spine__path', (p) => p.getAttribute('d'));
+  const lit = await page.evaluate(async () => {
+    const block = document.querySelector('.phase') || document.querySelector('.prose');
+    if (!block) return 'no-block';
+    block.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'touch' }));
+    await new Promise((r) => setTimeout(r, 250));
+    return block.classList.contains('fc-lit');
+  });
+  await c.close();
+  const pass = motes.n === 10 && motes.maxOp >= 0.15 && dBefore !== dAfter && lit === true;
+  rec('Touch census', true, pass, `motes=${motes.n} (10) maxOp=${num(motes.maxOp)}; spine bends on tap=${dBefore !== dAfter}; warm-lens on tap=${lit}`, pass);
+} catch (e) { rec('Touch census', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 31. Spine presence + knots + stitch (HILO-3/4/5a §e.8) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME + '?fc-breath=0', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(2400); // min-draw seeps in from 0
+  const top = await page.evaluate(() => {
+    const p = document.querySelector('.fc-spine__path');
+    const LEN = parseFloat(getComputedStyle(p).strokeDasharray) || 4000;
+    return {
+      off: parseFloat(p.style.strokeDashoffset || getComputedStyle(p).strokeDashoffset),
+      LEN,
+      op: +getComputedStyle(p).opacity,
+      knot: +getComputedStyle(document.querySelector('.fc-spine__knot--origin')).opacity,
+    };
+  });
+  await page.evaluate(() => { const l = window.__wn && window.__wn.lenis; if (l) l.scrollTo(1200, { duration: 0.4 }); else window.scrollTo(0, 1200); });
+  await page.waitForTimeout(1300);
+  const stitch = await page.evaluate(() => {
+    const s = document.querySelector('.fc-spine__stitch');
+    return s ? { op: getComputedStyle(s).opacity, off: s.getAttribute('stroke-dashoffset') } : null;
+  });
+  await c.close();
+  const pass = top.off <= top.LEN * 0.95 && top.op >= 0.2 && top.knot >= 0.85 && !!stitch && stitch.op === '1';
+  rec('Spine presence', true, pass, `scroll-0: off=${top.off | 0} ≤ ${(top.LEN * 0.95) | 0}, op=${num(top.op)}, knot=${num(top.knot)}; stitch op=${stitch && stitch.op}`, pass);
+} catch (e) { rec('Spine presence', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 32. Living name route (HILO-1a) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(2300); // initial draw + dasharray:none fix
+  const before = await page.$eval('.route-path--desktop', (p) => ({ d: p.getAttribute('d'), dash: p.style.strokeDasharray || getComputedStyle(p).strokeDasharray }));
+  await page.mouse.click(700, 140); // empty hero space
+  await page.waitForTimeout(1500); // retract 0.28s + draw 0.9s
+  const after = await page.$eval('.route-path--desktop', (p) => ({ d: p.getAttribute('d'), dash: p.style.strokeDasharray || getComputedStyle(p).strokeDasharray }));
+  const step = await page.evaluate(() => sessionStorage.getItem('wn.routeStep'));
+  await c.close();
+  const pass = before.dash === 'none' && after.d !== before.d && after.dash === 'none' && step === '1';
+  rec('Living name route', true, pass, `dash settled=${before.dash}; redraw on click=${after.d !== before.d}; step=${step}; dash after=${after.dash}`, pass);
+} catch (e) { rec('Living name route', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 33. Seams 2.0 + void word fit (VOID-1a/5a §e.6/§e.7) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  const counts = {};
+  for (const r of ['/method.html', '/work/index.html', '/work/rag-zelebrix.html']) {
+    await page.goto(BASE + r, { waitUntil: 'networkidle' });
+    counts[r] = await page.$$eval('.wn-seam', (e) => e.length);
+  }
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  const gold = await page.evaluate(() => {
+    const s = document.querySelector('.wn-seam--postvoid');
+    return s ? getComputedStyle(s, '::before').backgroundImage : 'absent';
+  });
+  let fitFails = 0;
+  for (const r of ROUTES) {
+    await page.goto(BASE + r, { waitUntil: 'networkidle' });
+    fitFails += await page.$$eval('.wn-void__word', (els) => els.filter((el) => el.scrollWidth > el.clientWidth).length);
+  }
+  await c.close();
+  const goldOk = /gradient/.test(gold) && /color\(srgb 0\.7\d+,? 0\.5\d+,? 0\.1\d+/.test(gold);
+  const pass = Object.values(counts).every((n) => n >= 1) && goldOk && fitFails === 0;
+  rec('Seams 2.0 + word fit', true, pass, `seams=${JSON.stringify(counts).slice(0, 30)}; postvoid gold=${goldOk}; word overflows=${fitFails} (0)`, pass);
+} catch (e) { rec('Seams 2.0 + word fit', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 34. 404 frayed route (HILO-6/VOID-7 §e.9) ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(BASE + '/404.html', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1700);
+  const s = await page.evaluate(() => ({
+    off: parseFloat(getComputedStyle(document.querySelector('.nf-route__line')).strokeDashoffset),
+    bead: getComputedStyle(document.querySelector('.nf-route__end')).animationName,
+    mini: !!document.querySelector('.wn-void--mini'),
+    crack: !!document.querySelector('.wn-void__crack'),
+  }));
+  await c.close();
+  const pass = s.off === 0 && s.bead === 'wn-nf-bead' && s.mini && !s.crack;
+  rec('404 frayed route', true, pass, `line drawn=${s.off === 0}; bead=${s.bead}; mini band=${s.mini}; crackless=${!s.crack}`, pass);
+} catch (e) { rec('404 frayed route', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 35. Per-project route assets (AST-1a/2 §e.16) ───────────────── */
+try {
+  const distFiles = ['dist/index.html', 'dist/work/index.html', 'dist/work/rag-zelebrix.html', 'dist/work/gestamp-agents.html', 'dist/work/architecture-idea.html', 'dist/work/personal.html'];
+  const mini = distFiles.reduce((n, f) => n + (readFileSync(f, 'utf8').includes('route-mini-card') ? 1 : 0), 0);
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  const vizHome = await page.$$eval('.wn-card svg.route-viz, .wn-card .wn-card__viz svg, .wn-card svg', (els) => els.map((e) => e.innerHTML.replace(/\s+/g, '')));
+  await page.goto(WORKIDX, { waitUntil: 'networkidle' });
+  const vizWork = await page.$$eval('.wn-card svg', (els) => els.map((e) => e.innerHTML.replace(/\s+/g, '')));
+  const unique = new Set([...vizHome, ...vizWork]).size;
+  const heads = [];
+  for (const r of ['/work/rag-zelebrix.html', '/work/gestamp-agents.html', '/work/architecture-idea.html', '/work/personal.html']) {
+    await page.goto(BASE + r, { waitUntil: 'networkidle' });
+    heads.push(await page.evaluate(() => {
+      const el = document.querySelector('.identity__route');
+      const main = el && el.querySelector('.route-main');
+      return el ? { d: (main && main.getAttribute('d') || '').slice(0, 40), hy: el.dataset.headY || '' } : null;
+    }));
+  }
+  await c.close();
+  const dUnique = new Set(heads.filter(Boolean).map((h) => h.d)).size;
+  const hyOk = heads.filter(Boolean).every((h) => h.hy !== '');
+  const pass = mini === 0 && unique >= 5 && dUnique === 4 && hyOk;
+  rec('Route assets', true, pass, `route-mini-card refs=${mini} (0); unique card viz=${unique} (≥5); unique headers=${dUnique}/4; head-y all=${hyOk}`, pass);
+} catch (e) { rec('Route assets', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 36. Boost perceptibility (INT-6 Fila C — at the day's FLATTEST hour) ───────────────── */
+try {
+  const c = await newCtx();
+  await c.addInitScript(() => { try { localStorage.setItem('wn.visitor', 'harness-fixed'); } catch { /* */ } });
+  const page = await c.newPage();
+  await page.goto(HOME + '?fc-hour=16&fc-wx=clear&fc-breath=0', { waitUntil: 'networkidle' });
+  await page.addStyleTag({ content: HIDE_LIVING });
+  await page.waitForTimeout(600);
+  const shotSub = await page.screenshot();
+  await page.goto(HOME + '?fc-hour=16&fc-wx=clear&fc-breath=0&wn=boost', { waitUntil: 'networkidle' });
+  await page.addStyleTag({ content: HIDE_LIVING });
+  await page.waitForTimeout(600);
+  const shotBoost = await page.screenshot();
+  await c.close();
+  const differ = await makeDiffer(browser);
+  const d = await differ.diff(shotSub, shotBoost);
+  await differ.close();
+  const pass = d.max >= 16 && d.pctGe8 >= 0.8;
+  rec('Boost perceptibility', true, pass, `subtle↔boost @16h: max=${d.max} (≥16) pctGe8=${d.pctGe8}% (≥0.8%) — perceptible is an ASSERT`, pass);
+} catch (e) { rec('Boost perceptibility', true, false, 'ERR ' + e.message, false); }
 
 /* ═════════════════ breakpoint matrix ═════════════════ */
 const matrix = [];

@@ -130,7 +130,7 @@
      (direction opposite the sun, blur by its height, sky-tinted never black); the
      static fallbacks above reproduce the old neutral shadow with zero JS */
   --shadow-card:  var(--fc-shadow-dx, 0px) 4px var(--fc-shadow-blur, 12px) -6px
-                  color-mix(in srgb, var(--fc-shadow-tint, var(--ink)) calc(9% * var(--fc-int-shadow, 1)), transparent);
+                  color-mix(in srgb, var(--fc-shadow-tint, var(--ink)) calc(14% * var(--fc-int-shadow, 1)), transparent);
   --shadow-bloom: 0 6px 20px -6px rgba(232, 52, 26, 0.28);    /* primary CTA hover only */
   --halo-focus:   0 0 0 6px color-mix(in srgb, var(--pulse) 25%, transparent);
 

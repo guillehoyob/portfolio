@@ -21,8 +21,12 @@ export function initOcean() {
   addEventListener('pointerdown', (e) => {
     // affordances own their own feedback (§3.12) — don't ripple on links/buttons/fields
     if (e.target.closest && e.target.closest('a,button,input,textarea,select,label,summary,[role="button"],[contenteditable]')) return;
+    // SKY-12.2 — rain feeds the water: under rain/storm the sea answers a touch more
+    // (one extra concurrent ring + a brighter crest). The ocean READS the sky's state.
+    const wxd = document.documentElement.dataset.wx || '';
+    const wxMul = (wxd.startsWith('rain') || wxd === 'storm') ? 1 : 0;
     const now = performance.now();
-    if (now - last < 120 || live >= 3) return; // debounce + concurrency cap (no spectacle)
+    if (now - last < 120 || live >= 3 + wxMul) return; // debounce + concurrency cap (no spectacle)
     last = now; // NOTE: live is incremented inside spawn() only — never here (that double-count
                 // leaked the counter and froze the ocean after 2 clicks)
     // the ring's CHARACTER reads the field's ENERGY — a heavy moment (you were moving fast) makes
@@ -38,7 +42,7 @@ export function initOcean() {
       ring.style.top = e.clientY + 'px';
       ring.style.setProperty('--fc-ring-scale', (8 + en * 7).toFixed(1)); // 8→15: a clearly wider swell when you were moving
       ring.style.setProperty('--fc-ring-dur', dur.toFixed(2) + 's');
-      ring.style.setProperty('--fc-ring-op', Math.min(0.8, (0.45 + en * 0.03) * intensity.ring * opMul).toFixed(3)); // base raised 0.30→0.45 (audit VIS-04); intensity.ring scales it, hard cap 0.8 (CONTRACTS §a)
+      ring.style.setProperty('--fc-ring-op', Math.min(0.8, (0.45 + wxMul * 0.08 + en * 0.03) * intensity.ring * opMul).toFixed(3)); // base raised 0.30→0.45 (audit VIS-04) + rain crest (SKY-12.2); intensity.ring scales it, hard cap 0.8 (CONTRACTS §a)
       ring.style.setProperty('--fc-ring-delay', delay.toFixed(2) + 's');
       let done = false;
       const finish = () => { if (done) return; done = true; ring.remove(); live = Math.max(0, live - 1); };

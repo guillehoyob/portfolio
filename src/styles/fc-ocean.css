@@ -3,6 +3,8 @@
  * Split verbatim from field-conditions.css (CONTRACTS §c.1): THE RED SPINE
  * (path/nib/ripple) and the click-ripple ocean ring. Knots/stitch (HILO-3/5a)
  * land HERE and only here.
+ * V5: the canonical spine-breath channel (HILO-4 × BRE-2 single table), the two
+ * pinky-promise knots (HILO-3) and the sliding sashiko stitch (HILO-5a).
  */
 
 /* ===== Stage 3 — THE RED SPINE (new): one scroll-drawn thread down the page =====
@@ -14,14 +16,37 @@
   position: absolute; top: 0; left: 0; width: 100%; /* height set by JS = document height */
   z-index: 2; pointer-events: none; overflow: visible;
 }
+/* THE canonical spine-breath channel (HILO-4 × BRE-2 — la tabla única).
+   --fc-breath is the field's global 10.4s breath (breath.js, BRE-1); --fc-spine-breath
+   is the micro cardiac diastole (kept); --fc-spine-sigh DIED (replaced by --fc-breath).
+   At the crest the thread gains op +0.20 and WIDTH +1px — área real, in phase with
+   the dot. EXCEPCIÓN SANCIONADA (CONTRACTS §f.6): the × var(--fc-int-breath, 1) terms
+   let boost reach ~+0.28 / +1.4px during ≤6s of the 10.4s cycle — transitory, never
+   resting red area. OPT-OUT de 1 línea: quitar `* var(--fc-int-breath, 1)` de los DOS
+   términos (width y opacity). El harness mide el rojo con ?fc-breath=0. */
 .fc-spine__path {
-  stroke: var(--signal); stroke-width: 2;
+  stroke: var(--signal);
+  stroke-width: calc(2px + var(--fc-breath, 0) * 1px * var(--fc-int-breath, 1));
   stroke-dasharray: var(--fc-spine-len, 4000);
   stroke-dashoffset: var(--fc-spine-len, 4000);
-  /* faint red trace that breathes with the heartbeat; hero fade-in via --fc-spine-fade.
-     --fc-spine-sigh: the thread breathes DEEPER as the field rests (idle sigh) — opacity only, so
-     the red AREA is unchanged (stays ≤1.5%); the whole organism visibly rests with you. */
-  opacity: calc((0.42 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-spine-sigh, 0) * 0.16) * var(--fc-spine-fade, 1));
+  opacity: calc((0.42 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-breath, 0) * 0.20 * var(--fc-int-breath, 1)) * var(--fc-spine-fade, 1));
+}
+/* HILO-3 — the pinky-promise knots: full-red ring, perforated loop (fill = field),
+   NO gold (owner veto). Eje `knot` BLOQUEADO (RED_LOCKED): boost never scales it —
+   it breathes ONLY with --fc-breath (the sanctioned channel). */
+.fc-spine__knot {
+  stroke: var(--signal); stroke-width: 2; fill: var(--fc-field, var(--field-0));
+  transform-box: fill-box; transform-origin: center;
+}
+.fc-spine__knot--origin { opacity: 0.9; transform: scale(calc(1 + var(--fc-breath, 0) * 0.14)); } /* does NOT multiply --fc-spine-fade: puntuación, visible at scroll 0 */
+.fc-spine__knot--dest { opacity: 0; transition: opacity var(--dur-600) var(--ease-run); }
+.fc-spine__knot--dest.is-tied { opacity: 0.9; animation: wn-knot-tighten var(--dur-600) var(--ease-run); }
+@keyframes wn-knot-tighten { from { transform: scale(1.35); } 60% { transform: scale(0.92); } to { transform: scale(1); } }
+/* HILO-5a — the sliding sashiko stitch: ONE 12px dash resting on the NEXT anchor,
+   ahead of the nib, ON the thread. Eje `stitch` BLOQUEADO: no boost scaling. */
+.fc-spine__stitch {
+  stroke: var(--signal); stroke-width: 4; opacity: 0;
+  transition: opacity var(--dur-240) var(--ease-react);
 }
 /* (kintsugi gold lives ONLY on the void CRACK — the actual break — never on the
    continuous spine thread; gilding a thread that isn't broken read as an ugly dashed line.) */
@@ -40,8 +65,11 @@
   to   { opacity: 0;    r: 19;  stroke-width: 0.3; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fc-spine__path { stroke-dashoffset: 0; opacity: 0.42; }
+  .fc-spine__path { stroke-dashoffset: 0; opacity: 0.42; stroke-width: 2; }
   .fc-spine__pulse, .fc-spine__ripple { display: none; }
+  .fc-spine__stitch { display: none; } /* without motion there is no "next" waypoint */
+  .fc-spine__knot--origin { transform: none; }
+  .fc-spine__knot--dest { opacity: 0.9; animation: none; transition: none; } /* tied, static, dignified */
 }
 
 /* ===== Ocean (new): click → one faint SKY ripple (the field responds; never red) ===== */

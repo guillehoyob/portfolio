@@ -15,6 +15,7 @@ export function setupGsap() {
   ready = true;
   gsap.registerPlugin(CustomEase, SplitText);
   CustomEase.create('run', '0.22,1,0.36,1');
+  CustomEase.create('lift', '0.42,0,1,1'); // the route RETRACT (HILO-1a): accelerates away, never bounces
   gsap.defaults({ ease: 'run' });
   return gsap;
 }

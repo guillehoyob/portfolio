@@ -1,7 +1,7 @@
 /**
  * WHITE NOON — Crosswind (Stage 5, §5.3)
  * Cursor presence: a 600px --sky radial haze (≤8% alpha) at --z-haze follows the
- * cursor with heavy lag (lerp 0.05 — Drift inertia), and a smaller --ink-ghost
+ * cursor with energy-tightened lag (0.020×intensity.lag + e×0.035), and a smaller --ink-ghost
  * multiply spot rides at --z-warm (above content, below nav) so hairlines passing
  * under it read one step warmer with no per-element checks. Pointer devices only;
  * never created on touch or under reduced motion. Runs in the ONE shared rAF;

@@ -14,9 +14,9 @@ One epoch (`Date.now()`, persisted across pages when `continuity`) drives **ever
 
 - **Heartbeat** — a 4s cardiac cycle: lub + a φ-conjugate (0.618) dub + recoil + a diastolic breath. Calm, never an alarm (a faster beat was rejected). `--fc-dot-beat` / `--fc-spine-beat` are the SAME phase → dot and spine are provably one heart.
 - **The field breath (sigh)** — after ~8s of stillness the field exhales ONCE (`field.breath` 0→1→0 over 6s), then rests, re-firing each calm. *This is ma made audible:* the reward for stillness.
-- **Coupling (NEW)** — the sigh no longer pushes fog (the owner rejects persistent haze and +6% haze is sub-threshold anyway). Instead it gets its **own perceptible channel**: `--fc-dot-sigh` / `--fc-spine-sigh` make the dot **swell slowly and the spine breathe deeper** during the sigh — the whole organism visibly *rests with you*. Amplitude on the SLOW breath channel only (never a faster/louder beat).
+- **Coupling (V5)** — the breath engine (`breath.js`, BRE-1) replaces the old idle-sigh: a **10.4s resonance cycle** (inhale 3.6s · crest-hold 1s · release · valley — the holds ARE the ma) published as `field.breath` + `--fc-breath`. Channels WITH AREA breathe with it (sun swell, spine width/op crest, dot+halo), an anticipated **first breath** on load teaches the mechanic, and `fc:crest` gives the transient that beats change-blindness. The old `--fc-dot-sigh`/haze-sigh channels are retired. *(Historical note kept honest: the v4 sigh DID also push haze 0.05→0.11 — the doc used to claim otherwise.)*
 
-Constants: `HEARTBEAT_MS 4000` · sigh `6000` · idle threshold `8000` · energy decay `0.97`/frame · ambient floor `4s` · Zen ceiling `600ms` (forbidden band 600ms–4s).
+Constants: `HEARTBEAT_MS 4000` · breath cycle `10400` (BREATH_PARAMS) · idle by channel (scroll 1.5s / pointer 3.5s) · energy decay `0.97`/frame dt-normalized · ambient floor `4s` · Zen ceiling `600ms` (forbidden band 600ms–4s, exceptions §7.3).
 
 ---
 
@@ -101,4 +101,28 @@ Each behavior = one file, flag-gated in `config.js`, `initX()` registers a ticke
 | Temporal | `heartbeat.js`, `spine.js`, `idle-sigh.js`, `field-conditions.css` | dedicated `--fc-dot-sigh`/`--fc-spine-sigh` slow-breath channel (perceptible rest, no fog) |
 | Assets | `public/og-image.png`, `layout.mjs` | 1200×630 social card + og/twitter meta |
 
-**Invariants:** harness 22/22 · CLS≈0 · JS<90KB gz · zero third-party · AA · field ≥90% · red ≤1.5% · reduced-motion honest · no new deps · all changes flag-reversible.
+**Invariants:** harness ALL GREEN · CLS≈0 · JS<90KB gz · AA · field ≥90% · red ≤1.5% · reduced-motion honest · no new npm deps · all changes flag-reversible. *(Third-party: exactamente UNA sancionada — ver §7.4.)*
+
+---
+
+## 7 · LEYES V5 — excepciones sancionadas y leyes nuevas (CONTRACTS §f, vigentes)
+
+> Estas derogan/extienden lo anterior donde choquen. El dueño aprobó la dirección "claramente
+> perceptible aunque sutil": los presupuestos de *presencia* suben; los de *corrección* no se tocan.
+
+1. **Cap del tinte:** "tints ≤5%" queda derogada → `--fc-tint-cap: 6.5%` en reposo; clamp duro 8% en boost.
+2. **El sol excede el viejo cap:** canal propio por ancla, op 0.10–0.26 subtle / ≤0.40 boost / cap final CSS 0.46 (con respiración+rest). Sancionado por el dueño (HANDOFF §8.0).
+3. **Banda prohibida 600ms–4s:** (a) la FÍSICA del field está exenta (decay de energía, relajación del tap 1.2–1.8s, lerp de nieve 3s) — es simulación, no animación UI; (b) las entradas de clima tienen SUELO 4s en reposo; cadencias <4s SOLO bajo `html.fc-boost` como demo/QA; (c) excepciones aprobadas y tokenizadas: `--dur-ripple:1300ms`, ocean 0.7–0.89s, hero 700ms, `--dur-route` 900ms.
+4. **Open-Meteo = la única third-party:** un GET a `api.open-meteo.com` (allowlist en harness/probe), cache 30min, sin key, sin permiso de geolocalización (tabla tz embebida; Geocoding API PROHIBIDA), fallo → Capa 0 sintética. Atribución CC-BY en el colofón. `flags.weather:false` → cero red, byte-idéntico.
+5. **Rojo BINARIO (la ley del encargo):** `--signal` a saturación plena o ausente — jamás fill translúcido. Única excepción: **bounce-light ≤6% alpha** (bleed del spine 4%/6% boost, halo del CTA 5%, halo del sprite 6%×120ms). El boost JAMÁS multiplica el rojo: `RED_LOCKED = [nib, spine, knot, stitch]`.
+6. **Excepción transitoria del sigh del spine:** el canal breath multiplica op (+0.20→+0.28) y width (+1px→+1.4px) del trazo rojo SOLO durante la cresta (≤6s de un ciclo de 10.4s) bajo boost. Transitoria, no aumenta área en reposo; opt-out de 1 línea (quitar `* var(--fc-int-breath,1)` en fc-ocean.css); el harness mide el rojo con `?fc-breath=0`.
+7. **Hex fuera de tokens.css:** las ANCHORS de heliostat (zen/hor por hora) y los pasteles del iris son DATA curada de fenómeno (como routes.json), documentada en el header de cada fichero.
+8. **Cupo de oro estático:** máx UNA traza dorada estática por viewport blanco (el seam `--postvoid`). Ticks de hover y glint son TRANSITORIOS (legales); dentro del void el cupo no aplica (ahí se concentra la luz).
+9. **Una traza animada por viewport blanco (cielo claro):** el iris ES esa traza en clear 10–16h; nunca coexiste con overcast/fog; arriba un solo protagonista (iris XOR luna XOR sprite).
+10. **`::after` de `.wn-void` RESERVADO** al marco byōbu; el flash de tormenta usa `.fc-voidflash` (hijo dedicado); el grain del void sigue en `::before`.
+11. **Frontera de sombras:** banda void = urushi (fc-earth); cards = heliostáticas (fc-sky). Nadie escribe la sombra del otro.
+12. **Ley de estratos AMPLIADA (§5):** *el CLIMA es un estado del CIELO que los otros planos LEEN como leen energy — OCEAN sí (es agua: la lluvia aviva sus anillos), EARTH jamás (es memoria: la patina NO madura con el clima).* Igual con `rest`: la memoria no duerme ni despierta.
+13. **Presupuesto de adornos del hilo:** nib + puntada + 2 nudos + respiración = LÍMITE. Nada más se cuelga del spine.
+14. **Jerarquía de entrada del void:** negro (cut 70ms) → crack (280ms) → marco oro (+280ms/600ms) → polvo (7s, tiers). Consistente en TODAS las bandas; en la 404 el cut se retrasa 1.2s (la ruta deshilachada dibuja primero).
+
+**El registro INTENSITY** (config.js) es la única fuente de amplitudes: subtle = identidad; boost = el modo de calibración del dueño (botón FIELD, `?wn=boost`, persistido en `wn.intensity`). El boost amplifica luz, aire y memoria — **jamás la sangre**.

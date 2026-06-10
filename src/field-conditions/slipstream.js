@@ -1,8 +1,8 @@
 /**
  * WHITE NOON — Slipstream (Stage 5, §5.4)
- * Scroll velocity & direction. Past |v|>1.2 DOWNWARD (running back up gets the
+ * Scroll velocity & direction. Past |v|>1.0 DOWNWARD (running back up gets the
  * settled state): ① the hero/section sky haze brightens (--fc-haze-opacity
- * 0.05→0.11 max) and ② the display heading currently in view widens
+ * 0.05→0.11 base, ×intensity.haze capped 0.16) and ② the in-view heading widens
  * (--fc-slip-scale 1→1.01 via scaleX — letter-spacing reflows, scaleX is free).
  * The haze also parallaxes at ~0.6× foreground rate. Rises with velocity, decays
  * over ~300ms (smoke lingering). Shared rAF; two var writes per active frame.

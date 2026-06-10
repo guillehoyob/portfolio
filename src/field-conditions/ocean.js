@@ -1,9 +1,10 @@
 /**
  * WHITE NOON — Ocean (Stage 5, new) — the field responds, like a still noon sea
- * A click anywhere drops ONE faint --sky ripple that expands and vanishes (<600ms).
+ * A click anywhere drops ONE faint --sky ripple that expands and vanishes (0.7s calm,
+ * ≈0.89s energetic — a sanctioned exception to the 600ms–4s band, CONTRACTS §f.3).
  * SKY, never red — red is the heartbeat's voice; sky is the ocean's. The field
  * answers your touch in its own cool light. Above content (visible everywhere) but
- * pointer-events:none, faint, transient, self-removing. Debounced + max 2 concurrent
+ * pointer-events:none, faint, transient, self-removing. Debounced + max 3 concurrent
  * + never on interactive targets (those own their own feedback). Pure CSS one-shots
  * (no rAF). Reduced motion → no-op. Flag off → never inits (Stage-0 exact).
  */

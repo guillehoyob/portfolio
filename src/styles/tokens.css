@@ -151,7 +151,7 @@
   --dur-route: 900ms; /* the ONLY sanctioned >600ms UI motion */
   /* FORBIDDEN MIDDLE BAND: nothing between 600ms and 4s. */
   --dur-ambient-min: 4s;  /* floor for any ambient/looping cycle */
-  --dur-breathe:     6s;  /* Heartbeat dot cycle */
+  --dur-breathe:     10.4s; /* the field's resonance-breath cycle (BREATH_PARAMS.cycleMs) */
 
   /* ============ MOTION — stagger ============ */
   --stagger-sib: 55ms;   --breath-pre: 144ms;  /* Fibonacci: a wider inhale, a φ-spaced cascade */

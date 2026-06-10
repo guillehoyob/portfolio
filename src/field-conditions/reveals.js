@@ -1,7 +1,7 @@
 /**
  * WHITE NOON — Forward-landing reveals (Stage 1)
  * Content rises 24px and fades in as it enters, 420ms on --ease-run with a
- * 60ms sibling stagger after a 120ms held breath (§2.4 / §3 reveal grammar).
+ * 55ms per-batch stagger after a 144ms held breath (Fibonacci — §2.4 / §3).
  * Flash-free: only elements BELOW the fold at load are armed (an above-fold
  * element is already seen, so it is never hidden). Reduced motion → no-op
  * (everything stays visible — the Stage-0 honest state). Pure CSS transition

@@ -21,6 +21,9 @@ main { flex: 1 0 auto; }
    left edge and the right ragged edge are identical section-to-section and the
    dead gutter reads as one deliberate ma margin (not random per-section widths) */
 .lane { max-width: var(--lane-max); }
+/* AST-3 (DC-05): a lane that keeps the ONE left edge but floods right past 72ch —
+   the /work grid hangs off the axis at full card width. Reversible: drop the class. */
+.lane--flood { max-width: none; }
 .col-narrow { max-width: 60ch; }
 
 .section { padding-top: var(--space-section); padding-bottom: var(--space-section); }
@@ -57,6 +60,17 @@ main { flex: 1 0 auto; }
   font-size: var(--text-h2);
   line-height: var(--lh-h2);
   letter-spacing: var(--ls-h2);
+  color: var(--ink);
+  margin: 0 0 var(--space-8);
+}
+/* AST-3 (DC-12): the index-page H1 step — between the hero H1 (6.5rem) and .h2
+   (2rem) so /work and /method read as PAGES, not sections. The 404 keeps .h2. */
+.h1-sub {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  font-size: var(--text-h1-sub);
+  line-height: 1.06;
+  letter-spacing: -0.012em;
   color: var(--ink);
   margin: 0 0 var(--space-8);
 }
@@ -323,6 +337,9 @@ main { flex: 1 0 auto; }
   border-radius: var(--radius-tag); display: inline-block;
 }
 .placeholder--inline { padding: 1px 6px; }
+/* AST-4 (DC-10): the QUIET placeholder — identity-badge rows only; the full chip
+   lives in the title attr + verbatim in the page body (honesty hierarchized) */
+.ph-quiet { border-bottom: 1px dotted var(--ink-ghost); cursor: help; text-transform: lowercase; }
 
 /* artifacts — text links with access labels (§4.3) */
 .artifacts { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-4); }

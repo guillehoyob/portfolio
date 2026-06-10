@@ -11,7 +11,15 @@ html {
   scroll-behavior: auto;
   /* fallback font metrics paired per family so swap causes ~zero CLS */
   -webkit-text-size-adjust: 100%;
+  /* AST-5 — REGLA: NUNCA quitar este reset sin el :active sustituto
+     (components.css "mesa mínima") — the press must always be felt. */
+  -webkit-tap-highlight-color: transparent;
 }
+
+/* ---- AST-5: selection in the brand's own ink (signal-deep 6.09:1 AA; plain
+   --signal would fail) — inverted to washi-on-void inside the band ---- */
+::selection { background: var(--signal-deep); color: var(--washi); text-shadow: none; }
+.wn-void ::selection { background: var(--washi); color: var(--void); }
 
 body {
   margin: 0;
@@ -72,11 +80,15 @@ img, svg { display: block; max-width: 100%; }
 button { font: inherit; color: inherit; }
 a { color: inherit; }
 
-/* ---- the one focus-visible treatment (§6.2): red ring + decorative pulse halo ---- */
+/* ---- the one focus-visible treatment (§6.2): red ring + decorative pulse halo ----
+   AST-5 focus-settle: the ring lands from 6px out and settles to 2px — same end
+   state as ever; collapses to 1ms under reduced motion via --dur-240. */
+@keyframes wn-focus-settle { from { outline-offset: 6px; } to { outline-offset: 2px; } }
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   box-shadow: var(--halo-focus);
+  animation: wn-focus-settle var(--dur-240) var(--ease-run) backwards;
 }
 :focus:not(:focus-visible) { outline: none; }
 

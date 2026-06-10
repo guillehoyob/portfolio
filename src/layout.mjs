@@ -8,6 +8,7 @@
  */
 import { readFileSync } from 'node:fs';
 import fcConfig from './field-conditions/config.js';
+import { routeViz, routeHeader, nfRoute } from './data/route-viz.mjs';
 
 /* the hero route-line pool (§5.2) — index 0 ships as the static default */
 const routes = JSON.parse(readFileSync(new URL('./field-conditions/routes.json', import.meta.url), 'utf8'));
@@ -28,6 +29,11 @@ const escAttr = (s = '') => esc(s).replace(/"/g, '&quot;');
 /* escape text, then surface every [PLACEHOLDER …] as a visible honest chip */
 export const ph = (s = '') =>
   esc(s).replace(/\[PLACEHOLDER[^\]]*\]/g, (m) => `<span class="placeholder placeholder--inline">${m}</span>`);
+/* AST-4 (DC-10): the QUIET placeholder — identity-badge rows only. The full chip
+   stays verbatim in the title attribute (hover/tooltip) and in the page body where
+   it appears: honesty is HIERARCHIZED here, never hidden (HANDOFF §1 law intact). */
+export const phQuiet = (s = '') =>
+  /\[PLACEHOLDER/.test(s) ? `<span class="ph-quiet" title="${escAttr(s)}">pendiente</span>` : esc(s);
 
 /* ---- the pre-paint head snippet (grows per Field Conditions stage) ----
    Sets has-js + fc-motion (motion-allowed master gate) BEFORE first paint so
@@ -147,6 +153,7 @@ ${prePaint()}
 <body>
 <div class="fc-tint" aria-hidden="true"></div>
 <div class="fc-sun" aria-hidden="true"></div>
+<div class="fc-bleed" aria-hidden="true"></div>
 <svg class="grain" aria-hidden="true" focusable="false" width="100%" height="100%"><filter id="wn-grain"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#wn-grain)"/></svg>
 <a class="skip" href="#main">Skip to content</a>
 ${nav(active)}
@@ -183,27 +190,37 @@ export const heroRoute = () =>
 export const chevron = () =>
   `<a class="hero__chevron" href="#proof" aria-label="Scroll to content"><svg class="wn-chevron" viewBox="0 0 16 16" width="28" height="28" aria-hidden="true"><path d="M 2 5 L 8 11 L 14 5" fill="none" stroke="var(--signal)" stroke-width="2" stroke-linecap="square"/></svg></a>`;
 
-/* featured work card (§3.5 / §3.6) */
+/* featured work card (§3.5 / §3.6) — viz is the project's OWN route geometry
+   (AST-1a, inline SVG via route-viz.mjs), born drawn, never dimmed: the material
+   grammar (ink/gold/dashed) already says what shipped and what is still road. */
 export function card(p) {
   const href = p.href || `/work/${p.slug}`;
   const planned = p.status === 'lab' || p.status === 'planned';
-  const dim = planned || (p.viz && p.viz.includes('placeholder'));
   return `<a class="wn-card${planned ? ' wn-card--planned' : ''}" href="${href}" data-status="${p.status}">
   <div class="wn-card__head">${statusBadge(p.status)}</div>
   <div class="wn-card__tags">${p.tags.slice(0, 3).map((t) => `<span class="wn-tag">${esc(t)}</span>`).join('')}</div>
   <div class="wn-card__body"><span class="wn-card__title">${esc(p.title)}</span><p class="wn-card__tagline">${ph(p.tagline)}</p></div>
-  <img class="wn-card__viz" src="${p.viz}" alt="" aria-hidden="true"${dim ? ' style="opacity:.7"' : ''} width="320" height="180" loading="lazy" decoding="async">
+  ${routeViz(p.vizKey || p.slug)}
   <div class="wn-card__foot"><span></span><span class="wn-card__arrow" aria-hidden="true">→</span></div>
 </a>`;
 }
 
-/* planned-project card (§3.6) — link variant (/work) or static hub variant (/work/personal) */
+/* planned-project card (§3.6) — link variant COLLAPSED (AST-3 / DC-06): badge +
+   title + clamped HYPOTHESIS + arrow only; the full 4-row detail lives at depth in
+   the static hub variant (/work/personal), which stays intact. No viz placeholder:
+   a promise gets no picture. */
 export function plannedCard(p, { static: isStatic = false } = {}) {
-  const head = isStatic
-    ? `<div class="wn-card wn-card--planned wn-card--static" id="${p.slug}" data-status="planned">`
-    : `<a class="wn-card wn-card--planned" href="/work/personal#${p.slug}" data-status="planned">`;
-  const tail = isStatic ? `</div>` : `</a>`;
-  return `${head}
+  if (!isStatic) {
+    return `<a class="wn-card wn-card--planned" href="/work/personal#${p.slug}" data-status="planned">
+  <div class="wn-card__head">${statusBadge('planned')}</div>
+  <div class="wn-card__body">
+    <span class="wn-card__title">${esc(p.title)}</span>
+    <p class="wn-card__microrow wn-card__hyp"><b>HYPOTHESIS:</b> ${ph(p.hypothesis)}</p>
+  </div>
+  <div class="wn-card__foot"><span></span><span class="wn-card__arrow" aria-hidden="true">→</span></div>
+</a>`;
+  }
+  return `<div class="wn-card wn-card--planned wn-card--static" id="${p.slug}" data-status="planned">
   <div class="wn-card__head">${statusBadge('planned')}</div>
   <div class="wn-card__body">
     <span class="wn-card__title">${esc(p.title)}</span>
@@ -212,9 +229,7 @@ export function plannedCard(p, { static: isStatic = false } = {}) {
     <p class="wn-card__microrow"><b>FIRST MILESTONE:</b> ${ph(p.milestone)}</p>
     <p class="wn-card__microrow"><b>PLANNED START:</b> ${ph(p.plannedStart)}</p>
   </div>
-  ${isStatic ? '' : `<img class="wn-card__viz" src="/motifs/route-placeholder-dashed.svg" alt="" aria-hidden="true" style="opacity:.7" width="320" height="180" loading="lazy" decoding="async">`}
-  ${isStatic ? '' : `<div class="wn-card__foot"><span></span><span class="wn-card__arrow" aria-hidden="true">→</span></div>`}
-${tail}`;
+</div>`;
 }
 
 export const principleBlock = (p) =>
@@ -230,13 +245,34 @@ export const principleBlock = (p) =>
 export const breathLine = (lines) =>
   `<p class="wn-breath">${esc(lines[0])} ${esc(lines[1])}</p>`;
 
-/* the one void band per page (§3.14). bodyHtml is raw HTML. */
-export const voidBand = ({ word, bodyHtml, crack = true }) =>
-  `<section class="wn-void bleed" aria-label="${escAttr(word)}">
-  <h2 class="wn-void__word">${esc(word)}</h2>
-  ${crack ? '<hr class="wn-void__crack" role="presentation">' : ''}
+/* the one void band per page (§3.14). bodyHtml is raw HTML.
+   VOID-5a: --void-fit caps the word so it ALWAYS fits the band at one line —
+   computed 100% at build. BLINDAJE: a flat glyph count (spec divisor 0.50)
+   under-caps wide words — GOVERNED/PLATFORM measure 0.607em/glyph in SG 700
+   UPPER and overflow at the 288px clamp — so the count is WEIGHTED with the
+   font's real advances (measured once, Chromium @100px) + the −0.02em tracking
+   + 2% air; the harness law (scrollWidth ≤ clientWidth on all 9 routes,
+   CONTRACTS §e.7) prevails. SHIPPED/META/METHOD/404 stay above the clamp →
+   rendered byte-identical. Unknown glyph falls back to a wide 0.66em.
+   VOID-4: the maki-e dust span rides just above the crack (gold settles on the
+   mend, return visits only — CSS in fc-earth). mini → the 404's quieter band. */
+const SG_ADV = {
+  A: 0.634, B: 0.664, C: 0.644, D: 0.6462, E: 0.554, F: 0.534, G: 0.662, H: 0.656,
+  I: 0.264, J: 0.5776, K: 0.626, L: 0.542, M: 0.882, N: 0.67, O: 0.676, P: 0.604,
+  Q: 0.676, R: 0.632, S: 0.606, T: 0.588, U: 0.672, V: 0.618, W: 0.898, X: 0.644,
+  Y: 0.624, Z: 0.576, 0: 0.648, 1: 0.452, 2: 0.594, 3: 0.608, 4: 0.636, 5: 0.6,
+  6: 0.618, 7: 0.554, 8: 0.6, 9: 0.618,
+};
+const voidWordEm = (w) =>
+  [...w.toUpperCase()].reduce((s, ch) => s + (SG_ADV[ch] ?? 0.66), 0) - 0.02 * (w.length - 1);
+export const voidBand = ({ word, bodyHtml, crack = true, mini = false }) => {
+  const fit = (1 / (voidWordEm(word) * 1.02)).toFixed(4);
+  return `<section class="wn-void${mini ? ' wn-void--mini' : ''} bleed" aria-label="${escAttr(word)}">
+  <h2 class="wn-void__word" style="--void-fit: calc((100vw - 2 * var(--gutter-page)) * ${fit})">${esc(word)}</h2>
+  ${crack ? '<hr class="wn-void__crack" role="presentation">\n  <span class="wn-void__dust" aria-hidden="true"></span>' : ''}
   <div class="wn-void__body">${bodyHtml}</div>
 </section>`;
+};
 
 /* the claude-collab void band (§3.15) */
 export const collabVoid = (project) =>
@@ -277,12 +313,12 @@ export const relatedCards = (slugs, content) =>
 export function projectPage(project, content) {
   return `<div class="shell stage"><div class="lane">
   <section class="identity">
-    <img class="identity__route" src="${project.route}" alt="" aria-hidden="true" width="720" height="240">
+    ${routeHeader(project.slug)}
     <h1 class="identity__title">${esc(project.title)}</h1>
     <p class="identity__tagline">${esc(project.tagline)}</p>
     <div class="identity__badges">
       ${statusBadge(project.status, project.statusLabel)}
-      <span class="metalabel">LAST UPDATED: ${ph(project.updated)}</span>
+      <span class="metalabel">LAST UPDATED: ${phQuiet(project.updated)}</span>
       <span class="metalabel">ROLE: ${esc(project.role)}</span>
     </div>
   </section>
@@ -300,7 +336,7 @@ export function projectPage(project, content) {
 ${collabVoid(project)}
 
 <div class="shell stage"><div class="lane">
-  <div class="projbody">
+  <div class="projbody wn-seam wn-seam--postvoid">
     <h3>Stack${project.architecture ? ' &amp; Architecture' : ''}</h3>
     ${monolist(project.stack)}
     ${project.architecture ? `<p style="margin-top:var(--space-6)">${esc(project.architecture)}</p>` : ''}
@@ -317,15 +353,20 @@ ${collabVoid(project)}
 </div></div>`;
 }
 
-/* ---- 404 ---- */
+/* ---- 404 (VOID-7 + HILO-6) ----
+   The frayed route is THE one red and THE one movement of the page (it draws,
+   reaches nowhere, unravels — "That route was never drawn", now literal). The
+   mini void band enters crack-less, its cut delayed 1.2s so the route finishes
+   first (entry hierarchy §f.14). The H1 keeps .h2 — modestia intencional. */
 export const notFoundMain = () => `<div class="shell stage"><div class="lane">
-  <section class="section">
+  <section class="section section--tight">
     <p class="eyebrow">404</p>
     <h1 class="h2">Not found.</h1>
-    <p class="prose prose--ghost">That route was never drawn. Head back to the field.</p>
-    <p style="margin-top:var(--space-8)"><a class="wn-btn wn-btn--secondary" href="/">Back to home →</a></p>
+    ${nfRoute()}
   </section>
-</div></div>`;
+</div></div>
+
+${voidBand({ word: '404', mini: true, crack: false, bodyHtml: '<p>That route was never drawn. <a class="wn-signal-link" href="/">Back to the field →</a></p>' })}`;
 
 /* ---- the print-ready CV page (/cv) — own shell, no site nav/footer (§ content/cv) ----
    Quiet, utility document; placeholders preserved as chips; @media print = clean A4. */
@@ -342,7 +383,7 @@ export function renderCvPage(content) {
   .cv-contact { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: var(--ink-ghost); margin: var(--space-4) 0 0; }
   .cv-contact a { color: var(--ink-ghost); text-decoration: none; }
   .cv-contact a:hover { color: var(--ink); }
-  .cv-rule { height: 1px; background: var(--hairline); border: none; margin: var(--space-12) 0; }
+  .cv-rule { height: 1px; background: var(--signal); border: none; margin: var(--space-12) 0; } /* AST-4 (DC-14): the CV's ONE drop of red — full saturation, never amplified */
   .cv-section { margin-top: var(--space-12); }
   .cv-h { font-family: var(--font-display); font-weight: 500; font-size: var(--text-label); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--ink); margin: 0 0 var(--space-6); padding-bottom: var(--space-3); border-bottom: 1px solid var(--hairline); }
   .cv-p { font-size: var(--text-body); line-height: var(--lh-body); color: var(--ink); margin: 0 0 var(--space-4); max-width: 66ch; }
@@ -363,6 +404,7 @@ export function renderCvPage(content) {
     .sheet { border: none; margin: 0; max-width: none; padding: 14mm 16mm; }
     @page { margin: 0; }
     .cv-section, .cv-job { break-inside: avoid; }
+    .cv-rule { -webkit-print-color-adjust: exact; print-color-adjust: exact; } /* the red survives print/PDF */
   }`;
   return `<!-- GENERATED by scripts/build-pages.mjs — edit src/layout.mjs renderCvPage, not this file. -->
 <!DOCTYPE html>

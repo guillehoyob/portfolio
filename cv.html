@@ -324,7 +324,15 @@ html {
   scroll-behavior: auto;
   /* fallback font metrics paired per family so swap causes ~zero CLS */
   -webkit-text-size-adjust: 100%;
+  /* AST-5 — REGLA: NUNCA quitar este reset sin el :active sustituto
+     (components.css "mesa mínima") — the press must always be felt. */
+  -webkit-tap-highlight-color: transparent;
 }
+
+/* ---- AST-5: selection in the brand's own ink (signal-deep 6.09:1 AA; plain
+   --signal would fail) — inverted to washi-on-void inside the band ---- */
+::selection { background: var(--signal-deep); color: var(--washi); text-shadow: none; }
+.wn-void ::selection { background: var(--washi); color: var(--void); }
 
 body {
   margin: 0;
@@ -385,11 +393,15 @@ img, svg { display: block; max-width: 100%; }
 button { font: inherit; color: inherit; }
 a { color: inherit; }
 
-/* ---- the one focus-visible treatment (§6.2): red ring + decorative pulse halo ---- */
+/* ---- the one focus-visible treatment (§6.2): red ring + decorative pulse halo ----
+   AST-5 focus-settle: the ring lands from 6px out and settles to 2px — same end
+   state as ever; collapses to 1ms under reduced motion via --dur-240. */
+@keyframes wn-focus-settle { from { outline-offset: 6px; } to { outline-offset: 2px; } }
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   box-shadow: var(--halo-focus);
+  animation: wn-focus-settle var(--dur-240) var(--ease-run) backwards;
 }
 :focus:not(:focus-visible) { outline: none; }
 
@@ -530,6 +542,15 @@ a { color: inherit; }
 }
 .wn-btn--secondary:hover::after,
 .wn-btn--secondary:focus-visible::after { transform: scaleX(1); }
+/* VOID-2(b) — the CTA's red bounces a faint halo onto the field around it
+   (bounce-light exception, 5% ≤ the 6% cap — CONTRACTS §f.5). Boost grows the
+   AREA (inset −1.6em → −2.4em), never the alpha: the red itself never scales. */
+.wn-btn--primary { position: relative; isolation: isolate; }
+.wn-btn--primary::before {
+  content: ""; position: absolute; inset: -1.6em; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--signal) 5%, transparent), transparent);
+}
+html.fc-boost .wn-btn--primary::before { inset: -2.4em; }
 /* Quiet tertiary — mono, for the "Download CV" utility affordance */
 .wn-btn--quiet {
   color: var(--ink-ghost);
@@ -684,7 +705,31 @@ a { color: inherit; }
   color: var(--ink-ghost);
   margin: 0;
 }
-.wn-card__viz { display: block; width: 100%; height: auto; background: var(--field-2); }
+/* ---- route-viz material grammar (AST-1a / AST-2): recorrido=tinta ·
+   entregado=oro · futuro=hairline dashed · rojo=SOLO prospectivo (hover-ignite
+   on cards; the two in-progress headers' headdot). Rest red of the grid: CERO. */
+.wn-card__viz { display: block; width: 100%; height: auto; aspect-ratio: 320 / 180; }
+.route-main { stroke: var(--ink); fill: none; stroke-linecap: square; stroke-linejoin: miter; }
+.route-gold { stroke: var(--gold-deep); fill: none; stroke-linecap: square; stroke-linejoin: miter; }
+.route-ahead { stroke: var(--hairline); fill: none; stroke-dasharray: 4 6; stroke-linecap: square; }
+.route-knot { fill: var(--gold-deep); }
+.route-gate { stroke: var(--ink); fill: none; }
+.route-head { fill: var(--ink); }
+.route-headdot { fill: var(--signal); } /* the ONE red head — in-progress headers only */
+.wn-card__viz .route-main, .wn-card__viz .route-gate, .wn-card__viz .route-ahead { stroke-width: 1.5; }
+.wn-card__viz .route-gold { stroke-width: 2.5; }
+.identity__route .route-main { stroke-width: 2; }
+.identity__route .route-gold { stroke-width: 3; }
+.identity__route .route-ahead { stroke-width: 2; }
+/* hover-ignite: the head turns red ONLY by deliberate act (like ::selection) */
+.wn-card .route-head { transition: fill var(--dur-180) var(--ease-react), stroke var(--dur-180) var(--ease-react); }
+.wn-card:hover .route-head, .wn-card:focus-visible .route-head { fill: var(--signal); stroke: var(--signal); }
+/* boost amplifies ink/gold/air — the red head keeps its size and rest state */
+html.fc-boost .wn-card__viz .route-main { stroke-width: 2px; }
+html.fc-boost .wn-card__viz .route-gold { stroke-width: 3px; }
+html.fc-boost .wn-card__viz .route-knot { r: 3.5px; }
+html.fc-boost .identity__route .route-main { stroke-width: 2.5px; }
+html.fc-boost .identity__route .route-gold { stroke-width: 3.5px; }
 .wn-card__foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
 /* the arrow answers the hover (audit DC-13) with the card's own asymmetric physics:
    arrives fast (ease-react), settles slow (ease-lift) — zero red cost */
@@ -699,6 +744,42 @@ a { color: inherit; }
 /* planned variant — muted, no signal underline (nothing to visit at depth yet) */
 .wn-card--planned .wn-card__body { opacity: 0.88; }
 .wn-card--planned .wn-card__title::after { display: none; }
+/* AST-3 (DC-06): the /work link variant clamps its single HYPOTHESIS row to 3
+   lines — a planned card reads as a stub, the detail lives at depth */
+.wn-card--planned .wn-card__hyp {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+  line-clamp: 3; overflow: hidden;
+}
+/* VOID-6 — gold corner ticks on hover/focus of DELIVERED cards only: not
+   visited (the moss owns those), not planned/static (a placeholder is not
+   gilded). TRANSITORY → legal under the F.3 gold quota (CONTRACTS §f.8).
+   Enter react (DC-15), exit lift. Boost: brighter/longer ticks, corners ONLY. */
+a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned)::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background-image:
+    linear-gradient(var(--gold-deep), var(--gold-deep)), linear-gradient(var(--gold-deep), var(--gold-deep)),
+    linear-gradient(var(--gold-deep), var(--gold-deep)), linear-gradient(var(--gold-deep), var(--gold-deep)),
+    linear-gradient(var(--gold-deep), var(--gold-deep)), linear-gradient(var(--gold-deep), var(--gold-deep)),
+    linear-gradient(var(--gold-deep), var(--gold-deep)), linear-gradient(var(--gold-deep), var(--gold-deep));
+  background-repeat: no-repeat;
+  background-position: top left, top left, top right, top right,
+    bottom left, bottom left, bottom right, bottom right;
+  background-size: 0 1px, 1px 0, 0 1px, 1px 0, 0 1px, 1px 0, 0 1px, 1px 0;
+  transition: background-size var(--dur-300) var(--ease-lift), opacity var(--dur-300) var(--ease-lift);
+}
+a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned):hover::after,
+a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned):focus-visible::after {
+  opacity: 0.55;
+  background-size: var(--card-tick, 12px) 1px, 1px var(--card-tick, 12px),
+    var(--card-tick, 12px) 1px, 1px var(--card-tick, 12px),
+    var(--card-tick, 12px) 1px, 1px var(--card-tick, 12px),
+    var(--card-tick, 12px) 1px, 1px var(--card-tick, 12px);
+  transition: background-size var(--dur-240) var(--ease-react), opacity var(--dur-90) var(--ease-react);
+}
+html.fc-boost a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned):hover::after,
+html.fc-boost a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned):focus-visible::after {
+  opacity: 0.85; --card-tick: 18px;
+}
 .wn-card__microrow {
   font-family: var(--font-mono);
   font-size: var(--text-micro);
@@ -776,13 +857,17 @@ a { color: inherit; }
 .wn-void__word {
   font-family: var(--font-display);
   font-weight: var(--weight-display);
-  font-size: var(--text-void-word);
+  /* VOID-5a: --void-fit (build-computed from glyph count) caps long words to the
+     band's inner width; short words keep the shipped clamp byte-intact */
+  font-size: min(var(--text-void-word), var(--void-fit, var(--text-void-word)));
   line-height: var(--lh-void);
   letter-spacing: var(--ls-void);
   text-transform: uppercase;
   color: var(--washi);
   margin: 0;
 }
+/* VOID-7 — the 404's quieter band (no crack, smaller breath) */
+.wn-void--mini { min-height: 34vh; padding-top: var(--space-16); padding-bottom: var(--space-16); }
 /* overflow:visible defeats the UA's `hr { overflow: hidden }` — without it the kintsugi
    gold seams (::before/::after at top:±5px in field-conditions.css) are clipped to the
    1px box and the mend can never paint (audit VIS-01: Δ8 → Δ153 with this one line). */
@@ -800,6 +885,13 @@ a { color: inherit; }
 /* ============ HAIRLINE RULE (§3.21) + SCROLL CHEVRON (§3.16) ============ */
 .wn-hairline { height: 1px; background: var(--hairline); border: none; width: 100%; }
 .wn-chevron { display: inline-flex; width: 16px; height: 16px; opacity: 0.8; }
+
+/* ============ AST-5 — mesa mínima de micro-interacciones (cero JS) ============ */
+/* :active — the press is FELT (1px settle). REGLA: never remove the
+   tap-highlight (base.css) without keeping these :active substitutes. */
+.filter:active, .wn-btn--quiet:active, .contact__copy:active, .nav__mark:active,
+.wn-signal-link:active { transform: translateY(1px); transition-duration: var(--dur-90); }
+.wn-card--half:active { transform: scale(0.985); }
 
 /**
  * WHITE NOON — page layout (§3 chrome + §4 page/section IA)
@@ -824,6 +916,9 @@ main { flex: 1 0 auto; }
    left edge and the right ragged edge are identical section-to-section and the
    dead gutter reads as one deliberate ma margin (not random per-section widths) */
 .lane { max-width: var(--lane-max); }
+/* AST-3 (DC-05): a lane that keeps the ONE left edge but floods right past 72ch —
+   the /work grid hangs off the axis at full card width. Reversible: drop the class. */
+.lane--flood { max-width: none; }
 .col-narrow { max-width: 60ch; }
 
 .section { padding-top: var(--space-section); padding-bottom: var(--space-section); }
@@ -860,6 +955,17 @@ main { flex: 1 0 auto; }
   font-size: var(--text-h2);
   line-height: var(--lh-h2);
   letter-spacing: var(--ls-h2);
+  color: var(--ink);
+  margin: 0 0 var(--space-8);
+}
+/* AST-3 (DC-12): the index-page H1 step — between the hero H1 (6.5rem) and .h2
+   (2rem) so /work and /method read as PAGES, not sections. The 404 keeps .h2. */
+.h1-sub {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display);
+  font-size: var(--text-h1-sub);
+  line-height: 1.06;
+  letter-spacing: -0.012em;
   color: var(--ink);
   margin: 0 0 var(--space-8);
 }
@@ -1126,6 +1232,9 @@ main { flex: 1 0 auto; }
   border-radius: var(--radius-tag); display: inline-block;
 }
 .placeholder--inline { padding: 1px 6px; }
+/* AST-4 (DC-10): the QUIET placeholder — identity-badge rows only; the full chip
+   lives in the title attr + verbatim in the page body (honesty hierarchized) */
+.ph-quiet { border-bottom: 1px dotted var(--ink-ghost); cursor: help; text-transform: lowercase; }
 
 /* artifacts — text links with access labels (§4.3) */
 .artifacts { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-4); }
@@ -1643,6 +1752,15 @@ html.fc-boost .fc-clouds, html.fc-boost .fc-rain, html.fc-boost .fc-fog, html.fc
  * cut/crack, kintsugi tiers, moss/visited tiers, warm-lens, and the seams.
  * Everything new for the void traces (byōbu frame, urushi shadow, maki-e dust,
  * bleed, nf-route, seams 2.0, identity-route draw-in) lands HERE and only here.
+ *
+ * LEY DE JERARQUÍA DE ENTRADA del void (VOID-3 / CONTRACTS §f.14), igual en
+ * TODAS las bandas:  negro (cut 70ms) → crack rojo (280ms) → marco oro
+ * (+280ms / 600ms) → polvo maki-e (7s, por tiers). En la 404 el cut se
+ * retrasa 1.2s (la ruta deshilachada dibuja primero).
+ * LEY DE FRONTERA DE SOMBRAS (§f.11): la banda void lleva URUSHI (aquí, W3);
+ * las cards llevan la sombra heliostática (fc-sky, W1). Nadie pisa al otro.
+ * `::after` de .wn-void RESERVADO al marco byōbu (§f.10) — el flash de
+ * tormenta usa el hijo dedicado .fc-voidflash.
  */
 
 /* ===== Stage 3 — Threshold Cut (§5.8): the void detonates, no fade/stagger ===== */
@@ -1719,32 +1837,173 @@ html.fc-aged .wn-card--visited::after {
 .proof__cell.fc-lit, .principle.fc-lit, .phase.fc-lit, .about__photo.fc-lit, .stacktable.fc-lit, .toolchain.fc-lit, .identity.fc-lit, .related-cards.fc-lit {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--sun) 18%, transparent), 0 8px 30px -12px color-mix(in srgb, var(--sun) 45%, transparent);
 }
-.wn-void.fc-lit { box-shadow: inset 0 0 180px -60px color-mix(in srgb, var(--sun) 30%, transparent); }
+/* warm-lens on the band must ADD to the urushi shadow below, never replace it */
+.wn-void.fc-lit { box-shadow: inset 0 0 180px -60px color-mix(in srgb, var(--sun) 30%, transparent),
+  0 26px 40px -28px color-mix(in srgb, var(--void) 45%, transparent),
+  0 -20px 36px -28px color-mix(in srgb, var(--void) 30%, transparent); }
 @media (prefers-reduced-motion: reduce) { .fc-lit { box-shadow: none; text-shadow: none; } }
 
-/* ===== Seams (void-essence): hairline section dividers that DRAW on scroll =====
-   A quiet echo of the void band's crack — a thin --hairline rule across the top of the
-   major sections that draws as the section enters view. NEVER red (the crack's red is the
-   ONE signal; this is a structural hairline). Lane-aligned. Pure CSS scroll-timeline; no
-   support → a static hairline; gated on fc-motion so reduced-motion / flag-off shows no
-   extra decoration (honest Stage-0). Echoes the crack's left-anchored scaleX draw.
-   NOTE (VOID-1a, W3): these ID selectors are home-only DEBT — W3 replaces them with the
-   build-emitted .wn-seam class sitewide and fixes the draw's view-timeline subject. */
-html.fc-motion :is(#work, #method, #about, #contact) { position: relative; }
-html.fc-motion #work::before, html.fc-motion #method::before,
-html.fc-motion #about::before, html.fc-motion #contact::before {
+/* ===== Seams 2.0 (VOID-1a) — build-emitted .wn-seam, sitewide =====
+   The hairline divider that DRAWS as its section enters view. The SECTION is the
+   named view-timeline subject (the old anonymous view() resolved against the
+   ::before's own 1px box and never drew visibly — VIS sym fix). Takes the light
+   of the hour via --hairline-lit (published by W1/heliostat; static fallback
+   --hairline). NEVER red. The --postvoid variant carries the gold channel: it is
+   the ONE static gold trace allowed per white viewport (cupo F.3 — CONTRACTS §f.8). */
+html.fc-motion .wn-seam { position: relative; view-timeline: --wn-seam block; }
+html.fc-motion .wn-seam::before {
   content: ""; position: absolute; top: 0; left: 0;
-  width: min(100%, var(--lane-max)); height: 1px;
-  background: var(--hairline); transform-origin: left; pointer-events: none;
+  width: min(100%, var(--lane-max)); height: 1px; pointer-events: none;
+  background: var(--hairline-lit, var(--hairline));
+  transform-origin: left;
 }
+html.fc-motion .wn-seam--postvoid::before {
+  height: 1px; opacity: 0.85;
+  background: linear-gradient(90deg, var(--gold-deep), color-mix(in srgb, var(--gold-deep) 55%, transparent) 60%, transparent 92%);
+}
+html.fc-aged .wn-seam--postvoid::before { height: 1.5px; opacity: 1; }
 @supports (animation-timeline: view()) {
-  @keyframes wn-seam-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-  html.fc-motion #work::before, html.fc-motion #method::before,
-  html.fc-motion #about::before, html.fc-motion #contact::before {
-    animation: wn-seam-draw linear both;
-    animation-timeline: view();
-    animation-range: entry 5% entry 55%;
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes wn-seam-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+    html.fc-motion .wn-seam::before { animation: wn-seam-draw linear both; animation-timeline: --wn-seam; animation-range: entry 5% entry 45%; }
   }
+}
+html.fc-boost .wn-seam::before { height: 2px; }
+html.fc-boost .wn-seam--postvoid::before { height: 2px; opacity: 1; }
+
+/* ===== VOID-2 — bounce light: la ÚNICA excepción al rojo binario (≤6% alpha,
+   CONTRACTS §f.5/§f.13). Static, identical under RM. Boost grows AREA or stays
+   at the 6% cap — it never amplifies an opaque red. ===== */
+/* (a) the spine's red BLEEDS faintly into its gutter — light, not a second line */
+.fc-bleed { display: none; }
+@media (min-width: 1024px) {
+  html.fc-motion body:has(.fc-spine) .fc-bleed {
+    display: block; position: fixed; top: 0; bottom: 0;
+    left: calc(6vw - 10px); width: 48px; z-index: var(--z-haze); pointer-events: none;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--signal) 4%, transparent), transparent);
+  }
+  html.fc-boost.fc-motion body:has(.fc-spine) .fc-bleed {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--signal) 6%, transparent), transparent); /* 6% = THE cap */
+  }
+}
+/* (c) crack→washi: on return visits the gilded mend THROWS ITS LIGHT onto the
+   word and the first line of the body (kintsugi made atmosphere, not ornament) */
+html.fc-return .wn-void__word { text-shadow: 0 0 18px color-mix(in srgb, var(--gold) 16%, transparent); }
+html.fc-return .wn-void__body > :first-child { text-shadow: 0 0 18px color-mix(in srgb, var(--gold) 14%, transparent); }
+html.fc-aged .wn-void__word { text-shadow: 0 0 28px color-mix(in srgb, var(--gold) 24%, transparent); }
+html.fc-aged .wn-void__body > :first-child { text-shadow: 0 0 24px color-mix(in srgb, var(--gold) 20%, transparent); }
+html.fc-boost .wn-void__word { text-shadow: 0 0 32px color-mix(in srgb, var(--gold) 26%, transparent); }
+
+/* ===== VOID-3 — cámara oscura: marco byōbu + sombra urushi =====
+   The ::after is RESERVED to this frame (§f.10). Inset gold border + 8 corner
+   ticks (background gradients). Without JS / under RM: static, dignified.
+   Entry follows the hierarchy law via the classes threshold-cut.js ALREADY sets
+   (fc-cut-armed / fc-cut-in / fc-crack) — zero new JS. */
+.wn-void::after {
+  content: ""; position: absolute; inset: 12px; z-index: 2; pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--gold-deep) 45%, transparent);
+  background-image:
+    linear-gradient(var(--gold), var(--gold)), linear-gradient(var(--gold), var(--gold)),
+    linear-gradient(var(--gold), var(--gold)), linear-gradient(var(--gold), var(--gold)),
+    linear-gradient(var(--gold), var(--gold)), linear-gradient(var(--gold), var(--gold)),
+    linear-gradient(var(--gold), var(--gold)), linear-gradient(var(--gold), var(--gold));
+  background-repeat: no-repeat;
+  background-position: top left, top left, top right, top right,
+    bottom left, bottom left, bottom right, bottom right;
+  background-size:
+    var(--byobu-tick, 14px) 1px, 1px var(--byobu-tick, 14px),
+    var(--byobu-tick, 14px) 1px, 1px var(--byobu-tick, 14px),
+    var(--byobu-tick, 14px) 1px, 1px var(--byobu-tick, 14px),
+    var(--byobu-tick, 14px) 1px, 1px var(--byobu-tick, 14px);
+}
+/* entry: armed dark → the frame arrives AFTER the crack (280ms) — or, on
+   crack-less bands (the 404 mini), after the cut (560ms ≈ the same beat) */
+html.fc-motion .wn-void.fc-cut-armed::after { opacity: 0; }
+html.fc-motion .wn-void.fc-cut-in::after { opacity: 1; transition: opacity var(--dur-600) var(--ease-run) 560ms; }
+html.fc-motion .wn-void.fc-crack::after { opacity: 1; transition: opacity var(--dur-600) var(--ease-run) 280ms; }
+/* urushi: the band sits IN the page like lacquerware in lamplight — a deep soft
+   shadow above and below (frontera §f.11: cards are W1's, this band is ours) */
+.wn-void {
+  box-shadow: 0 26px 40px -28px color-mix(in srgb, var(--void) 45%, transparent),
+    0 -20px 36px -28px color-mix(in srgb, var(--void) 30%, transparent);
+}
+html.fc-boost .wn-void {
+  box-shadow: 0 26px 40px -28px color-mix(in srgb, var(--void) 60%, transparent),
+    0 -20px 36px -28px color-mix(in srgb, var(--void) 42%, transparent);
+}
+html.fc-boost .wn-void::after { --byobu-tick: 20px; border-color: color-mix(in srgb, var(--gold-deep) 70%, transparent); }
+
+/* ===== VOID-4 — maki-e: gold dust SETTLES onto the crack (return visits) =====
+   3px seed + 6 box-shadow flecks fall 22px in 7s with a 0→0.7 micro-peak at 30%
+   against the still crack. Memory is state: RM shows the settled dust. */
+.wn-void__dust { display: block; position: relative; width: 3px; height: 3px; margin: -3px 0 0; /* CLS 0 */
+  border-radius: 50%; background: var(--gold); pointer-events: none; opacity: 0;
+  box-shadow: 14vw -10px 0 -0.5px var(--gold), 29vw -22px 0 0 var(--gold-deep), 46vw -14px 0 -0.5px var(--gold),
+              61vw -26px 0 0 var(--gold-deep), 77vw -9px 0 -0.5px var(--gold), 89vw -19px 0 0 var(--gold-deep); }
+@keyframes wn-makie { from { transform: translateY(-22px); opacity: 0; } 30% { opacity: 0.7; } to { transform: translateY(0); opacity: var(--dust-op, 0.55); } }
+html.fc-return .wn-void.fc-crack .wn-void__dust { animation: wn-makie 7s var(--ease-run) 600ms both; }
+html.fc-aged .wn-void__dust { --dust-op: 0.8; }
+html.fc-boost .wn-void.fc-crack .wn-void__dust { animation: wn-makie 7s var(--ease-run) 600ms both; --dust-op: 0.9; } /* boost cae SIN tier */
+@media (prefers-reduced-motion: reduce) { html.fc-return .wn-void__dust { opacity: var(--dust-op, 0.55); animation: none; } }
+
+/* ===== VOID-7 — the 404's mini band: the cut waits for the frayed route =====
+   404-only rule: .wn-void--mini delays its cut transition 1.2s (entry hierarchy
+   §f.14 — the nf-route draws 300ms→1.2s first, THEN the band detonates). */
+html.fc-motion .wn-void--mini.fc-cut-in .wn-void__word,
+html.fc-motion .wn-void--mini.fc-cut-in .wn-void__body { transition-delay: 1.2s; }
+html.fc-motion .wn-void--mini.fc-cut-in::after { transition-delay: 1.76s; }
+
+/* ===== HILO-6 — the 404's frayed route: THE one red + one movement there =====
+   Static (no fc-motion / RM): everything drawn and quiet at opacity 1, bead 0.8.
+   With motion: the line draws (reusing wn-route-draw, 300ms), the fibres appear
+   at 1.10/1.19/1.28s, the bead pulses lub-dub forever (the only loop, ≥4s). */
+.nf-route { max-width: 720px; margin: var(--space-8) 0; }
+.nf-route__line { stroke: var(--signal); stroke-width: 2.5; stroke-linecap: square; stroke-linejoin: miter; }
+.nf-route__fray { stroke: var(--signal); stroke-linecap: square; }
+.nf-route__fray--1 { stroke-width: 1.6; stroke-dasharray: 10 5 6 4 3 200; } /* one pass, dies into the 200 gap */
+.nf-route__fray--2 { stroke-width: 1.3; stroke-dasharray: 8 4 4 3 2 200; }
+.nf-route__fray--3 { stroke-width: 1;   stroke-dasharray: 6 3 3 2 1 200; }
+.nf-route__end { fill: var(--signal); opacity: 0.8; }
+html.fc-motion .nf-route__line {
+  stroke-dasharray: 100; stroke-dashoffset: 100;
+  animation: wn-route-draw var(--dur-route) var(--ease-run) 300ms both;
+}
+@keyframes wn-nf-fray { from { opacity: 0; } to { opacity: 1; } }
+html.fc-motion .nf-route__fray { opacity: 0; animation: wn-nf-fray var(--dur-420) var(--ease-run) both; }
+html.fc-motion .nf-route__fray--1 { animation-delay: 1.10s; }
+html.fc-motion .nf-route__fray--2 { animation-delay: 1.19s; }
+html.fc-motion .nf-route__fray--3 { animation-delay: 1.28s; }
+@keyframes wn-nf-bead { /* lub-dub at 0/5/11/15/22%, long diastole — the route's pulse still beating where it gave out */
+  0% { opacity: 0.35; } 5% { opacity: 1; } 11% { opacity: 0.35; } 15% { opacity: 0.8; } 22% { opacity: 0.35; } 100% { opacity: 0.35; }
+}
+html.fc-motion .nf-route__end { animation: wn-nf-bead var(--dur-ambient-min) linear 1.6s infinite; }
+@media (prefers-reduced-motion: reduce) {
+  html.fc-motion .nf-route__line, html.fc-motion .nf-route__fray { animation: none; opacity: 1; stroke-dashoffset: 0; }
+  html.fc-motion .nf-route__end { animation: none; opacity: 0.8; }
+}
+
+/* ===== AST-2 — identity route draw-in (sequence with AST-6: morph 420ms →
+   draw at 480ms → gold at 1280ms → headdot pulse at 1380ms). route-main carries
+   pathLength="1". Without fc-motion / under RM: born drawn and still. ===== */
+html.fc-motion .identity__route .route-main { stroke-dasharray: 1; stroke-dashoffset: 1; animation: wn-idroute-draw var(--dur-route) var(--ease-run) 480ms both; }
+html.fc-motion .identity__route .route-gold { opacity: 0; animation: wn-idroute-gold var(--dur-600) var(--ease-run) 1280ms both; }
+html.fc-motion .identity__route .route-headdot { animation: wn-idroute-pulse var(--dur-600) var(--ease-run) 1380ms both; }
+@keyframes wn-idroute-draw { to { stroke-dashoffset: 0; } }
+@keyframes wn-idroute-gold { to { opacity: 1; } }
+@keyframes wn-idroute-pulse { 0% { transform: scale(0); transform-origin: center; transform-box: fill-box; } 60% { transform: scale(1.6); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  html.fc-motion .identity__route .route-main { animation: none; stroke-dashoffset: 0; }
+  html.fc-motion .identity__route .route-gold { animation: none; opacity: 1; }
+  html.fc-motion .identity__route .route-headdot { animation: none; }
+}
+
+/* ===== AST-6 — View-Transition morph card title → project H1 (flag vtMorph) =====
+   vt-morph.js assigns view-transition-name:work-title on pageswap/pagereveal;
+   Chrome morphs the group, others keep the static dive untouched. */
+::view-transition-group(work-title) { animation-duration: var(--dur-420); animation-timing-function: var(--ease-run); }
+::view-transition-old(work-title), ::view-transition-new(work-title) { height: 100%; width: auto; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(work-title), ::view-transition-old(work-title), ::view-transition-new(work-title) { animation: none; }
 }
 
 /**
@@ -1822,7 +2081,7 @@ html.fc-boost .fc-intensity__glyph {
   .cv-contact { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: var(--ink-ghost); margin: var(--space-4) 0 0; }
   .cv-contact a { color: var(--ink-ghost); text-decoration: none; }
   .cv-contact a:hover { color: var(--ink); }
-  .cv-rule { height: 1px; background: var(--hairline); border: none; margin: var(--space-12) 0; }
+  .cv-rule { height: 1px; background: var(--signal); border: none; margin: var(--space-12) 0; } /* AST-4 (DC-14): the CV's ONE drop of red — full saturation, never amplified */
   .cv-section { margin-top: var(--space-12); }
   .cv-h { font-family: var(--font-display); font-weight: 500; font-size: var(--text-label); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--ink); margin: 0 0 var(--space-6); padding-bottom: var(--space-3); border-bottom: 1px solid var(--hairline); }
   .cv-p { font-size: var(--text-body); line-height: var(--lh-body); color: var(--ink); margin: 0 0 var(--space-4); max-width: 66ch; }
@@ -1843,6 +2102,7 @@ html.fc-boost .fc-intensity__glyph {
     .sheet { border: none; margin: 0; max-width: none; padding: 14mm 16mm; }
     @page { margin: 0; }
     .cv-section, .cv-job { break-inside: avoid; }
+    .cv-rule { -webkit-print-color-adjust: exact; print-color-adjust: exact; } /* the red survives print/PDF */
   }</style>
 <script>(function(){var d=document.documentElement;d.classList.add('has-js');try{var qi=new URLSearchParams(location.search).get('wn');if(qi==='clear'){try{localStorage.removeItem('wn.intensity');}catch(e){}}var im=(qi==='boost'||qi==='subtle')?qi:null;if(!im){try{im=localStorage.getItem('wn.intensity');}catch(e){}}if(im==='boost')d.classList.add('fc-boost');}catch(e){}try{var qh=new URLSearchParams(location.search).get('fc-hour');var hh=(qh!=null&&qh!==''&&!isNaN(+qh))?((+qh%24)+24)%24:new Date().getHours();d.setAttribute('data-daypart',(hh>=5&&hh<9)?'dawn':(hh>=9&&hh<17)?'noon':(hh>=17&&hh<21)?'evening':'night');}catch(e){}try{var v=localStorage.getItem('wn.visitor');if(!v){v=(self.crypto&&crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('wn.visitor',v);}var n=new Date(),ds=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate(),k=ds+'|'+v,h=5381,i=0;for(;i<k.length;i++)h=((h<<5)+h+k.charCodeAt(i))>>>0;window.__wnRouteIndex=h%10;}catch(e){window.__wnRouteIndex=0;}try{var qp=new URLSearchParams(location.search).get('wn');if(qp==='clear'){try{localStorage.removeItem('wn.visits');localStorage.removeItem('wn.visited');sessionStorage.removeItem('wn.session');}catch(e){}}var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(qp&&qp!=='clear'){var mp={fresh:1,'return':2,amp:3,aged:5};vi=mp[qp]||parseInt(qp,10)||vi;}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');if(vi>=5)d.classList.add('fc-aged');}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');d.classList.add('fc-firstbreath');d.classList.add('fc-route');d.classList.add('fc-hero');}}catch(e){}})();</script>
 </head>

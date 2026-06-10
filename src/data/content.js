@@ -44,31 +44,29 @@ export const breath = {
   method: ['A spec the generator', 'cannot deviate from.'],
 };
 
-/* Home featured work grid — 4 cards (home.md §2.3 taglines) */
+/* Home featured work grid — 4 cards (home.md §2.3 taglines). The viz is each
+   project's OWN route geometry, inline SVG by vizKey||slug (route-viz.mjs). */
 export const work = [
   {
     slug: 'rag-zelebrix', title: 'RAG Zelebrix', status: 'progress',
     tags: ['RAG', 'Hybrid retrieval', 'Privacy'],
     tagline: 'RAG chatbot for a multi-tenant payments SaaS, built and validated, scheduled to deploy in a few months — hybrid retrieval, PII scrubbed before the model.',
-    viz: '/motifs/route-mini-card.svg',
   },
   {
     slug: 'architecture-idea', title: 'Architecture IDEA', status: 'progress',
     tags: ['RAG platform', 'RAGAS', 'Langfuse'],
     tagline: 'AI Engineer — sole AI engineer at IDEA; I designed, built and lead the production RAG platform powering two live assistants (HR and electrical-engineering-rules).',
-    viz: '/motifs/route-mini-card.svg',
   },
   {
     slug: 'gestamp-agents', title: 'Gestamp Agents', status: 'shipped',
     tags: ['Multi-agent', 'Text-to-SQL', 'RBAC'],
     tagline: 'Production multi-agent system on Semantic Kernel — Text-to-SQL, document and SharePoint tools, permission-aware.',
-    viz: '/motifs/route-mini-card.svg',
   },
   {
     slug: 'personal', title: 'Personal Lab', status: 'lab',
     tags: ['This site', 'Experiments'],
     tagline: 'My lab: this site, built with Claude, plus the experiments that feed my method.',
-    viz: '/motifs/route-placeholder-dashed.svg', href: '/work/personal',
+    vizKey: 'personal-lab', href: '/work/personal',
   },
 ];
 
@@ -104,7 +102,9 @@ export const contact = {
   avail: 'Open to GenAI engineering roles and selected RAG and agent consulting work.',
 };
 
-export const colophon = 'Designed with Claude Design, built with Claude Code, shipped from a static host. The site is the method’s first proof.';
+/* the open-meteo credit is BOTH attribution (CC-BY 4.0) and the honest disclosure
+   that one weather GET leaves the page (CONTRACTS §f.4) */
+export const colophon = 'Designed with Claude Design, built with Claude Code, shipped from a static host. The site is the method’s first proof. · weather by open-meteo.com';
 export const footerStatus = 'GUILLERMO — AI ENGINEER / MADRID';
 
 /* ============ /method page (method.md) ============ */
@@ -164,12 +164,12 @@ export const method = {
 /* ============ /work/<slug> project detail pages ============ */
 export const projects = {
   'rag-zelebrix': {
+    slug: 'rag-zelebrix',
     title: 'RAG Zelebrix',
     tagline: 'RAG chatbot answering from a multi-tenant payments SaaS knowledge base.',
     status: 'progress', statusLabel: 'In Progress',
     updated: '[PLACEHOLDER — Guillermo to confirm: last-updated date]',
     role: 'Designed and led the build — AI-assisted, reviewed commit by commit',
-    route: '/motifs/route-fragment-header.svg',
     clientContext: 'Zelebrix is a multi-tenant payments SaaS; tenant data is sensitive and must stay inside the company’s own systems. Guillermo joined to lead this AI feature, currently an (unpaid) collaboration with an ongoing relationship likely; the feature is scheduled to deploy to production in a few months.',
     problem: 'Users of a multi-tenant payments platform needed answers that lived across product documentation and their own tenant data, and a general-purpose chatbot could not be trusted with either side of that. Semantic search alone missed exact Spanish terms and synonyms; a naive setup would also send tenant records to an external model. The chatbot had to be accurate in Spanish, honest about what it did not know, and architecturally incapable of leaking tenant data to the external LLM.',
     constraints: [
@@ -219,12 +219,12 @@ export const projects = {
   },
 
   'architecture-idea': {
+    slug: 'architecture-idea',
     title: 'Architecture IDEA',
     tagline: 'A reusable RAG platform serving an HR and an electrical-engineering-rules assistant in production.',
     status: 'progress', statusLabel: 'In Progress',
     updated: '[PLACEHOLDER — Guillermo to confirm last-updated date]',
     role: 'AI Engineer — sole AI engineer at IDEA; designed, built and leads the platform',
-    route: '/motifs/route-fragment-header.svg',
     clientContext: 'A production RAG platform for IDEA, currently running two internal assistants. Guillermo is the company’s sole AI engineer and mentors one engineer building a LangGraph agent on the platform.',
     problem: 'Two assistants were needed for different audiences — one for HR questions, one for electrical-engineering rules — each with its own documents, retrieval needs, and definition of a good answer. Built separately, they would have meant two ingestion pipelines, two retrieval stacks, and two ways to measure quality. The task was not one chatbot. It was a platform that could stand up new assistants without rebuilding the same machinery each time.',
     constraints: [
@@ -271,12 +271,12 @@ export const projects = {
   },
 
   'gestamp-agents': {
+    slug: 'gestamp-agents',
     title: 'Gestamp Agents',
     tagline: 'Production multi-agent assistant that answers staff questions from governed enterprise data.',
     status: 'shipped', statusLabel: 'Shipped',
     updated: '2026-06',
     role: 'Built and extended the multi-agent system; set plugin contribution criteria',
-    route: '/motifs/route-fragment-header.svg',
     clientContext: 'Gestamp, Madrid; internal data and schemas kept confidential.',
     problem: 'Staff needed answers that lived across disconnected systems: structured tables in Databricks, documents in Blob Storage, pages in SharePoint, and tickets in a Service Desk. Finding one answer meant knowing which system held it, having the right permissions, and translating a business question into a query. That work fell to whoever could read schemas and write SQL. The bottleneck was access and translation, not data: the answers already existed, but reaching them was slow and uneven.',
     constraints: [
@@ -420,7 +420,7 @@ export const portfolioCard = {
   slug: 'personal', title: 'This Portfolio', status: 'shipped',
   tags: ['Claude Design', 'Claude Code'],
   tagline: 'Personal portfolio built with Claude Design and Claude Code, on a free stack — exhibit A of the method.',
-  viz: '/motifs/route-mini-card.svg', href: '/work/personal',
+  vizKey: 'this-portfolio', href: '/work/personal',
 };
 
 export default {

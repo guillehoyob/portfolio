@@ -29,7 +29,7 @@ export const meta = {
 export const main = `<div class="shell stage"><div class="lane">
   <section class="section section--tight">
     <p class="eyebrow">${e(method.eyebrow)}</p>
-    <h1 class="h2" style="max-width:20ch">${e(method.title)}</h1>
+    <h1 class="h1-sub" style="max-width:20ch">${e(method.title)}</h1>
     <p class="prose" style="max-width:62ch">${e(method.thesis)}</p>
   </section>
 
@@ -42,7 +42,7 @@ export const main = `<div class="shell stage"><div class="lane">
 </div></div>
 
 <div class="shell"><div class="lane" style="max-width:100%">
-  <section class="section">
+  <section class="section wn-seam">
     <p class="eyebrow">The workflow</p>
     <div class="phases">
       <div class="phase" style="border-top:none">
@@ -58,7 +58,7 @@ export const main = `<div class="shell stage"><div class="lane">
 ${voidBand({ word: 'DISCIPLINE', bodyHtml: breaksList })}
 
 <div class="shell stage"><div class="lane">
-  <section class="section">
+  <section class="section wn-seam wn-seam--postvoid">
     <p class="eyebrow">Toolchain</p>
     <table class="toolchain"><tbody>
       ${method.toolchain.map(([tool, use]) => `<tr><td>${e(tool)}</td><td>${e(use)}</td></tr>`).join('\n      ')}

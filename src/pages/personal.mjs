@@ -1,6 +1,7 @@
 /* /work/personal — Personal Lab hub: This-Portfolio full entry + META void band + Next-up planned cards (§4.4) */
 import content from '../data/content.js';
-import { collabVoid, plannedCard, statusBadge, esc as e, ph as p } from '../layout.mjs';
+import { collabVoid, plannedCard, statusBadge, phQuiet, esc as e, ph as p } from '../layout.mjs';
+import { routeHeader } from '../data/route-viz.mjs';
 
 const { thisPortfolio: tp, planned, identity } = content;
 
@@ -20,11 +21,12 @@ export const meta = {
 export const main = `<div class="shell stage"><div class="lane">
   <section class="identity" id="this-portfolio">
     <p class="eyebrow">Personal Lab</p>
+    ${routeHeader('this-portfolio')}
     <h1 class="identity__title">${e(tp.title)}</h1>
     <p class="identity__tagline">${e(tp.tagline)}</p>
     <div class="identity__badges">
       ${statusBadge(tp.status, tp.statusLabel)}
-      <span class="metalabel">LAST UPDATED: ${p(tp.updated)}</span>
+      <span class="metalabel">LAST UPDATED: ${phQuiet(tp.updated)}</span>
       <span class="metalabel">ROLE: ${e(tp.role)}</span>
     </div>
   </section>
@@ -43,7 +45,7 @@ export const main = `<div class="shell stage"><div class="lane">
 ${collabVoid(tp)}
 
 <div class="shell stage"><div class="lane">
-  <div class="projbody">
+  <div class="projbody wn-seam wn-seam--postvoid">
     <h3>Stack &amp; Architecture</h3>
     ${stackTable}
     <p style="margin-top:var(--space-6)">${e(tp.architecture)}</p>

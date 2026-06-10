@@ -101,6 +101,15 @@
 }
 .wn-btn--secondary:hover::after,
 .wn-btn--secondary:focus-visible::after { transform: scaleX(1); }
+/* VOID-2(b) — the CTA's red bounces a faint halo onto the field around it
+   (bounce-light exception, 5% ≤ the 6% cap — CONTRACTS §f.5). Boost grows the
+   AREA (inset −1.6em → −2.4em), never the alpha: the red itself never scales. */
+.wn-btn--primary { position: relative; isolation: isolate; }
+.wn-btn--primary::before {
+  content: ""; position: absolute; inset: -1.6em; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--signal) 5%, transparent), transparent);
+}
+html.fc-boost .wn-btn--primary::before { inset: -2.4em; }
 /* Quiet tertiary — mono, for the "Download CV" utility affordance */
 .wn-btn--quiet {
   color: var(--ink-ghost);
@@ -255,7 +264,31 @@
   color: var(--ink-ghost);
   margin: 0;
 }
-.wn-card__viz { display: block; width: 100%; height: auto; background: var(--field-2); }
+/* ---- route-viz material grammar (AST-1a / AST-2): recorrido=tinta ·
+   entregado=oro · futuro=hairline dashed · rojo=SOLO prospectivo (hover-ignite
+   on cards; the two in-progress headers' headdot). Rest red of the grid: CERO. */
+.wn-card__viz { display: block; width: 100%; height: auto; aspect-ratio: 320 / 180; }
+.route-main { stroke: var(--ink); fill: none; stroke-linecap: square; stroke-linejoin: miter; }
+.route-gold { stroke: var(--gold-deep); fill: none; stroke-linecap: square; stroke-linejoin: miter; }
+.route-ahead { stroke: var(--hairline); fill: none; stroke-dasharray: 4 6; stroke-linecap: square; }
+.route-knot { fill: var(--gold-deep); }
+.route-gate { stroke: var(--ink); fill: none; }
+.route-head { fill: var(--ink); }
+.route-headdot { fill: var(--signal); } /* the ONE red head — in-progress headers only */
+.wn-card__viz .route-main, .wn-card__viz .route-gate, .wn-card__viz .route-ahead { stroke-width: 1.5; }
+.wn-card__viz .route-gold { stroke-width: 2.5; }
+.identity__route .route-main { stroke-width: 2; }
+.identity__route .route-gold { stroke-width: 3; }
+.identity__route .route-ahead { stroke-width: 2; }
+/* hover-ignite: the head turns red ONLY by deliberate act (like ::selection) */
+.wn-card .route-head { transition: fill var(--dur-180) var(--ease-react), stroke var(--dur-180) var(--ease-react); }
+.wn-card:hover .route-head, .wn-card:focus-visible .route-head { fill: var(--signal); stroke: var(--signal); }
+/* boost amplifies ink/gold/air — the red head keeps its size and rest state */
+html.fc-boost .wn-card__viz .route-main { stroke-width: 2px; }
+html.fc-boost .wn-card__viz .route-gold { stroke-width: 3px; }
+html.fc-boost .wn-card__viz .route-knot { r: 3.5px; }
+html.fc-boost .identity__route .route-main { stroke-width: 2.5px; }
+html.fc-boost .identity__route .route-gold { stroke-width: 3.5px; }
 .wn-card__foot { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
 /* the arrow answers the hover (audit DC-13) with the card's own asymmetric physics:
    arrives fast (ease-react), settles slow (ease-lift) — zero red cost */
@@ -270,6 +303,42 @@
 /* planned variant — muted, no signal underline (nothing to visit at depth yet) */
 .wn-card--planned .wn-card__body { opacity: 0.88; }
 .wn-card--planned .wn-card__title::after { display: none; }
+/* AST-3 (DC-06): the /work link variant clamps its single HYPOTHESIS row to 3
+   lines — a planned card reads as a stub, the detail lives at depth */
+.wn-card--planned .wn-card__hyp {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+  line-clamp: 3; overflow: hidden;
+}
+/* VOID-6 — gold corner ticks on hover/focus of DELIVERED cards only: not
+   visited (the moss owns those), not planned/static (a placeholder is not
+   gilded). TRANSITORY → legal under the F.3 gold quota (CONTRACTS §f.8).
+   Enter react (DC-15), exit lift. Boost: brighter/longer ticks, corners ONLY. */
+a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned)::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background-image:
+    linear-gradient(var(--gold-deep), var(--gold-deep)), linear-gradient(var(--gold-deep), var(--gold-deep)),
+    linear-gradient(var(--gold-deep), var(--gold-deep)), linear-gradient(var(--gold-deep), var(--gold-deep)),
+    linear-gradient(var(--gold-deep), var(--gold-deep)), linear-gradient(var(--gold-deep), var(--gold-deep)),
+    linear-gradient(var(--gold-deep), var(--gold-deep)), linear-gradient(var(--gold-deep), var(--gold-deep));
+  background-repeat: no-repeat;
+  background-position: top left, top left, top right, top right,
+    bottom left, bottom left, bottom right, bottom right;
+  background-size: 0 1px, 1px 0, 0 1px, 1px 0, 0 1px, 1px 0, 0 1px, 1px 0;
+  transition: background-size var(--dur-300) var(--ease-lift), opacity var(--dur-300) var(--ease-lift);
+}
+a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned):hover::after,
+a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned):focus-visible::after {
+  opacity: 0.55;
+  background-size: var(--card-tick, 12px) 1px, 1px var(--card-tick, 12px),
+    var(--card-tick, 12px) 1px, 1px var(--card-tick, 12px),
+    var(--card-tick, 12px) 1px, 1px var(--card-tick, 12px),
+    var(--card-tick, 12px) 1px, 1px var(--card-tick, 12px);
+  transition: background-size var(--dur-240) var(--ease-react), opacity var(--dur-90) var(--ease-react);
+}
+html.fc-boost a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned):hover::after,
+html.fc-boost a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned):focus-visible::after {
+  opacity: 0.85; --card-tick: 18px;
+}
 .wn-card__microrow {
   font-family: var(--font-mono);
   font-size: var(--text-micro);
@@ -347,13 +416,17 @@
 .wn-void__word {
   font-family: var(--font-display);
   font-weight: var(--weight-display);
-  font-size: var(--text-void-word);
+  /* VOID-5a: --void-fit (build-computed from glyph count) caps long words to the
+     band's inner width; short words keep the shipped clamp byte-intact */
+  font-size: min(var(--text-void-word), var(--void-fit, var(--text-void-word)));
   line-height: var(--lh-void);
   letter-spacing: var(--ls-void);
   text-transform: uppercase;
   color: var(--washi);
   margin: 0;
 }
+/* VOID-7 — the 404's quieter band (no crack, smaller breath) */
+.wn-void--mini { min-height: 34vh; padding-top: var(--space-16); padding-bottom: var(--space-16); }
 /* overflow:visible defeats the UA's `hr { overflow: hidden }` — without it the kintsugi
    gold seams (::before/::after at top:±5px in field-conditions.css) are clipped to the
    1px box and the mend can never paint (audit VIS-01: Δ8 → Δ153 with this one line). */
@@ -371,3 +444,10 @@
 /* ============ HAIRLINE RULE (§3.21) + SCROLL CHEVRON (§3.16) ============ */
 .wn-hairline { height: 1px; background: var(--hairline); border: none; width: 100%; }
 .wn-chevron { display: inline-flex; width: 16px; height: 16px; opacity: 0.8; }
+
+/* ============ AST-5 — mesa mínima de micro-interacciones (cero JS) ============ */
+/* :active — the press is FELT (1px settle). REGLA: never remove the
+   tap-highlight (base.css) without keeping these :active substitutes. */
+.filter:active, .wn-btn--quiet:active, .contact__copy:active, .nav__mark:active,
+.wn-signal-link:active { transform: translateY(1px); transition-duration: var(--dur-90); }
+.wn-card--half:active { transform: scale(0.985); }

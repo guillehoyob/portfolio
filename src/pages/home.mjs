@@ -64,7 +64,7 @@ export const main = `<header class="hero" id="hero">
     ${proofStrip}
   </section>
 
-  <section class="section" id="work">
+  <section class="section wn-seam" id="work">
     <p class="eyebrow">Selected work</p>
     <h2 class="h2">Shipped, in production, and honest about what’s next.</h2>
     <div class="workgrid">
@@ -72,7 +72,7 @@ export const main = `<header class="hero" id="hero">
     </div>
   </section>
 
-  <section class="section" id="method">
+  <section class="section wn-seam" id="method">
     <p class="eyebrow">${e(methodTeaser.title)}</p>
     <div class="col-narrow">
       <div class="principles">
@@ -86,7 +86,7 @@ export const main = `<header class="hero" id="hero">
 ${voidBand({ word: homeVoid.word, bodyHtml: `<p>${p(homeVoid.body)}</p>` })}
 
 <div class="shell stage"><div class="lane">
-  <section class="section" id="about">
+  <section class="section wn-seam wn-seam--postvoid" id="about">
     <div class="about">
       <div>
         <p class="eyebrow">About</p>
@@ -97,7 +97,7 @@ ${voidBand({ word: homeVoid.word, bodyHtml: `<p>${p(homeVoid.body)}</p>` })}
     </div>
   </section>
 
-  <section class="section" id="contact">
+  <section class="section wn-seam" id="contact">
     <p class="eyebrow">Contact</p>
     ${contactBlock}
   </section>

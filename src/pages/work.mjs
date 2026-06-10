@@ -16,30 +16,36 @@ export const meta = {
   active: 'Work',
 };
 
-export const main = `<div class="shell">
-  <section class="section">
-    <p class="eyebrow">Work</p>
-    <h1 class="h2">Production AI systems, a documented method, and the pipeline behind them.</h1>
-    <p class="prose prose--ghost" style="max-width:55ch">Three client builds and the site you’re reading. Where a metric or screenshot is still pending, it says so — nothing here is invented.</p>
-    <div class="filters" role="group" aria-label="Filter work by status">
-      ${filters.map(([k, label]) => `<button class="filter" type="button" data-filter="${k}" aria-pressed="${k === 'all'}">${e(label)}</button>`).join('\n      ')}
-    </div>
-  </section>
+/* AST-3 (DC-05): /work hangs off the ONE axis — intro/filters in the lane; the
+   grid + Next up in a lane--flood (same left edge, bleeds right past 72ch so the
+   3-col grid keeps card width). Reversible in 1 line: drop lane--flood. */
+export const main = `<div class="shell stage">
+  <div class="lane">
+    <section class="section">
+      <p class="eyebrow">Work</p>
+      <h1 class="h1-sub">Production AI systems, a documented method, and the pipeline behind them.</h1>
+      <p class="prose prose--ghost" style="max-width:55ch">Three client builds and the site you’re reading. Where a metric or screenshot is still pending, it says so — nothing here is invented.</p>
+      <div class="filters" role="group" aria-label="Filter work by status">
+        ${filters.map(([k, label]) => `<button class="filter" type="button" data-filter="${k}" aria-pressed="${k === 'all'}">${e(label)}</button>`).join('\n        ')}
+      </div>
+    </section>
+  </div>
+  <div class="lane lane--flood">
+    <section class="section section--tight wn-seam">
+      <div class="workgrid workgrid--three" data-grid>
+        ${gridCards.map((c) => card(c)).join('\n        ')}
+      </div>
+      <p class="filter-empty" data-empty hidden>Nothing shipped under that filter yet — the rest of the road is in Next up.</p>
+    </section>
 
-  <section class="section section--tight">
-    <div class="workgrid workgrid--three" data-grid>
-      ${gridCards.map((c) => card(c)).join('\n      ')}
-    </div>
-    <p class="filter-empty" data-empty hidden>Nothing shipped under that filter yet — the rest of the road is in Next up.</p>
-  </section>
-
-  <section class="section nextup">
-    <div class="nextup__head">
-      <span class="metalabel">Next up</span>
-      <hr class="wn-hairline" style="flex:1">
-    </div>
-    <div class="workgrid workgrid--three">
-      ${planned.map((p) => plannedCard(p)).join('\n      ')}
-    </div>
-  </section>
+    <section class="section nextup">
+      <div class="nextup__head">
+        <span class="metalabel">Next up</span>
+        <hr class="wn-hairline" style="flex:1">
+      </div>
+      <div class="workgrid workgrid--three">
+        ${planned.map((p) => plannedCard(p)).join('\n        ')}
+      </div>
+    </section>
+  </div>
 </div>`;

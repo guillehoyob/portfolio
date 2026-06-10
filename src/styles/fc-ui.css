@@ -27,17 +27,136 @@
   cursor: pointer;
 }
 .fc-intensity:hover { color: var(--ink); border-color: var(--ink); }
-/* the glyph: a hollow gold disc that FILLS with the sun when LOUD */
+/* BREAK-5: the magnet's spring release (translate written by magnet.js) */
+.fc-intensity { transition: translate 480ms var(--ease-spring), color var(--dur-180) var(--ease-react), border-color var(--dur-180) var(--ease-react); }
+/* the glyph: a hollow gold disc that FILLS with the sun when LOUD — and it BREATHES
+   with the field (V5.1 — the owner asked "no sé en qué fijarme": look at the button
+   you just pressed; when it swells, the sun, the thread and the dot are swelling too) */
 .fc-intensity__glyph {
   width: 10px;
   height: 10px;
   border-radius: var(--radius-pill);
   border: 1.5px solid var(--gold-deep);
   background: transparent;
+  transform: scale(calc(1 + var(--fc-breath, 0) * 0.6));
   transition: background var(--dur-180) var(--ease-react), box-shadow var(--dur-180) var(--ease-react);
 }
 html.fc-boost .fc-intensity__glyph {
   background: var(--sun);
   box-shadow: 0 0 8px color-mix(in srgb, var(--sun) 70%, transparent);
 }
+/* F3: the crest's glint — the disc flares for the exhale's instant */
+.fc-intensity__glyph.fc-crest {
+  background: var(--sun);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--sun) 90%, transparent);
+}
+/* the WX audition chip (V5.1) — sits above the FIELD capsule, LOUD only */
+.fc-intensity--wx {
+  bottom: calc(var(--space-4) + 48px + env(safe-area-inset-bottom, 0px));
+}
 @media print { .fc-intensity { display: none; } }
+
+/* ===== ASK THE FIELD (V5.2) — the grounded portfolio assistant =====
+   The affordance: a faux input line under the hero CTAs — mono, quiet, honest.
+   The panel: a void-styled <dialog> — the conversation happens IN the void
+   (black, washi, gold byōbu frame, ONE red thread that draws while thinking). */
+.ask-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  padding: var(--space-3) var(--space-2) var(--space-3) 0;
+  min-height: 44px;
+  width: min(100%, 42ch);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--ls-mono);
+  text-transform: uppercase;
+  color: var(--ink-ghost);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--hairline);
+  cursor: text;
+  text-align: left;
+  transition: border-color var(--dur-180) var(--ease-react), color var(--dur-180) var(--ease-react);
+}
+.ask-cta:hover, .ask-cta:focus-visible { color: var(--ink); border-bottom-color: var(--ink); }
+.ask-cta__dot {
+  width: 7px; height: 7px; flex: none; border-radius: var(--radius-pill);
+  background: var(--sun);
+  transform: scale(calc(1 + var(--fc-breath, 0) * 0.5)); /* it breathes with the field — alive before you even ask */
+}
+.ask-cta__ghost { flex: 1; }
+.ask-cta__arrow { color: var(--ink-ghost); transition: transform var(--dur-180) var(--ease-react); }
+.ask-cta:hover .ask-cta__arrow { transform: translateX(4px); color: var(--ink); }
+
+.wn-ask {
+  width: min(680px, 92vw);
+  max-height: min(72vh, 640px);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: var(--void);
+  color: var(--washi);
+  border: 1px solid color-mix(in srgb, var(--gold-deep) 45%, transparent); /* the byōbu frame */
+  box-shadow: 0 26px 60px -28px color-mix(in srgb, var(--void) 60%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+.wn-ask:not([open]) { display: none; }
+.wn-ask::backdrop { background: color-mix(in srgb, var(--ink) 38%, transparent); backdrop-filter: blur(4px); }
+/* the ONE red of the panel: the thinking thread, drawing left→right while the
+   answer finds its way — the same gesture as the void crack */
+.wn-ask__thread {
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: var(--signal);
+  transform: scaleX(0); transform-origin: left;
+  opacity: 0.9;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wn-ask.is-thinking .wn-ask__thread { animation: wn-ask-think 1200ms var(--ease-run) infinite alternate; }
+}
+.wn-ask.is-thinking .wn-ask__thread { transform: scaleX(1); } /* RM: honest static state — the thread is simply present while it works */
+@keyframes wn-ask-think { from { transform: scaleX(0.08); } to { transform: scaleX(1); } }
+.wn-ask__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-6) var(--space-8) 0;
+}
+.wn-ask__eyebrow { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--gold) 80%, var(--washi)); margin: 0; }
+.wn-ask__close {
+  background: none; border: none; color: var(--washi); cursor: pointer;
+  font-size: 1.4rem; line-height: 1; padding: var(--space-2) var(--space-3); min-height: 40px;
+}
+.wn-ask__close:hover { color: var(--sun); }
+.wn-ask__log { flex: 1; overflow-y: auto; padding: var(--space-6) var(--space-8); display: flex; flex-direction: column; gap: var(--space-6); }
+.wn-ask__msg p { margin: 0 0 var(--space-2); font-size: var(--text-body); line-height: var(--lh-body); max-width: 52ch; }
+.wn-ask__msg--you { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--washi) 70%, transparent); }
+.wn-ask__who { color: color-mix(in srgb, var(--washi) 45%, transparent); }
+.wn-ask__msg--quiet p { color: color-mix(in srgb, var(--washi) 80%, transparent); }
+.wn-ask__where { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--gold) 75%, var(--washi)); margin-top: var(--space-4); }
+.wn-ask__srcs { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); }
+.wn-ask__src {
+  color: var(--washi); text-decoration: none; position: relative;
+  font-size: var(--text-ui); padding-bottom: 2px;
+  border-bottom: 1px solid color-mix(in srgb, var(--gold-deep) 70%, transparent); /* gold underline: the kintsugi of the answer */
+}
+.wn-ask__src:hover { border-bottom-color: var(--sun); color: var(--sun); }
+.wn-ask__form { display: flex; gap: var(--space-3); padding: 0 var(--space-8) var(--space-4); }
+.wn-ask__input {
+  flex: 1; background: none; border: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--washi) 30%, transparent);
+  color: var(--washi); font-family: var(--font-body); font-size: var(--text-body);
+  padding: var(--space-2) 0; min-height: 44px; outline-offset: 4px;
+}
+.wn-ask__input::placeholder { color: color-mix(in srgb, var(--washi) 38%, transparent); }
+.wn-ask__input:focus-visible { border-bottom-color: var(--sun); outline: none; }
+.wn-ask__send {
+  background: none; border: 1px solid color-mix(in srgb, var(--washi) 30%, transparent);
+  color: var(--washi); font-size: var(--text-ui); cursor: pointer;
+  min-width: 44px; min-height: 44px; border-radius: var(--radius-tag);
+  transition: border-color var(--dur-180) var(--ease-react), color var(--dur-180) var(--ease-react);
+}
+.wn-ask__send:hover, .wn-ask__send:focus-visible { border-color: var(--sun); color: var(--sun); }
+.wn-ask__send:disabled { opacity: 0.4; cursor: wait; }
+.wn-ask__hint { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--washi) 35%, transparent); margin: 0; padding: 0 var(--space-8) var(--space-6); }
+@media (max-width: 640px) { .wn-ask__head, .wn-ask__log, .wn-ask__form { padding-left: var(--space-6); padding-right: var(--space-6); } .wn-ask__hint { padding-left: var(--space-6); } }

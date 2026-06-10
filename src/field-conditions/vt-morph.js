@@ -21,19 +21,35 @@ export function initVtMorph() {
     if (!url) return;
     let to;
     try { to = norm(new URL(url, location.href).pathname); } catch { return; }
-    // the card being navigated into — tag its title BEFORE the old snapshot
-    const title = [...document.querySelectorAll('a.wn-card[href]')]
-      .filter((a) => { try { return norm(new URL(a.href, location.href).pathname) === to; } catch { return false; } })
-      .map((a) => a.querySelector('.wn-card__title'))
-      .find(Boolean);
+    // BREAK-2: directional dive — going DEEPER (into a project) sinks; coming back
+    // SURFACES (wn-rise-* in field-conditions.css). Spatial hierarchy, not symmetry.
+    try {
+      const deeper = to.split('/').filter(Boolean).length > location.pathname.split('/').filter(Boolean).length;
+      e.viewTransition.types.add(deeper ? 'vt-deeper' : 'vt-surface');
+    } catch { /* types unsupported — the symmetric dive remains */ }
+    // the card being navigated into — tag title AND route-viz BEFORE the old snapshot
+    const card = [...document.querySelectorAll('a.wn-card[href]')]
+      .find((a) => { try { return norm(new URL(a.href, location.href).pathname) === to; } catch { return false; } });
+    if (!card) return;
+    const title = card.querySelector('.wn-card__title');
     if (title) title.style.viewTransitionName = 'work-title';
+    // BREAK-2: object permanence — the project's route DIAGRAM flies from the card
+    // into the identity header (the same drawing, carried across the threshold)
+    const viz = card.querySelector('svg');
+    if (viz) viz.style.viewTransitionName = 'work-route';
   });
 
   addEventListener('pagereveal', (e) => {
     if (!e.viewTransition) return;
     const h1 = document.querySelector('.identity__title');
-    if (!h1) return;
-    h1.style.viewTransitionName = 'work-title';
-    e.viewTransition.finished.finally(() => { h1.style.viewTransitionName = 'none'; });
+    if (h1) {
+      h1.style.viewTransitionName = 'work-title';
+      e.viewTransition.finished.finally(() => { h1.style.viewTransitionName = 'none'; });
+    }
+    const idr = document.querySelector('.identity__route');
+    if (idr) {
+      idr.style.viewTransitionName = 'work-route';
+      e.viewTransition.finished.finally(() => { idr.style.viewTransitionName = 'none'; });
+    }
   });
 }

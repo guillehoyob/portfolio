@@ -69,14 +69,15 @@ export function initSpine() {
   // HILO-3 — the two pinky-promise knots (full red ring, perforated loop, NO gold)
   const mkKnot = (mod) => {
     const k = document.createElementNS(SVGNS, 'circle');
-    k.setAttribute('class', `fc-spine__knot fc-spine__knot--${mod}`); k.setAttribute('r', '4.5');
+    k.setAttribute('class', `fc-spine__knot fc-spine__knot--${mod}`); k.setAttribute('r', '3.5'); // quieter (V5.1 owner: "muy cantosos")
     return k;
   };
   const knotO = mkKnot('origin'), knotD = mkKnot('dest');
   svg.append(path, stitch, ripple, pulse, knotO, knotD);
   document.body.appendChild(svg);
 
-  let LEN = 0, basePts = [], fadeRef = 0, minP = 0.05, anchorLens = [];
+  let LEN = 0, basePts = [], fadeRef = 0, minP = 0.05, anchorLens = [], anchorYs = [], headPinY = -1;
+  let tipLen = -1, tipX = 0, lastFade = '', lastNib = -1, lastNext = -1, tied = false, wasBent = false;
   const build = () => {
     const w = document.documentElement.clientWidth;
     // collapse our own height before measuring: the absolutely-positioned svg keeps the
@@ -99,24 +100,17 @@ export function initSpine() {
         const sr = (svgEl || rb).getBoundingClientRect();
         const dAttr = rp && rp.getAttribute('d');
         if (dAttr && sr.width > 1 && sr.height > 0) {
-          // REAL baton-pass: interpolate the route's polyline at the lane's x and start
-          // the spine ON the route, 34px to its right, elbowing down into the lane
+          // REAL baton-pass (V5.1 owner fix): the thread is born AT the route's actual
+          // left ENDPOINT (the visible start of the name's line) and sweeps down-left
+          // into the lane — the old version interpolated/EXTRAPOLATED the polyline at
+          // x=laneX, which floats in the gutter where no red line exists ("la línea no
+          // sale de la línea que se genera del hero").
           const vb = parsePts(dAttr);
-          const yAt = (xv) => {
-            for (let i = 1; i < vb.length; i++) {
-              if (xv <= vb[i][0] || i === vb.length - 1) {
-                const [x0, y0] = vb[i - 1], [x1, y1] = vb[i];
-                const f = x1 === x0 ? 0 : clamp01((xv - x0) / (x1 - x0));
-                return y0 + (y1 - y0) * f;
-              }
-            }
-            return vb[0][1];
-          };
-          const toDoc = (xv) => ({ x: sr.left + (xv / 1440) * sr.width, y: sr.top + (yAt(xv) / 48) * sr.height + scrollY });
-          const xj = ((laneX - sr.left) / sr.width) * 1440;
-          junction = { x: laneX, y: toDoc(xj).y };
-          tangentPt = toDoc(xj + (34 / sr.width) * 1440);
-          headY = junction.y;
+          const first = vb.reduce((a, b) => (b[0] < a[0] ? b : a)); // leftmost point = the drawn end
+          const end = { x: sr.left + (first[0] / 1440) * sr.width, y: sr.top + (first[1] / 48) * sr.height + scrollY };
+          junction = { x: laneX, y: end.y + 34 };
+          tangentPt = end;
+          headY = end.y;
         } else { // fallback: the band's center level (never worse than before)
           const r = rb.getBoundingClientRect(); headY = r.top + r.height / 2 + scrollY;
         }
@@ -130,15 +124,23 @@ export function initSpine() {
         const r = idr.getBoundingClientRect();
         const hy = parseFloat(idr.dataset.headY || '0.5');
         headY = r.top + r.height * (Number.isFinite(hy) ? hy : 0.5) + scrollY;
-        fadeRef = idr.offsetHeight * 0.8;
+        // QA-2 ROOT CAUSE of "baja el punto rojo pero no hay hilo": .identity__route is
+        // an <svg> — it has NO offsetHeight → fadeRef was NaN → --fc-spine-fade "NaN"
+        // → computed opacity 0 on EVERY project page. The rect is the truth.
+        fadeRef = Math.max(1, r.height * 0.8);
       } else { fadeRef = innerHeight * 0.4; }
     }
     const anchors = ANCHORS.map((s) => document.querySelector(s)).filter(Boolean)
       .map((el) => el.offsetTop).filter((y) => y > headY + 40 && y < docH - 60).sort((a, b) => a - b);
     const ys = anchors.length >= 2 ? anchors
       : Array.from({ length: 5 }, (_, i) => headY + ((i + 1) / 6) * (docH - headY)); // even fallback
-    // head: the elbow from the route into the lane (catmullRom turns ~30px of air into the codo)
-    const pts = junction ? [[tangentPt.x, tangentPt.y], [laneX, junction.y + 30]] : [[laneX, headY]];
+    // head: the sweep from the route's real endpoint down-left into the lane — one
+    // continuous gesture (Mirror's Edge: the red guides the eye into the page)
+    const pts = junction
+      ? [[tangentPt.x, tangentPt.y],
+         [laneX + (tangentPt.x - laneX) * 0.42, tangentPt.y + 14],
+         [laneX, junction.y + 30]]
+      : [[laneX, headY]];
     ys.forEach((oy, i) => {
       const t = (i + 1) / (ys.length + 1);
       const ease = 0.5 - 0.5 * Math.cos(t * Math.PI);
@@ -161,7 +163,7 @@ export function initSpine() {
     const len0 = path.getTotalLength();
     const N = 24;
     const samples = new Set([0, len0]);
-    if (junction) [10, 22, 34, 48, 64, 90, 130].forEach((l) => { if (l < len0) samples.add(l); });
+    if (junction) [10, 22, 34, 48, 64, 90, 130, 190, 270, 370, 480, 590].forEach((l) => { if (l < len0) samples.add(l); }); // the long head sweep keeps its shape through the resample
     [130, 90, 56, 28, 10].forEach((l) => { if (len0 - l > 0) samples.add(len0 - l); });
     for (let i = 1; i < N; i++) samples.add((len0 * i) / N);
     basePts = [...samples].sort((a, b) => a - b).map((s) => { const q = path.getPointAtLength(s); return [q.x, q.y]; });
@@ -179,12 +181,15 @@ export function initSpine() {
     minP = LEN > 1 ? Math.min(0.18, Math.max(0.05, lenAtY(headY + innerHeight * 0.45) / LEN)) : 0.05;
     // the stitch's waypoints (HILO-5a): accumulated length where the thread crosses each anchor
     anchorLens = LEN > 1 ? ys.map((y) => lenAtY(y)) : [];
+    anchorYs = LEN > 1 ? ys.slice() : []; // doc-Y per waypoint (QA-4: visibility check per frame, no sampling)
+    headPinY = junction ? junction.y + 30 : -1; // QA-1b: below this the bend ramps in; above, the head is welded to the route
     // the knots sit at the junction (origin) and on the email hook (dest)
     knotO.setAttribute('cx', (junction ? laneX : pts[0][0]).toFixed(1));
     knotO.setAttribute('cy', (junction ? junction.y : pts[0][1]).toFixed(1));
     knotD.setAttribute('cx', destPt[0].toFixed(1));
     knotD.setAttribute('cy', destPt[1].toFixed(1));
     stitch.setAttribute('d', path.getAttribute('d'));
+    tipLen = -1; // geometry changed (rebuild/route-redraw) → never let the nib ride a stale point
   };
   build();
 
@@ -219,8 +224,14 @@ export function initSpine() {
     lastTap = { x: e.clientX + scrollX, y: e.clientY + scrollY, t: Date.now() };
     dDirty = true; wake();
   };
+  let clickT = 0; // V5.1 — the click-wave TUGS the thread on desktop too ("la onda no interactúa con nada")
+  const onClickTug = (e) => {
+    if (e.target.closest && e.target.closest('a,button,input,textarea,select,label,[role="button"]')) return;
+    clickT = Date.now(); dDirty = true; wake();
+  };
   if (fine) {
     window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('pointerdown', onClickTug, { passive: true });
     document.addEventListener('pointerleave', onLeave);
   } else {
     // HILO-7: field physics, not UI animation (CONTRACTS §f.3a) — the 1.2–1.8s
@@ -236,7 +247,6 @@ export function initSpine() {
   };
   document.addEventListener('fc:crest', onCrest);
 
-  let tipLen = -1, tipX = 0, lastFade = '', lastNib = -1, lastNext = -1, tied = false, wasBent = false;
   const ticker = (t, dt) => {
     const dtF = (dt || 16.7) / 16.7;
     let worked = false;
@@ -256,7 +266,12 @@ export function initSpine() {
     // quick to ANSWER, slow to FORGET (asymmetric ease — poise, not lag)
     influence += (targetInfluence - influence) * Math.min(1, (targetInfluence > influence ? 0.09 : 0.045) * dtF);
     let inf = 0, bx = 0, by = 0;
-    if (fine) { inf = influence; bx = cursorDocX; by = cursorDocY; }
+    // the click-wave's tug: for ~0.9s after a field click the thread leans harder
+    // toward the hand — the ripple visibly touches the thread (geometry, not red)
+    const cAge = clickT ? (Date.now() - clickT) / 900 : 1;
+    const cTug = cAge < 1 ? 1 - cAge : 0;
+    if (cTug > 0) worked = true; else if (clickT) clickT = 0;
+    if (fine) { inf = Math.min(1, influence + 0.5 * cTug); bx = cursorDocX; by = cursorDocY; }
     else if (lastTap) {
       const age = Date.now() - lastTap.t; // absolute clock — refresh-rate immune
       const relaxMs = intensity.tapPull > 1 ? 1800 : 1200; // boost stretches the settle, not the red
@@ -265,24 +280,29 @@ export function initSpine() {
       else { bx = lastTap.x; by = lastTap.y; }
     }
     if (dDirty || inf > 0.005 || wasBent) {
-      const MAXP = fine ? MAXPULL : intensity.tapPull * 10; // tap pull: subtle 10 / boost 14 (geometry, not red)
+      const MAXP = fine ? MAXPULL + 5 * cTug : intensity.tapPull * 10; // click-tug deepens the lean ≤13px for ~0.9s; tap pull: subtle 10 / boost 14 (geometry, not red)
       const hasSrc = inf > 0.005;
       const bent = hasSrc ? basePts.map(([x, y]) => {
         const w0 = Math.max(0, 1 - Math.abs(by - y) / FALLOFF);
         const wgt = w0 * w0; // squared → the active bulge eases in/out instead of snapping between φ-nodes
-        const pull = Math.max(-MAXP, Math.min(MAXP, (bx - x) * 0.12 * wgt)) * inf;
+        // QA-1b: the HEAD is welded to the route — the bend's mask ramps in over the
+        // 200px below the junction, so the thread's birth never de-anchors (2.7–8px
+        // drift measured when the cursor sat in the hero)
+        const pin = headPinY > 0 ? clamp01((y - headPinY) / 200) : 1;
+        const pull = Math.max(-MAXP, Math.min(MAXP, (bx - x) * 0.12 * wgt)) * inf * pin;
         return [x + pull, y];
       }) : basePts; // settles EXACTLY back to base on the last write
       const dNow = catmullRom(bent);
       path.setAttribute('d', dNow);
       stitch.setAttribute('d', dNow); // the stitch rides the SAME thread while it bends
+      tipLen = -1; // QA-3: the bend rewrote the geometry — re-seat the nib on the BENT thread next frame
       wasBent = hasSrc;
       dDirty = false;
       worked = true;
     }
 
     // continuity ramp (HILO-4 floor): present from the first viewport → full below it
-    const fade = (0.55 + 0.45 * clamp01(scrollY / fadeRef)).toFixed(3);
+    const fade = (0.72 + 0.28 * clamp01(scrollY / fadeRef)).toFixed(3); // V5.1: floor 0.55→0.72 — the thread must READ at the hero, where the owner judges
     if (fade !== lastFade) { svg.style.setProperty('--fc-spine-fade', fade); lastFade = fade; worked = true; }
 
     // ── the pulse channels: they WRITE whenever the loop runs, but never CLAIM it
@@ -315,8 +335,15 @@ export function initSpine() {
       if (phase < 0.06 && !rang) { ripple.classList.remove('go'); ripple.getBoundingClientRect(); ripple.classList.add('go'); rang = true; }
       if (phase > 0.12) rang = false;
 
-      // ── HILO-5a: the sashiko stitch slides to the NEXT anchor ahead of the nib ──
-      const next = anchorLens.find((L) => L > dLen + 24);
+      // ── HILO-5a: the sashiko stitch slides to the NEXT anchor ahead of the nib —
+      // and it must be a VISIBLE waypoint (QA-4: the old pick often sat 1400px below
+      // the viewport — a marker nobody could read as "next stop"). Anchor Ys are
+      // precomputed in build() — zero path sampling per frame.
+      const vLimit = scrollY + innerHeight * 1.6; // within reach of a nudge — anchors are sparse on long pages
+      let next;
+      for (let i = 0; i < anchorLens.length; i++) {
+        if (anchorLens[i] > dLen + 24 && anchorYs[i] < vLimit) { next = anchorLens[i]; break; }
+      }
       if (next !== undefined && drawn < 0.97) {
         if (next !== lastNext) { // write-gated: only when the waypoint changes (240ms blink)
           stitch.style.opacity = '0';

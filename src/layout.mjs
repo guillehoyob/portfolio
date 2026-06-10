@@ -29,11 +29,17 @@ const escAttr = (s = '') => esc(s).replace(/"/g, '&quot;');
 /* escape text, then surface every [PLACEHOLDER …] as a visible honest chip */
 export const ph = (s = '') =>
   esc(s).replace(/\[PLACEHOLDER[^\]]*\]/g, (m) => `<span class="placeholder placeholder--inline">${m}</span>`);
-/* AST-4 (DC-10): the QUIET placeholder — identity-badge rows only. The full chip
-   stays verbatim in the title attribute (hover/tooltip) and in the page body where
-   it appears: honesty is HIERARCHIZED here, never hidden (HANDOFF §1 law intact). */
-export const phQuiet = (s = '') =>
-  /\[PLACEHOLDER/.test(s) ? `<span class="ph-quiet" title="${escAttr(s)}">pendiente</span>` : esc(s);
+/* AST-4 (DC-10) + BREAK-9: the QUIET placeholder — identity-badge rows only. The
+   full chip is now a native POPOVER anchored to the chip (Popover API + CSS anchor
+   positioning): the honesty device finally speaks on TOUCH and for the KEYBOARD,
+   not just on a desktop hover (title= was invisible to both). Verbatim text —
+   hierarchized, never hidden (HANDOFF §1 law intact). */
+let phN = 0;
+export const phQuiet = (s = '') => {
+  if (!/\[PLACEHOLDER/.test(s)) return esc(s);
+  const id = `ph-${++phN}`;
+  return `<button type="button" class="ph-quiet" popovertarget="${id}" style="anchor-name:--${id}">pendiente</button><div id="${id}" popover class="ph-pop" style="position-anchor:--${id}">${esc(s)}</div>`;
+};
 
 /* ---- the pre-paint head snippet (grows per Field Conditions stage) ----
    Sets has-js + fc-motion (motion-allowed master gate) BEFORE first paint so
@@ -144,11 +150,15 @@ export function renderPage({ title, description, active = '', main, content }) {
 <meta name="twitter:description" content="${escAttr(description)}">
 <meta name="twitter:image" content="/og-image.png">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="preload" href="/fonts/SpaceGrotesk-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/SpaceGrotesk-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/DMSans-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/DMSans-700.woff2" as="font" type="font/woff2" crossorigin>
 <style>${CSS}</style>
 ${prePaint()}
+<script type="speculationrules">
+{"prerender":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/*\\\\?*"}}]},"eagerness":"moderate"}],
+ "prefetch":[{"where":{"href_matches":"/*"},"eagerness":"conservative"}]}
+</script>
 </head>
 <body>
 <div class="fc-tint" aria-hidden="true"></div>
@@ -416,7 +426,7 @@ export function renderCvPage(content) {
 <meta name="description" content="${escAttr(id.name + ' — GenAI engineer. Curriculum vitae.')}">
 <meta name="robots" content="noindex">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="preload" href="/fonts/SpaceGrotesk-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/SpaceGrotesk-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/DMSans-400.woff2" as="font" type="font/woff2" crossorigin>
 <style>${CSS}${cvCss}</style>
 ${prePaint()}

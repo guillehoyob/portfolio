@@ -86,9 +86,21 @@ html.fc-aged .wn-card--visited::after {
    bounded blocks add a warm frame, cards warm their border (complementing their own lift). */
 .fc-lit { transition: box-shadow var(--dur-300) var(--ease-react), text-shadow var(--dur-300) var(--ease-react), border-color var(--dur-300) var(--ease-react); text-shadow: 0 0 16px color-mix(in srgb, var(--sun) 16%, transparent); }
 .wn-card.fc-lit { border-color: color-mix(in srgb, var(--sun) 35%, var(--hairline)); }
-.proof__cell.fc-lit, .principle.fc-lit, .phase.fc-lit, .about__photo.fc-lit, .stacktable.fc-lit, .toolchain.fc-lit, .identity.fc-lit, .related-cards.fc-lit {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sun) 18%, transparent), 0 8px 30px -12px color-mix(in srgb, var(--sun) 45%, transparent);
+/* V5.1 QA-5 (owner: "el espacio que se ilumina queda mal") — unbounded blocks get a
+   POOL of light UNDER them (::after radial, z-index:-1), never a box: an outer
+   box-shadow cannot paint inside its border-box, so it left a hard-edged pale
+   RECTANGLE misaligned with the text (measured 69–345px of lit emptiness). The
+   pool feathers in every direction — there is no edge left to misalign. */
+.proof__cell, .principle, .phase, .stacktable, .toolchain, .identity, .related-cards { position: relative; }
+.proof__cell::after, .principle::after, .phase::after, .stacktable::after, .toolchain::after, .identity::after, .related-cards::after {
+  content: ""; position: absolute; inset: -28px; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--sun) 14%, transparent), transparent);
+  opacity: 0;
+  transition: opacity var(--dur-300) var(--ease-react);
 }
+.proof__cell.fc-lit::after, .principle.fc-lit::after, .phase.fc-lit::after, .stacktable.fc-lit::after, .toolchain.fc-lit::after, .identity.fc-lit::after, .related-cards.fc-lit::after { opacity: 1; }
+/* the photo covers its own pseudo — it keeps the simple outer halo */
+.about__photo.fc-lit { box-shadow: 0 0 44px -10px color-mix(in srgb, var(--sun) 50%, transparent); }
 /* warm-lens on the band must ADD to the urushi shadow below, never replace it */
 .wn-void.fc-lit { box-shadow: inset 0 0 180px -60px color-mix(in srgb, var(--sun) 30%, transparent),
   0 26px 40px -28px color-mix(in srgb, var(--void) 45%, transparent),

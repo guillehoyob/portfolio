@@ -429,9 +429,16 @@ try {
   await page.mouse.move(box.x, box.y, { steps: 4 });
   await page.waitForTimeout(450);
   const lit = await page.evaluate(() => !!document.querySelector('.fc-lit'));
-  const after = await page.evaluate(() => { const el = document.querySelector('.fc-lit'); return el ? getComputedStyle(el).boxShadow : ''; });
-  const ok = lit && after !== before;
-  rec('Warm lens', true, ok, `element lit on hover=${lit}; shadow changed=${after !== before}`, ok);
+  // QA-5: unbounded blocks now glow via a ::after light POOL (opacity 0→1), not a
+  // box-shadow (which clipped under the border-box into a hard misaligned rectangle)
+  const after = await page.evaluate(() => {
+    const el = document.querySelector('.fc-lit');
+    if (!el) return '';
+    const pool = +getComputedStyle(el, '::after').opacity;
+    return pool >= 0.9 ? 'pool' : getComputedStyle(el).boxShadow;
+  });
+  const ok = lit && (after === 'pool' || after !== before);
+  rec('Warm lens', true, ok, `element lit on hover=${lit}; light channel=${after === 'pool' ? 'pool ::after' : 'box-shadow'}`, ok);
   await c.close();
 } catch (e) { rec('Warm lens', true, false, 'ERR ' + e.message, false); }
 
@@ -817,7 +824,7 @@ try {
     return s ? { op: getComputedStyle(s).opacity, off: s.getAttribute('stroke-dashoffset') } : null;
   });
   await c.close();
-  const pass = top.off <= top.LEN * 0.95 && top.op >= 0.2 && top.knot >= 0.85 && !!stitch && stitch.op === '1';
+  const pass = top.off <= top.LEN * 0.95 && top.op >= 0.2 && top.knot >= 0.65 && !!stitch && stitch.op === '1'; // knot quieted to 0.72 in V5.1 (owner: "cantosos")
   rec('Spine presence', true, pass, `scroll-0: off=${top.off | 0} ≤ ${(top.LEN * 0.95) | 0}, op=${num(top.op)}, knot=${num(top.knot)}; stitch op=${stitch && stitch.op}`, pass);
 } catch (e) { rec('Spine presence', true, false, 'ERR ' + e.message, false); }
 
@@ -926,6 +933,53 @@ try {
   const pass = d.max >= 16 && d.pctGe8 >= 0.8;
   rec('Boost perceptibility', true, pass, `subtle↔boost @16h: max=${d.max} (≥16) pctGe8=${d.pctGe8}% (≥0.8%) — perceptible is an ASSERT`, pass);
 } catch (e) { rec('Boost perceptibility', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 37. ASK THE FIELD (V5.2) — grounded assistant, honest offline ───────────────── */
+try {
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(800);
+  const cta = await page.$eval('[data-ask]', (el) => !el.hidden).catch(() => false);
+  await page.click('[data-ask]');
+  await page.waitForTimeout(300);
+  const open = await page.$eval('dialog.wn-ask', (d) => d.open).catch(() => false);
+  await page.fill('.wn-ask__input', 'what did he build?');
+  await page.click('.wn-ask__send');
+  await page.waitForTimeout(1500); // preview has no /api/ask → the QUIET fallback must speak
+  const fallback = await page.$$eval('.wn-ask__msg--quiet', (els) => els.some((el) => /guillehoyob@gmail\.com/.test(el.textContent)));
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(200);
+  const closed = await page.$eval('dialog.wn-ask', (d) => !d.open);
+  const pass = cta && open && fallback && closed;
+  rec('Ask the field', cta, pass, `cta=${cta} open=${open} honest-fallback=${fallback} esc-closes=${closed}`, pass);
+  await c.close();
+} catch (e) { rec('Ask the field', true, false, 'ERR ' + e.message, false); }
+
+/* ───────────────── 38. V5.2 surface (spec-rules · variable wght · popover ph · magnet) ───────────────── */
+try {
+  const specRules = /type="speculationrules"/.test(readFileSync('dist/index.html', 'utf8'));
+  const c = await newCtx();
+  const page = await c.newPage();
+  await page.goto(HOME, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(600);
+  const wght = await page.evaluate(() => getComputedStyle(document.querySelector('.hero__h1')).fontVariationSettings);
+  const cta = await page.$('.wn-btn--primary');
+  const box = await cta.boundingBox();
+  await page.mouse.move(box.x + box.width / 2 + 30, box.y + box.height / 2, { steps: 4 });
+  await page.waitForTimeout(250);
+  const magnet = await page.$eval('.wn-btn--primary', (el) => el.style.translate || '');
+  await page.goto(BASE + '/work/rag-zelebrix.html', { waitUntil: 'networkidle' });
+  const pop = await page.evaluate(() => {
+    const b = document.querySelector('button.ph-quiet[popovertarget]');
+    if (!b) return false;
+    const p = document.getElementById(b.getAttribute('popovertarget'));
+    return !!(p && p.hasAttribute('popover') && /\[PLACEHOLDER/.test(p.textContent));
+  });
+  await c.close();
+  const pass = specRules && /wght/.test(wght) && magnet !== '' && pop;
+  rec('V5.2 surface', true, pass, `spec-rules=${specRules}; h1 wght=${wght.slice(0, 14)}; magnet=${magnet || 'none'}; ph-popover=${pop}`, pass);
+} catch (e) { rec('V5.2 surface', true, false, 'ERR ' + e.message, false); }
 
 /* ═════════════════ breakpoint matrix ═════════════════ */
 const matrix = [];

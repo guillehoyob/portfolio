@@ -103,7 +103,12 @@ function boot() {
   initCopy();
   initPrint();
   // Field Conditions Living System — deferred, flag-gated; failure never breaks Stage 0.
-  import('./field-conditions/index.js').then((m) => m.boot()).catch(() => {});
+  // BREAK-1: on a PRERENDERED page (Speculation Rules) the living layer waits for the
+  // real arrival — first-breath/hero-entrance/weather must greet the visitor, not a
+  // headless renderer (and the ONE Open-Meteo GET must not fire for pages never seen).
+  const live = () => import('./field-conditions/index.js').then((m) => m.boot()).catch(() => {});
+  if (document.prerendering) document.addEventListener('prerenderingchange', live, { once: true });
+  else live();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

@@ -8,16 +8,14 @@
  * License texts ship beside the binaries: /fonts/OFL-*.txt
  */
 
-/* ---- Space Grotesk — display voice (H1, void word, H2, labels, wordmark) ---- */
+/* ---- Space Grotesk — display voice (H1, void word, H2, labels, wordmark) ----
+   BREAK-3: ONE VARIABLE face (wght axis 500–700 live, 22.7 KB — smaller than the
+   two statics it replaced) so the display voice can BREATHE its weight with the
+   field (fc-breath.css couples 'wght' to --fc-breath; ±14 max, reflow-safe). */
 @font-face {
   font-family: "Space Grotesk";
-  src: url("/fonts/SpaceGrotesk-500.woff2") format("woff2");
-  font-weight: 500; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: "Space Grotesk";
-  src: url("/fonts/SpaceGrotesk-700.woff2") format("woff2");
-  font-weight: 700; font-style: normal; font-display: swap;
+  src: url("/fonts/SpaceGrotesk-var.woff2") format("woff2");
+  font-weight: 500 700; font-style: normal; font-display: swap;
 }
 
 /* ---- DM Sans — body + UI + CTA voice ---- */

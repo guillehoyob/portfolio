@@ -48,4 +48,45 @@ export function initReveals() {
   // fail-safe: content can never stay hidden — reveal anything still armed after
   // 6s even if the observer somehow never fires (mirrors the route-line arming).
   setTimeout(() => { for (const el of items) el.classList.add('is-in'); }, 6000);
+
+  // ── BREAK-4: the pull-quote (.wn-breath) is the page's ONE typographic moment —
+  // it rises line by line from behind a mask (SplitText, free in GSAP 3.13) instead
+  // of taking the generic forward-land. Fail-safe: split errors leave the quote
+  // visible (it was excluded from .fc-reveal arming below only when split works).
+  // ── BREAK-7 (BOOST-GATED until the owner blesses it): the mono voice "tunes in"
+  // with a 420ms terminal decode (ScrambleText) — Edgerunners in ONE voice only,
+  // never the body, never the red.
+  const quote = document.querySelector('.wn-breath');
+  const boost = document.documentElement.classList.contains('fc-boost');
+  if (quote || boost) {
+    import('./gsap-setup.js').then(({ setupGsap, SplitText }) => {
+      const gsap = setupGsap();
+      if (quote && quote.getBoundingClientRect().top > fold) {
+        try {
+          quote.classList.remove('fc-reveal'); // its reveal is the line-mask now
+          quote.style.transitionDelay = '';
+          const split = new SplitText(quote, { type: 'lines', mask: 'lines', linesClass: 'wn-breath__line' }); // mask:'lines' = native overflow wrapper per line (GSAP 3.13)
+          gsap.set(split.lines, { yPercent: 110 });
+          const qio = new IntersectionObserver((ens) => {
+            if (!ens.some((en) => en.isIntersecting)) return;
+            qio.disconnect();
+            gsap.to(split.lines, { yPercent: 0, duration: 0.55, stagger: 0.144, ease: 'run' });
+          }, { threshold: 0.4 });
+          qio.observe(quote);
+        } catch { quote.classList.add('is-in'); }
+      }
+      if (boost) {
+        // one decode per element per load, only as it enters — the data voice tuning in
+        const monos = [...document.querySelectorAll('.eyebrow, .wn-proof__num')].filter((el) => el.textContent.trim());
+        const sio = new IntersectionObserver((ens) => {
+          for (const en of ens) {
+            if (!en.isIntersecting) continue;
+            sio.unobserve(en.target);
+            gsap.to(en.target, { duration: 0.42, scrambleText: { text: en.target.textContent, chars: 'upperCase', speed: 2, tweenLength: false } });
+          }
+        }, { threshold: 0.6 });
+        monos.forEach((el) => sio.observe(el));
+      }
+    }).catch(() => { if (quote) quote.classList.add('is-in'); });
+  }
 }

@@ -142,6 +142,14 @@ export function initBreath() {
   };
   const cancelFast = () => {
     if (!running || cancelling || forceCycle) return;
+    // F1 (QA respiración): an inhalation that climbed ≥0.6 PAYS its crest as it is
+    // cancelled — the glint lands ON the user's gesture, at peak attention. In real
+    // reading cadence the 4.6s crest almost never arrived: 6-7 inhalations per
+    // minute died MUTE at breath 0.5-0.8. Now each one is felt as it exhales.
+    if (!crestFired && field.breath >= 0.6) {
+      crestFired = true;
+      document.dispatchEvent(new CustomEvent('fc:crest'));
+    }
     cancelFrom = field.breath; cancelStart = performance.now(); cancelling = true; wake();
   };
 
@@ -211,7 +219,7 @@ export function initBreath() {
     if (field.scrollVel > 0.15) cancelFast();
   };
   const onPointerMove = (e) => {
-    if (px >= 0 && Math.hypot(e.clientX - px, e.clientY - py) <= 6) return; // jitter is not presence
+    if (px >= 0 && Math.hypot(e.clientX - px, e.clientY - py) <= 14) return; // jitter is not presence (V5.1: 6→14 — a reading hand resting on the mouse must not silence the field)
     px = e.clientX; py = e.clientY;
     lastPointer = Date.now(); wakeRest();
     // RULE: pointermove never cancels a breath in progress — it only delays the next one

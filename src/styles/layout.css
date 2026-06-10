@@ -319,7 +319,7 @@ main { flex: 1 0 auto; }
 .footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 72px; height: 1px; background: linear-gradient(90deg, transparent, var(--pulse), transparent); opacity: 0.5; }
 
 /* ============ PROJECT PAGE (§3.20 / §4.3) ============ */
-.identity { padding-top: var(--space-16); position: relative; }
+.identity { padding-top: var(--space-16); padding-bottom: var(--space-8); position: relative; } /* QA-7: the badge row breathes inside the block (was 0.0px from the edge) */
 .identity__route { width: 100%; max-width: 720px; height: auto; display: block; margin-bottom: var(--space-8); }
 .identity__title { font-family: var(--font-display); font-weight: var(--weight-display); font-size: var(--text-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); color: var(--ink); margin: 0; }
 .identity__tagline { font-size: var(--text-body); color: var(--ink-ghost); max-width: 55ch; margin: var(--space-6) 0 0; }
@@ -339,7 +339,40 @@ main { flex: 1 0 auto; }
 .placeholder--inline { padding: 1px 6px; }
 /* AST-4 (DC-10): the QUIET placeholder — identity-badge rows only; the full chip
    lives in the title attr + verbatim in the page body (honesty hierarchized) */
-.ph-quiet { border-bottom: 1px dotted var(--ink-ghost); cursor: help; text-transform: lowercase; }
+/* BREAK-9: the quiet placeholder is a BUTTON with a native popover — the verbatim
+   chip becomes reachable on touch + keyboard (the title= tooltip never was) */
+.ph-quiet {
+  border: none; background: none; padding: 0; font: inherit; color: inherit;
+  letter-spacing: inherit; text-transform: lowercase;
+  border-bottom: 1px dotted var(--ink-ghost); cursor: help;
+}
+.ph-pop {
+  position: absolute;
+  position-anchor: inherit;
+  position-area: block-start;
+  position-try-fallbacks: flip-block;
+  margin-block-end: 4px;
+  font-family: var(--font-mono); font-size: var(--text-micro);
+  letter-spacing: var(--ls-mono); line-height: var(--lh-mono);
+  color: var(--ink); background: var(--field-0);
+  border: 1px solid var(--hairline);
+  padding: var(--space-2) var(--space-3);
+  max-width: 38ch;
+}
+/* the nav knows when it floats (BREAK-6 — scroll-state, Chrome 133+; the hairline
+   takes the hour's light; everyone else keeps the nav--scrolled look) */
+.nav { container-type: scroll-state; }
+@supports (container-type: scroll-state) {
+  .nav::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+    background: var(--hairline-lit, var(--hairline));
+    opacity: 0; transition: opacity var(--dur-420) var(--ease-run);
+    pointer-events: none;
+  }
+  @container scroll-state(stuck: top) {
+    .nav::after { opacity: 1; }
+  }
+}
 
 /* artifacts — text links with access labels (§4.3) */
 .artifacts { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-4); }

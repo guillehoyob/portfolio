@@ -29,23 +29,26 @@
   stroke-width: calc(2px + var(--fc-breath, 0) * 1px * var(--fc-int-breath, 1));
   stroke-dasharray: var(--fc-spine-len, 4000);
   stroke-dashoffset: var(--fc-spine-len, 4000);
-  opacity: calc((0.42 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-breath, 0) * 0.20 * var(--fc-int-breath, 1)) * var(--fc-spine-fade, 1));
+  /* base 0.42→0.50 (V5.1): the owner judges the thread at the hero and on project pages —
+     it must READ as a thread, not a ghost. Same in both presets (RED_LOCKED). */
+  opacity: calc((0.50 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-breath, 0) * 0.20 * var(--fc-int-breath, 1)) * var(--fc-spine-fade, 1));
 }
 /* HILO-3 — the pinky-promise knots: full-red ring, perforated loop (fill = field),
    NO gold (owner veto). Eje `knot` BLOQUEADO (RED_LOCKED): boost never scales it —
    it breathes ONLY with --fc-breath (the sanctioned channel). */
 .fc-spine__knot {
-  stroke: var(--signal); stroke-width: 2; fill: var(--fc-field, var(--field-0));
+  stroke: var(--signal); stroke-width: 1.75; fill: var(--fc-field, var(--field-0));
   transform-box: fill-box; transform-origin: center;
 }
-.fc-spine__knot--origin { opacity: 0.9; transform: scale(calc(1 + var(--fc-breath, 0) * 0.14)); } /* does NOT multiply --fc-spine-fade: puntuación, visible at scroll 0 */
+/* V5.1 — quieter knots (owner: "muy cantosos"): r 4.5→3.5 (JS), width 2→1.75, op down a step */
+.fc-spine__knot--origin { opacity: 0.72; transform: scale(calc(1 + var(--fc-breath, 0) * 0.14)); } /* does NOT multiply --fc-spine-fade: puntuación, visible at scroll 0 */
 .fc-spine__knot--dest { opacity: 0; transition: opacity var(--dur-600) var(--ease-run); }
-.fc-spine__knot--dest.is-tied { opacity: 0.9; animation: wn-knot-tighten var(--dur-600) var(--ease-run); }
+.fc-spine__knot--dest.is-tied { opacity: 0.8; animation: wn-knot-tighten var(--dur-600) var(--ease-run); }
 @keyframes wn-knot-tighten { from { transform: scale(1.35); } 60% { transform: scale(0.92); } to { transform: scale(1); } }
 /* HILO-5a — the sliding sashiko stitch: ONE 12px dash resting on the NEXT anchor,
    ahead of the nib, ON the thread. Eje `stitch` BLOQUEADO: no boost scaling. */
 .fc-spine__stitch {
-  stroke: var(--signal); stroke-width: 4; opacity: 0;
+  stroke: var(--signal); stroke-width: 3; opacity: 0; /* V5.1: 4→3 — a stitch, not a bar */
   transition: opacity var(--dur-240) var(--ease-react);
 }
 /* (kintsugi gold lives ONLY on the void CRACK — the actual break — never on the
@@ -65,7 +68,7 @@
   to   { opacity: 0;    r: 19;  stroke-width: 0.3; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fc-spine__path { stroke-dashoffset: 0; opacity: 0.42; stroke-width: 2; }
+  .fc-spine__path { stroke-dashoffset: 0; opacity: 0.5; stroke-width: 2; }
   .fc-spine__pulse, .fc-spine__ripple { display: none; }
   .fc-spine__stitch { display: none; } /* without motion there is no "next" waypoint */
   .fc-spine__knot--origin { transform: none; }

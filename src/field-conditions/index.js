@@ -231,6 +231,10 @@ export async function boot() {
   await load(f.breath, () => import('./breath.js'), (m) => m.initBreath(config));
   // Stage 6 — Patina (memory; the visit count + greeting swapped pre-paint)
   await load(f.patina, () => import('./patina.js'), (m) => m.initPatina(config));
+  // V5.2 — the grounded assistant + the lean of the one red button + the auditioned voice
+  await load(f.ask, () => import('./ask.js'), (m) => m.initAsk());
+  await load(f.magnet, () => import('./magnet.js'), (m) => m.initMagnet());
+  await load(f.sound || /[?&]fc-sound=1/.test(location.search), () => import('./hum.js'), (m) => m.initHum());
   // Calibration UI — last, never on the print sheet
   await load(f.intensityControl && !document.body.classList.contains('cv-wrap'),
     () => import('./intensity-control.js'), (m) => m.initIntensityControl());

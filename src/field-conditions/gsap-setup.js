@@ -8,12 +8,13 @@
 import { gsap } from 'gsap';
 import { CustomEase } from 'gsap/CustomEase';
 import { SplitText } from 'gsap/SplitText';
+import { ScrambleTextPlugin } from 'gsap/ScrambleTextPlugin';
 
 let ready = false;
 export function setupGsap() {
   if (ready) return gsap;
   ready = true;
-  gsap.registerPlugin(CustomEase, SplitText);
+  gsap.registerPlugin(CustomEase, SplitText, ScrambleTextPlugin);
   CustomEase.create('run', '0.22,1,0.36,1');
   CustomEase.create('lift', '0.42,0,1,1'); // the route RETRACT (HILO-1a): accelerates away, never bounces
   gsap.defaults({ ease: 'run' });

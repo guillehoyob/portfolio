@@ -330,6 +330,16 @@ export function initWeather(config) {
 
   const onWxDoc = () => syncSnow();
   document.addEventListener('wn:wx', onWxDoc);
+  // V5.1 — in-page QA without URLs: the LOUD panel's WX chip forces a state through
+  // the same path as the ?fc-wx scrubber (ephemeral; detail.state null/'auto' → back
+  // to the synthetic/cached truth). The owner can now AUDITION rain/storm/snow live.
+  const onForce = (e) => {
+    const st = e.detail && e.detail.state;
+    const syn = synthetic();
+    if (st && st !== 'auto' && VALID.has(st)) apply(st, syn.wind, CLOUDS[st]);
+    else apply(syn.state, syn.wind, syn.clouds);
+  };
+  document.addEventListener('wn:wx-force', onForce);
   snowT = setTimeout(syncSnow, 1200); // .fc-sky is born later in boot (particles) — re-sync once
   addEventListener('fc:intensity', onIntensity);
   irisTimer = setInterval(syncIris, 600e3); // hourly drift gate, re-checked every 10 min
@@ -339,6 +349,7 @@ export function initWeather(config) {
     disarmStorm();
     if (io) { io.disconnect(); io = null; }
     document.removeEventListener('wn:wx', onWxDoc);
+    document.removeEventListener('wn:wx-force', onForce);
     removeEventListener('fc:intensity', onIntensity);
     // animated phenomena go; data-wx + static clouds REMAIN (state is honest under RM)
     for (const name of ['rain', 'iris', 'fog']) { const got = layers.get(name); if (got) { clearTimeout(got.removeT); got.els.forEach((el) => el.remove()); layers.delete(name); } }

@@ -32,8 +32,10 @@ const extras = [
 const text = [...cp, ...extras].map((c) => String.fromCodePoint(c)).join('');
 
 const faces = [
-  { src: 'SpaceGrotesk.ttf',              out: 'SpaceGrotesk-500.woff2',            axes: { wght: 500 } },
-  { src: 'SpaceGrotesk.ttf',              out: 'SpaceGrotesk-700.woff2',            axes: { wght: 700 } },
+  // BREAK-3: ONE variable face (wght 500–700 kept live) replaces the two static
+  // SG instances — the display voice can now BREATHE its weight with the field
+  // (fc-breath.css couples 'wght' to --fc-breath; ±14 max, reflow-safe)
+  { src: 'SpaceGrotesk.ttf',              out: 'SpaceGrotesk-var.woff2',            axes: { wght: { min: 500, max: 700 } } },
   { src: 'DMSans.ttf',                    out: 'DMSans-400.woff2',                  axes: { wght: 400 } },
   { src: 'DMSans.ttf',                    out: 'DMSans-500.woff2',                  axes: { wght: 500 } },
   { src: 'DMSans.ttf',                    out: 'DMSans-700.woff2',                  axes: { wght: 700 } },

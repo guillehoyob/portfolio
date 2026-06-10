@@ -20,7 +20,7 @@
 <meta name="twitter:description" content="How I work with Claude: written specs, eval gates, commit-by-commit review, and harvested learnings. AI pair-engineering run as a discipline, not a shortcut.">
 <meta name="twitter:image" content="/og-image.png">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="preload" href="/fonts/SpaceGrotesk-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/SpaceGrotesk-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/DMSans-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/DMSans-700.woff2" as="font" type="font/woff2" crossorigin>
 <style>/**
@@ -164,6 +164,8 @@
   --z-nav:     100; --z-menu:  150; --z-skip:    300;
 
   /* ============ MOTION — easing ============ */
+  /* spring release (BREAK-5): high damping, 2% overshoot — the magnet lets go */
+  --ease-spring: linear(0, 0.563 18.8%, 1.02 36%, 1.001 60%, 1);
   --ease-run:   cubic-bezier(0.22, 1, 0.36, 1);   /* THE curve — 90% of all motion */
   --ease-react: cubic-bezier(0.4, 0, 0.2, 1);     /* hover/focus reactions <200ms */
   --ease-cut:   cubic-bezier(0.8, 0, 1, 1);       /* threshold snap — void band ONLY */
@@ -259,16 +261,14 @@ html.fc-boost {
  * License texts ship beside the binaries: /fonts/OFL-*.txt
  */
 
-/* ---- Space Grotesk — display voice (H1, void word, H2, labels, wordmark) ---- */
+/* ---- Space Grotesk — display voice (H1, void word, H2, labels, wordmark) ----
+   BREAK-3: ONE VARIABLE face (wght axis 500–700 live, 22.7 KB — smaller than the
+   two statics it replaced) so the display voice can BREATHE its weight with the
+   field (fc-breath.css couples 'wght' to --fc-breath; ±14 max, reflow-safe). */
 @font-face {
   font-family: "Space Grotesk";
-  src: url("/fonts/SpaceGrotesk-500.woff2") format("woff2");
-  font-weight: 500; font-style: normal; font-display: swap;
-}
-@font-face {
-  font-family: "Space Grotesk";
-  src: url("/fonts/SpaceGrotesk-700.woff2") format("woff2");
-  font-weight: 700; font-style: normal; font-display: swap;
+  src: url("/fonts/SpaceGrotesk-var.woff2") format("woff2");
+  font-weight: 500 700; font-style: normal; font-display: swap;
 }
 
 /* ---- DM Sans — body + UI + CTA voice ---- */
@@ -528,6 +528,14 @@ a { color: inherit; }
   transform: translateY(-3px);
   background: var(--signal-deep);
   box-shadow: var(--shadow-bloom);
+}
+/* BREAK-5: the magnet's release rides a real spring — ONLY the translate channel
+   (magnet.js writes it); every other property keeps its tuned react timing */
+.wn-btn--primary {
+  transition: translate 480ms var(--ease-spring),
+              transform var(--dur-180) var(--ease-react),
+              background-color var(--dur-180) var(--ease-react),
+              box-shadow var(--dur-180) var(--ease-react);
 }
 .wn-btn--primary:active {
   transform: translateY(0);
@@ -885,6 +893,9 @@ html.fc-boost a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned):focu
    gold seams (::before/::after at top:±5px in field-conditions.css) are clipped to the
    1px box and the mend can never paint (audit VIS-01: Δ8 → Δ153 with this one line). */
 .wn-void__crack { height: 1px; background: var(--signal); border: none; width: 100%; margin: var(--space-8) 0; overflow: visible; }
+/* V5.1 (owner: "en alguna zona no hay espacio con el void") — the band always gets
+   breathing room from the prose above/below it; ma is the space that gives it weight */
+.wn-void { margin-block: var(--space-12); }
 .wn-void__body { font-family: var(--font-body); font-size: var(--text-body); line-height: var(--lh-body); color: var(--washi); max-width: 55ch; }
 /* the collab grid (3 columns) must not be trapped by the 55ch prose cap — let it
    breathe to the full band; each column stays ≤~34ch internally (§3.15) */
@@ -1227,7 +1238,7 @@ main { flex: 1 0 auto; }
 .footer__scanline::after { content: ""; position: absolute; left: 0; top: 0; width: 72px; height: 1px; background: linear-gradient(90deg, transparent, var(--pulse), transparent); opacity: 0.5; }
 
 /* ============ PROJECT PAGE (§3.20 / §4.3) ============ */
-.identity { padding-top: var(--space-16); position: relative; }
+.identity { padding-top: var(--space-16); padding-bottom: var(--space-8); position: relative; } /* QA-7: the badge row breathes inside the block (was 0.0px from the edge) */
 .identity__route { width: 100%; max-width: 720px; height: auto; display: block; margin-bottom: var(--space-8); }
 .identity__title { font-family: var(--font-display); font-weight: var(--weight-display); font-size: var(--text-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); color: var(--ink); margin: 0; }
 .identity__tagline { font-size: var(--text-body); color: var(--ink-ghost); max-width: 55ch; margin: var(--space-6) 0 0; }
@@ -1247,7 +1258,40 @@ main { flex: 1 0 auto; }
 .placeholder--inline { padding: 1px 6px; }
 /* AST-4 (DC-10): the QUIET placeholder — identity-badge rows only; the full chip
    lives in the title attr + verbatim in the page body (honesty hierarchized) */
-.ph-quiet { border-bottom: 1px dotted var(--ink-ghost); cursor: help; text-transform: lowercase; }
+/* BREAK-9: the quiet placeholder is a BUTTON with a native popover — the verbatim
+   chip becomes reachable on touch + keyboard (the title= tooltip never was) */
+.ph-quiet {
+  border: none; background: none; padding: 0; font: inherit; color: inherit;
+  letter-spacing: inherit; text-transform: lowercase;
+  border-bottom: 1px dotted var(--ink-ghost); cursor: help;
+}
+.ph-pop {
+  position: absolute;
+  position-anchor: inherit;
+  position-area: block-start;
+  position-try-fallbacks: flip-block;
+  margin-block-end: 4px;
+  font-family: var(--font-mono); font-size: var(--text-micro);
+  letter-spacing: var(--ls-mono); line-height: var(--lh-mono);
+  color: var(--ink); background: var(--field-0);
+  border: 1px solid var(--hairline);
+  padding: var(--space-2) var(--space-3);
+  max-width: 38ch;
+}
+/* the nav knows when it floats (BREAK-6 — scroll-state, Chrome 133+; the hairline
+   takes the hour's light; everyone else keeps the nav--scrolled look) */
+.nav { container-type: scroll-state; }
+@supports (container-type: scroll-state) {
+  .nav::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+    background: var(--hairline-lit, var(--hairline));
+    opacity: 0; transition: opacity var(--dur-420) var(--ease-run);
+    pointer-events: none;
+  }
+  @container scroll-state(stuck: top) {
+    .nav::after { opacity: 1; }
+  }
+}
 
 /* artifacts — text links with access labels (§4.3) */
 .artifacts { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-4); }
@@ -1419,6 +1463,15 @@ html.fc-route-drawn .hero__routeband .route-path { animation: none; } /* GSAP to
 ::view-transition-new(root) { animation: wn-dive-in 200ms var(--ease-run) both; }
 @keyframes wn-dive-out { to { filter: blur(6px); opacity: 0.4; transform: translateY(20px) scale(0.988); } }
 @keyframes wn-dive-in { from { filter: blur(6px); opacity: 0.4; transform: translateY(-30px) scale(0.988); } to { filter: blur(0); opacity: 1; transform: none; } }
+/* BREAK-2: SURFACING (back out of a project) reverses the vertical — the old page
+   rises away, the new one rises in from below: you came back UP for air */
+@keyframes wn-rise-out { to { filter: blur(6px); opacity: 0.4; transform: translateY(-20px) scale(0.988); } }
+@keyframes wn-rise-in { from { filter: blur(6px); opacity: 0.4; transform: translateY(30px) scale(0.988); } to { filter: blur(0); opacity: 1; transform: none; } }
+html:active-view-transition-type(vt-surface)::view-transition-old(root) { animation-name: wn-rise-out; }
+html:active-view-transition-type(vt-surface)::view-transition-new(root) { animation-name: wn-rise-in; }
+/* object permanence: the route drawing + title glide on the house curve */
+::view-transition-group(work-route) { animation-duration: 320ms; animation-timing-function: var(--ease-run); }
+::view-transition-group(work-title) { animation-duration: 320ms; animation-timing-function: var(--ease-run); }
 @media (prefers-reduced-motion: reduce) {
   @view-transition { navigation: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
@@ -1490,12 +1543,19 @@ html.fc-helio-instant body { transition: none !important; }
   position: fixed; inset: 0; z-index: var(--z-haze); pointer-events: none;
   transition: --fc-sun-op var(--dur-ambient-min) linear, --fc-rest-warm 3s linear; /* the hourly crossfade lives HERE */
   opacity: min(0.46, calc(var(--fc-sun-op, 0)
-    + var(--fc-breath, 0) * 0.10 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
+    + var(--fc-breath, 0) * 0.14 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
     + var(--fc-rest-warm, 0)));
   transform: scale(calc(1 + var(--fc-breath, 0) * 0.045 * var(--fc-int-breath, 1)));
   transform-origin: var(--fc-sun-x, 80%) var(--fc-sun-y, 14%);
   background: radial-gradient(var(--fc-sun-size, 38vw) calc(var(--fc-sun-size, 38vw) * 0.88)
     at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 62%);
+}
+/* QA F2: in BOOST the cap lifts to 0.52 — at 16-19.5h the 0.46 ceiling was eating
+   20-78% of the breath swell (the channel froze between breath 0.8→1.0) */
+html.fc-boost .fc-sun {
+  opacity: min(0.52, calc(var(--fc-sun-op, 0)
+    + var(--fc-breath, 0) * 0.14 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
+    + var(--fc-rest-warm, 0)));
 }
 
 /* ===== SKY-4 — the hour's light on shadows + hairlines =====
@@ -1725,23 +1785,26 @@ html.fc-boost .fc-clouds, html.fc-boost .fc-rain, html.fc-boost .fc-fog, html.fc
   stroke-width: calc(2px + var(--fc-breath, 0) * 1px * var(--fc-int-breath, 1));
   stroke-dasharray: var(--fc-spine-len, 4000);
   stroke-dashoffset: var(--fc-spine-len, 4000);
-  opacity: calc((0.42 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-breath, 0) * 0.20 * var(--fc-int-breath, 1)) * var(--fc-spine-fade, 1));
+  /* base 0.42→0.50 (V5.1): the owner judges the thread at the hero and on project pages —
+     it must READ as a thread, not a ghost. Same in both presets (RED_LOCKED). */
+  opacity: calc((0.50 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-breath, 0) * 0.20 * var(--fc-int-breath, 1)) * var(--fc-spine-fade, 1));
 }
 /* HILO-3 — the pinky-promise knots: full-red ring, perforated loop (fill = field),
    NO gold (owner veto). Eje `knot` BLOQUEADO (RED_LOCKED): boost never scales it —
    it breathes ONLY with --fc-breath (the sanctioned channel). */
 .fc-spine__knot {
-  stroke: var(--signal); stroke-width: 2; fill: var(--fc-field, var(--field-0));
+  stroke: var(--signal); stroke-width: 1.75; fill: var(--fc-field, var(--field-0));
   transform-box: fill-box; transform-origin: center;
 }
-.fc-spine__knot--origin { opacity: 0.9; transform: scale(calc(1 + var(--fc-breath, 0) * 0.14)); } /* does NOT multiply --fc-spine-fade: puntuación, visible at scroll 0 */
+/* V5.1 — quieter knots (owner: "muy cantosos"): r 4.5→3.5 (JS), width 2→1.75, op down a step */
+.fc-spine__knot--origin { opacity: 0.72; transform: scale(calc(1 + var(--fc-breath, 0) * 0.14)); } /* does NOT multiply --fc-spine-fade: puntuación, visible at scroll 0 */
 .fc-spine__knot--dest { opacity: 0; transition: opacity var(--dur-600) var(--ease-run); }
-.fc-spine__knot--dest.is-tied { opacity: 0.9; animation: wn-knot-tighten var(--dur-600) var(--ease-run); }
+.fc-spine__knot--dest.is-tied { opacity: 0.8; animation: wn-knot-tighten var(--dur-600) var(--ease-run); }
 @keyframes wn-knot-tighten { from { transform: scale(1.35); } 60% { transform: scale(0.92); } to { transform: scale(1); } }
 /* HILO-5a — the sliding sashiko stitch: ONE 12px dash resting on the NEXT anchor,
    ahead of the nib, ON the thread. Eje `stitch` BLOQUEADO: no boost scaling. */
 .fc-spine__stitch {
-  stroke: var(--signal); stroke-width: 4; opacity: 0;
+  stroke: var(--signal); stroke-width: 3; opacity: 0; /* V5.1: 4→3 — a stitch, not a bar */
   transition: opacity var(--dur-240) var(--ease-react);
 }
 /* (kintsugi gold lives ONLY on the void CRACK — the actual break — never on the
@@ -1761,7 +1824,7 @@ html.fc-boost .fc-clouds, html.fc-boost .fc-rain, html.fc-boost .fc-fog, html.fc
   to   { opacity: 0;    r: 19;  stroke-width: 0.3; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fc-spine__path { stroke-dashoffset: 0; opacity: 0.42; stroke-width: 2; }
+  .fc-spine__path { stroke-dashoffset: 0; opacity: 0.5; stroke-width: 2; }
   .fc-spine__pulse, .fc-spine__ripple { display: none; }
   .fc-spine__stitch { display: none; } /* without motion there is no "next" waypoint */
   .fc-spine__knot--origin { transform: none; }
@@ -1875,9 +1938,21 @@ html.fc-aged .wn-card--visited::after {
    bounded blocks add a warm frame, cards warm their border (complementing their own lift). */
 .fc-lit { transition: box-shadow var(--dur-300) var(--ease-react), text-shadow var(--dur-300) var(--ease-react), border-color var(--dur-300) var(--ease-react); text-shadow: 0 0 16px color-mix(in srgb, var(--sun) 16%, transparent); }
 .wn-card.fc-lit { border-color: color-mix(in srgb, var(--sun) 35%, var(--hairline)); }
-.proof__cell.fc-lit, .principle.fc-lit, .phase.fc-lit, .about__photo.fc-lit, .stacktable.fc-lit, .toolchain.fc-lit, .identity.fc-lit, .related-cards.fc-lit {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sun) 18%, transparent), 0 8px 30px -12px color-mix(in srgb, var(--sun) 45%, transparent);
+/* V5.1 QA-5 (owner: "el espacio que se ilumina queda mal") — unbounded blocks get a
+   POOL of light UNDER them (::after radial, z-index:-1), never a box: an outer
+   box-shadow cannot paint inside its border-box, so it left a hard-edged pale
+   RECTANGLE misaligned with the text (measured 69–345px of lit emptiness). The
+   pool feathers in every direction — there is no edge left to misalign. */
+.proof__cell, .principle, .phase, .stacktable, .toolchain, .identity, .related-cards { position: relative; }
+.proof__cell::after, .principle::after, .phase::after, .stacktable::after, .toolchain::after, .identity::after, .related-cards::after {
+  content: ""; position: absolute; inset: -28px; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--sun) 14%, transparent), transparent);
+  opacity: 0;
+  transition: opacity var(--dur-300) var(--ease-react);
 }
+.proof__cell.fc-lit::after, .principle.fc-lit::after, .phase.fc-lit::after, .stacktable.fc-lit::after, .toolchain.fc-lit::after, .identity.fc-lit::after, .related-cards.fc-lit::after { opacity: 1; }
+/* the photo covers its own pseudo — it keeps the simple outer halo */
+.about__photo.fc-lit { box-shadow: 0 0 44px -10px color-mix(in srgb, var(--sun) 50%, transparent); }
 /* warm-lens on the band must ADD to the urushi shadow below, never replace it */
 .wn-void.fc-lit { box-shadow: inset 0 0 180px -60px color-mix(in srgb, var(--sun) 30%, transparent),
   0 26px 40px -28px color-mix(in srgb, var(--void) 45%, transparent),
@@ -2080,6 +2155,16 @@ html.fc-motion .wn-status__dot--live::after {
   transform: scale(calc(0.6 + var(--fc-breath, 0) * 0.8));
 }
 
+/* BREAK-3 — the display voice BREATHES its weight: the variable wght axis rides
+   --fc-breath (700 → 686 at the crest — sub-pixel width change, no legible
+   reflow; ±14 is the cap, validated against CLS). The letter itself exhales. */
+html.fc-motion .hero__h1 {
+  font-variation-settings: 'wght' calc(700 - 14 * var(--fc-breath, 0));
+}
+/* ink pressure on card hover: the title relaxes its weight under the hand */
+html.fc-motion .wn-card__title { transition: font-variation-settings 380ms var(--ease-run); }
+html.fc-motion .wn-card:hover .wn-card__title { font-variation-settings: 'wght' 560; }
+
 /* BRE-3 — the crest glint: breath.js fires fc:crest once per cycle at the
    hold→release notch; heartbeat.js answers with .fc-crest for 500ms. */
 @keyframes wn-halo-glint { 0% { opacity: 0.45; } 30% { opacity: 0.85; } 100% { opacity: 0.45; } }
@@ -2120,22 +2205,145 @@ html.fc-motion .wn-status__dot--live.fc-crest::after { animation: wn-halo-glint 
   cursor: pointer;
 }
 .fc-intensity:hover { color: var(--ink); border-color: var(--ink); }
-/* the glyph: a hollow gold disc that FILLS with the sun when LOUD */
+/* BREAK-5: the magnet's spring release (translate written by magnet.js) */
+.fc-intensity { transition: translate 480ms var(--ease-spring), color var(--dur-180) var(--ease-react), border-color var(--dur-180) var(--ease-react); }
+/* the glyph: a hollow gold disc that FILLS with the sun when LOUD — and it BREATHES
+   with the field (V5.1 — the owner asked "no sé en qué fijarme": look at the button
+   you just pressed; when it swells, the sun, the thread and the dot are swelling too) */
 .fc-intensity__glyph {
   width: 10px;
   height: 10px;
   border-radius: var(--radius-pill);
   border: 1.5px solid var(--gold-deep);
   background: transparent;
+  transform: scale(calc(1 + var(--fc-breath, 0) * 0.6));
   transition: background var(--dur-180) var(--ease-react), box-shadow var(--dur-180) var(--ease-react);
 }
 html.fc-boost .fc-intensity__glyph {
   background: var(--sun);
   box-shadow: 0 0 8px color-mix(in srgb, var(--sun) 70%, transparent);
 }
+/* F3: the crest's glint — the disc flares for the exhale's instant */
+.fc-intensity__glyph.fc-crest {
+  background: var(--sun);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--sun) 90%, transparent);
+}
+/* the WX audition chip (V5.1) — sits above the FIELD capsule, LOUD only */
+.fc-intensity--wx {
+  bottom: calc(var(--space-4) + 48px + env(safe-area-inset-bottom, 0px));
+}
 @media print { .fc-intensity { display: none; } }
+
+/* ===== ASK THE FIELD (V5.2) — the grounded portfolio assistant =====
+   The affordance: a faux input line under the hero CTAs — mono, quiet, honest.
+   The panel: a void-styled <dialog> — the conversation happens IN the void
+   (black, washi, gold byōbu frame, ONE red thread that draws while thinking). */
+.ask-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  padding: var(--space-3) var(--space-2) var(--space-3) 0;
+  min-height: 44px;
+  width: min(100%, 42ch);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  letter-spacing: var(--ls-mono);
+  text-transform: uppercase;
+  color: var(--ink-ghost);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--hairline);
+  cursor: text;
+  text-align: left;
+  transition: border-color var(--dur-180) var(--ease-react), color var(--dur-180) var(--ease-react);
+}
+.ask-cta:hover, .ask-cta:focus-visible { color: var(--ink); border-bottom-color: var(--ink); }
+.ask-cta__dot {
+  width: 7px; height: 7px; flex: none; border-radius: var(--radius-pill);
+  background: var(--sun);
+  transform: scale(calc(1 + var(--fc-breath, 0) * 0.5)); /* it breathes with the field — alive before you even ask */
+}
+.ask-cta__ghost { flex: 1; }
+.ask-cta__arrow { color: var(--ink-ghost); transition: transform var(--dur-180) var(--ease-react); }
+.ask-cta:hover .ask-cta__arrow { transform: translateX(4px); color: var(--ink); }
+
+.wn-ask {
+  width: min(680px, 92vw);
+  max-height: min(72vh, 640px);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: var(--void);
+  color: var(--washi);
+  border: 1px solid color-mix(in srgb, var(--gold-deep) 45%, transparent); /* the byōbu frame */
+  box-shadow: 0 26px 60px -28px color-mix(in srgb, var(--void) 60%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+.wn-ask:not([open]) { display: none; }
+.wn-ask::backdrop { background: color-mix(in srgb, var(--ink) 38%, transparent); backdrop-filter: blur(4px); }
+/* the ONE red of the panel: the thinking thread, drawing left→right while the
+   answer finds its way — the same gesture as the void crack */
+.wn-ask__thread {
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: var(--signal);
+  transform: scaleX(0); transform-origin: left;
+  opacity: 0.9;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wn-ask.is-thinking .wn-ask__thread { animation: wn-ask-think 1200ms var(--ease-run) infinite alternate; }
+}
+.wn-ask.is-thinking .wn-ask__thread { transform: scaleX(1); } /* RM: honest static state — the thread is simply present while it works */
+@keyframes wn-ask-think { from { transform: scaleX(0.08); } to { transform: scaleX(1); } }
+.wn-ask__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-6) var(--space-8) 0;
+}
+.wn-ask__eyebrow { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--gold) 80%, var(--washi)); margin: 0; }
+.wn-ask__close {
+  background: none; border: none; color: var(--washi); cursor: pointer;
+  font-size: 1.4rem; line-height: 1; padding: var(--space-2) var(--space-3); min-height: 40px;
+}
+.wn-ask__close:hover { color: var(--sun); }
+.wn-ask__log { flex: 1; overflow-y: auto; padding: var(--space-6) var(--space-8); display: flex; flex-direction: column; gap: var(--space-6); }
+.wn-ask__msg p { margin: 0 0 var(--space-2); font-size: var(--text-body); line-height: var(--lh-body); max-width: 52ch; }
+.wn-ask__msg--you { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--washi) 70%, transparent); }
+.wn-ask__who { color: color-mix(in srgb, var(--washi) 45%, transparent); }
+.wn-ask__msg--quiet p { color: color-mix(in srgb, var(--washi) 80%, transparent); }
+.wn-ask__where { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--gold) 75%, var(--washi)); margin-top: var(--space-4); }
+.wn-ask__srcs { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); }
+.wn-ask__src {
+  color: var(--washi); text-decoration: none; position: relative;
+  font-size: var(--text-ui); padding-bottom: 2px;
+  border-bottom: 1px solid color-mix(in srgb, var(--gold-deep) 70%, transparent); /* gold underline: the kintsugi of the answer */
+}
+.wn-ask__src:hover { border-bottom-color: var(--sun); color: var(--sun); }
+.wn-ask__form { display: flex; gap: var(--space-3); padding: 0 var(--space-8) var(--space-4); }
+.wn-ask__input {
+  flex: 1; background: none; border: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--washi) 30%, transparent);
+  color: var(--washi); font-family: var(--font-body); font-size: var(--text-body);
+  padding: var(--space-2) 0; min-height: 44px; outline-offset: 4px;
+}
+.wn-ask__input::placeholder { color: color-mix(in srgb, var(--washi) 38%, transparent); }
+.wn-ask__input:focus-visible { border-bottom-color: var(--sun); outline: none; }
+.wn-ask__send {
+  background: none; border: 1px solid color-mix(in srgb, var(--washi) 30%, transparent);
+  color: var(--washi); font-size: var(--text-ui); cursor: pointer;
+  min-width: 44px; min-height: 44px; border-radius: var(--radius-tag);
+  transition: border-color var(--dur-180) var(--ease-react), color var(--dur-180) var(--ease-react);
+}
+.wn-ask__send:hover, .wn-ask__send:focus-visible { border-color: var(--sun); color: var(--sun); }
+.wn-ask__send:disabled { opacity: 0.4; cursor: wait; }
+.wn-ask__hint { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--washi) 35%, transparent); margin: 0; padding: 0 var(--space-8) var(--space-6); }
+@media (max-width: 640px) { .wn-ask__head, .wn-ask__log, .wn-ask__form { padding-left: var(--space-6); padding-right: var(--space-6); } .wn-ask__hint { padding-left: var(--space-6); } }
 </style>
 <script>(function(){var d=document.documentElement;d.classList.add('has-js');try{var qi=new URLSearchParams(location.search).get('wn');if(qi==='clear'){try{localStorage.removeItem('wn.intensity');}catch(e){}}var im=(qi==='boost'||qi==='subtle')?qi:null;if(!im){try{im=localStorage.getItem('wn.intensity');}catch(e){}}if(im==='boost')d.classList.add('fc-boost');}catch(e){}try{var qh=new URLSearchParams(location.search).get('fc-hour');var hh=(qh!=null&&qh!==''&&!isNaN(+qh))?((+qh%24)+24)%24:new Date().getHours();d.setAttribute('data-daypart',(hh>=5&&hh<9)?'dawn':(hh>=9&&hh<17)?'noon':(hh>=17&&hh<21)?'evening':'night');}catch(e){}try{var v=localStorage.getItem('wn.visitor');if(!v){v=(self.crypto&&crypto.randomUUID?crypto.randomUUID():String(Math.random()).slice(2));localStorage.setItem('wn.visitor',v);}var n=new Date(),ds=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate(),k=ds+'|'+v,h=5381,i=0;for(;i<k.length;i++)h=((h<<5)+h+k.charCodeAt(i))>>>0;window.__wnRouteIndex=h%10;}catch(e){window.__wnRouteIndex=0;}try{var qp=new URLSearchParams(location.search).get('wn');if(qp==='clear'){try{localStorage.removeItem('wn.visits');localStorage.removeItem('wn.visited');sessionStorage.removeItem('wn.session');}catch(e){}}var sv=sessionStorage.getItem('wn.session'),vi=parseInt(localStorage.getItem('wn.visits')||'0',10);if(!sv){vi++;localStorage.setItem('wn.visits',''+vi);sessionStorage.setItem('wn.session','1');}if(qp&&qp!=='clear'){var mp={fresh:1,'return':2,amp:3,aged:5};vi=mp[qp]||parseInt(qp,10)||vi;}if(vi>=2)d.classList.add('fc-return');if(vi>=3)d.classList.add('fc-amp');if(vi>=5)d.classList.add('fc-aged');}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('fc-motion');d.classList.add('fc-firstbreath');d.classList.add('fc-route');d.classList.add('fc-hero');}}catch(e){}})();</script>
+<script type="speculationrules">
+{"prerender":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/*\\?*"}}]},"eagerness":"moderate"}],
+ "prefetch":[{"where":{"href_matches":"/*"},"eagerness":"conservative"}]}
+</script>
 </head>
 <body>
 <div class="fc-tint" aria-hidden="true"></div>

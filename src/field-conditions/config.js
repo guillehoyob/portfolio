@@ -49,6 +49,10 @@ export const config = {
     patina: true,         // returning-visitor state (§5.5)
     // Calibration UI
     intensityControl: true, // the visible FIELD: SUBTLE/LOUD toggle (INT-3) — set false to retire it
+    // V5.2
+    ask: true,            // ASK THE FIELD — grounded portfolio assistant (/api/ask, Azure server-side)
+    magnet: true,         // BREAK-5 — the primary CTA + FIELD capsule lean toward the hand (≤4px, spring release)
+    sound: false,         // BREAK-8 — synthesized micro-sound. OFF by law (ma is silence); audition: ?fc-sound=1
   },
 
   // Real-weather behavior knobs (SKY-5): ONE GET to api.open-meteo.com (the single
@@ -86,7 +90,7 @@ export const RED_LOCKED = ['nib', 'spine', 'knot', 'stitch'];
 // Parámetros del motor de respiración (BRE-1) — namespace SEPARADO de INTENSITY.
 export const BREATH_PARAMS = {
   cycleMs: 10400, inhaleMs: 3600, crestHoldMs: 1000, releaseMs: 400, releaseDepth: 0.12,
-  valleyMs: 2400, idleScrollMs: 1500, idlePointerMs: 3500, idleKeyMs: 3500,
+  valleyMs: 2400, idleScrollMs: 1500, idlePointerMs: 2600, idleKeyMs: 3500, /* pointer 3500→2600 (V5.1): the reader's pauses are shorter than we budgeted */
   energyGate: 0.08, firstDelayMs: 900, firstAmp: 1.25,
   boost: { idleScrollMs: 800, idlePointerMs: 600, valleyMs: 1200 },
 };

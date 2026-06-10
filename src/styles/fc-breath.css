@@ -31,6 +31,16 @@ html.fc-motion .wn-status__dot--live::after {
   transform: scale(calc(0.6 + var(--fc-breath, 0) * 0.8));
 }
 
+/* BREAK-3 — the display voice BREATHES its weight: the variable wght axis rides
+   --fc-breath (700 → 686 at the crest — sub-pixel width change, no legible
+   reflow; ±14 is the cap, validated against CLS). The letter itself exhales. */
+html.fc-motion .hero__h1 {
+  font-variation-settings: 'wght' calc(700 - 14 * var(--fc-breath, 0));
+}
+/* ink pressure on card hover: the title relaxes its weight under the hand */
+html.fc-motion .wn-card__title { transition: font-variation-settings 380ms var(--ease-run); }
+html.fc-motion .wn-card:hover .wn-card__title { font-variation-settings: 'wght' 560; }
+
 /* BRE-3 — the crest glint: breath.js fires fc:crest once per cycle at the
    hold→release notch; heartbeat.js answers with .fc-crest for 500ms. */
 @keyframes wn-halo-glint { 0% { opacity: 0.45; } 30% { opacity: 0.85; } 100% { opacity: 0.45; } }

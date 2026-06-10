@@ -27,7 +27,7 @@
  * (eje moteSize); amplitude reads intensity.mote AT THE POINT OF USE.
  * Reduced motion → never built. Not on the print sheet.
  */
-import { addTicker, removeTicker, wake, field, registerCleanup, dtFactor, intensity } from './index.js';
+import { addTicker, removeTicker, wake, field, registerCleanup, dtFactor, dtKeep, intensity } from './index.js';
 
 export function initParticles() {
   if (document.body.classList.contains('cv-wrap')) return; // not on the print sheet
@@ -111,6 +111,24 @@ export function initParticles() {
         + (snow ? wind * 18 : drift);
       x = ((x + 16) % W + W) % W - 16;                       // horizontal wrap for the drift
 
+      // V5.1 — the click-wave TOUCHES the dust ("la onda no interactúa con nada"):
+      // as the ring's front passes a mote it nudges it outward and makes it catch
+      // light for an instant — the ocean stirring the air, one plane moving another
+      let waveGlint = 0;
+      for (const im of field.impulses) {
+        const age = (Date.now() - im.t) / 700;
+        if (age < 0 || age >= 1) continue;
+        const dx = x - im.x, dy = m.y - im.y, dist = Math.hypot(dx, dy) || 1;
+        const front = 60 + age * 480;                        // rides the visual ripple's expansion
+        const prox = Math.max(0, 1 - Math.abs(dist - front) / 120);
+        if (prox <= 0) continue;
+        const push = prox * (1 - age) * 2.6 * (im.force || 1) * dtF;
+        m.y += (dy / dist) * push;
+        m.pushX = (m.pushX || 0) + (dx / dist) * push;
+        waveGlint = Math.max(waveGlint, prox * (1 - age));
+      }
+      if (m.pushX) { m.pushX *= dtKeep(0.94, dt); if (Math.abs(m.pushX) < 0.05) m.pushX = 0; x += m.pushX; }
+
       // TWINKLE — phase accumulated by dt (speed changes glide instead of jumping):
       // speed = m.sp × (1 + wind·0.3) × restMul (SKY-12 / BRE-4)
       m.ph += (dt || 16.7) / 1000 * m.sp * (1 + wind * 0.3) * restMul;
@@ -118,7 +136,7 @@ export function initParticles() {
       const near = Math.max(0, 1 - Math.hypot(x - cx, m.y - cy) / 240);
       const nearTap = tapAge < 1 ? Math.max(0, 1 - Math.hypot(x - tapX, m.y - tapY) / 240) * (1 - tapAge) : 0;
       // the ONE final opacity formula (TOU-5 §5.5): floor 0.18, all couplings multiply
-      const op = (0.18 + twk * (0.32 + e * 0.4) + Math.max(near, nearTap) * 0.35)
+      const op = (0.18 + twk * (0.32 + e * 0.4) + Math.max(near, nearTap) * 0.35 + waveGlint * 0.3)
         * intensity.mote * fogMul * rainMul;
       m.el.style.opacity = Math.min(snow ? (boostMode ? 0.72 : 0.55) : 0.95, op).toFixed(3);
       m.el.style.transform = `translate3d(${x.toFixed(1)}px, ${m.y.toFixed(1)}px, 0)`;

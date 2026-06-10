@@ -75,6 +75,14 @@
   background: var(--signal-deep);
   box-shadow: var(--shadow-bloom);
 }
+/* BREAK-5: the magnet's release rides a real spring — ONLY the translate channel
+   (magnet.js writes it); every other property keeps its tuned react timing */
+.wn-btn--primary {
+  transition: translate 480ms var(--ease-spring),
+              transform var(--dur-180) var(--ease-react),
+              background-color var(--dur-180) var(--ease-react),
+              box-shadow var(--dur-180) var(--ease-react);
+}
 .wn-btn--primary:active {
   transform: translateY(0);
   background: var(--signal-deep);
@@ -431,6 +439,9 @@ html.fc-boost a.wn-card[href]:not(.wn-card--visited):not(.wn-card--planned):focu
    gold seams (::before/::after at top:±5px in field-conditions.css) are clipped to the
    1px box and the mend can never paint (audit VIS-01: Δ8 → Δ153 with this one line). */
 .wn-void__crack { height: 1px; background: var(--signal); border: none; width: 100%; margin: var(--space-8) 0; overflow: visible; }
+/* V5.1 (owner: "en alguna zona no hay espacio con el void") — the band always gets
+   breathing room from the prose above/below it; ma is the space that gives it weight */
+.wn-void { margin-block: var(--space-12); }
 .wn-void__body { font-family: var(--font-body); font-size: var(--text-body); line-height: var(--lh-body); color: var(--washi); max-width: 55ch; }
 /* the collab grid (3 columns) must not be trapped by the 55ch prose cap — let it
    breathe to the full band; each column stays ≤~34ch internally (§3.15) */

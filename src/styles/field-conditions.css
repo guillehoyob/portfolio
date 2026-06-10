@@ -123,6 +123,15 @@ html.fc-route-drawn .hero__routeband .route-path { animation: none; } /* GSAP to
 ::view-transition-new(root) { animation: wn-dive-in 200ms var(--ease-run) both; }
 @keyframes wn-dive-out { to { filter: blur(6px); opacity: 0.4; transform: translateY(20px) scale(0.988); } }
 @keyframes wn-dive-in { from { filter: blur(6px); opacity: 0.4; transform: translateY(-30px) scale(0.988); } to { filter: blur(0); opacity: 1; transform: none; } }
+/* BREAK-2: SURFACING (back out of a project) reverses the vertical — the old page
+   rises away, the new one rises in from below: you came back UP for air */
+@keyframes wn-rise-out { to { filter: blur(6px); opacity: 0.4; transform: translateY(-20px) scale(0.988); } }
+@keyframes wn-rise-in { from { filter: blur(6px); opacity: 0.4; transform: translateY(30px) scale(0.988); } to { filter: blur(0); opacity: 1; transform: none; } }
+html:active-view-transition-type(vt-surface)::view-transition-old(root) { animation-name: wn-rise-out; }
+html:active-view-transition-type(vt-surface)::view-transition-new(root) { animation-name: wn-rise-in; }
+/* object permanence: the route drawing + title glide on the house curve */
+::view-transition-group(work-route) { animation-duration: 320ms; animation-timing-function: var(--ease-run); }
+::view-transition-group(work-title) { animation-duration: 320ms; animation-timing-function: var(--ease-run); }
 @media (prefers-reduced-motion: reduce) {
   @view-transition { navigation: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }

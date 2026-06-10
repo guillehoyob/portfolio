@@ -64,12 +64,19 @@ html.fc-helio-instant body { transition: none !important; }
   position: fixed; inset: 0; z-index: var(--z-haze); pointer-events: none;
   transition: --fc-sun-op var(--dur-ambient-min) linear, --fc-rest-warm 3s linear; /* the hourly crossfade lives HERE */
   opacity: min(0.46, calc(var(--fc-sun-op, 0)
-    + var(--fc-breath, 0) * 0.10 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
+    + var(--fc-breath, 0) * 0.14 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
     + var(--fc-rest-warm, 0)));
   transform: scale(calc(1 + var(--fc-breath, 0) * 0.045 * var(--fc-int-breath, 1)));
   transform-origin: var(--fc-sun-x, 80%) var(--fc-sun-y, 14%);
   background: radial-gradient(var(--fc-sun-size, 38vw) calc(var(--fc-sun-size, 38vw) * 0.88)
     at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 62%);
+}
+/* QA F2: in BOOST the cap lifts to 0.52 — at 16-19.5h the 0.46 ceiling was eating
+   20-78% of the breath swell (the channel froze between breath 0.8→1.0) */
+html.fc-boost .fc-sun {
+  opacity: min(0.52, calc(var(--fc-sun-op, 0)
+    + var(--fc-breath, 0) * 0.14 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
+    + var(--fc-rest-warm, 0)));
 }
 
 /* ===== SKY-4 — the hour's light on shadows + hairlines =====

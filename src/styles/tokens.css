@@ -139,6 +139,8 @@
   --z-nav:     100; --z-menu:  150; --z-skip:    300;
 
   /* ============ MOTION — easing ============ */
+  /* spring release (BREAK-5): high damping, 2% overshoot — the magnet lets go */
+  --ease-spring: linear(0, 0.563 18.8%, 1.02 36%, 1.001 60%, 1);
   --ease-run:   cubic-bezier(0.22, 1, 0.36, 1);   /* THE curve — 90% of all motion */
   --ease-react: cubic-bezier(0.4, 0, 0.2, 1);     /* hover/focus reactions <200ms */
   --ease-cut:   cubic-bezier(0.8, 0, 1, 1);       /* threshold snap — void band ONLY */

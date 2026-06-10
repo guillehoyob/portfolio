@@ -125,18 +125,24 @@ export function initSpine() {
     document.addEventListener('pointerleave', () => { targetInfluence = 0; });
   }
 
-  const ticker = () => {
+  let tipLen = -1, tipX = 0, lastFade = '', lastNib = -1;
+  const ticker = (t, dt) => {
+    const dtF = (dt || 16.7) / 16.7;
+    let worked = false;
     // the thread EXISTS before the first scroll (audit VIS-11): a minimum draw down to
     // ~the first anchor, so the first viewport is never threadless right where the owner
     // judges. It still grows from 0 on load (the ease below seeps toward the floor).
     const p = Math.max(progress(), 0.04);
-    // velocity-eased draw: a fast flick lets the nib race ahead and settle; a slow scroll seeps
-    drawn += (p - drawn) * (0.146 + 0.114 * clamp01(velocity() * 0.1));
+    if (Math.abs(p - drawn) > 0.00005) { // gate kills idle cost only — the visible tail of the seep (~2px) must finish, the nib travels it
+      // velocity-eased draw: a fast flick lets the nib race ahead and settle; a slow scroll seeps
+      drawn += (p - drawn) * Math.min(1, (0.146 + 0.114 * clamp01(velocity() * 0.1)) * dtF);
+      path.style.strokeDashoffset = (LEN - LEN * clamp01(drawn)).toFixed(1);
+      worked = true;
+    }
     const dLen = LEN * clamp01(drawn);
-    path.style.strokeDashoffset = (LEN - dLen).toFixed(1);
 
     // quick to ANSWER the cursor, slow to FORGET it (asymmetric ease — poise, not lag)
-    influence += (targetInfluence - influence) * (targetInfluence > influence ? 0.09 : 0.045);
+    influence += (targetInfluence - influence) * Math.min(1, (targetInfluence > influence ? 0.09 : 0.045) * dtF);
     if (fine && (dDirty || influence > 0.01)) {
       const bent = basePts.map(([x, y]) => {
         const w0 = Math.max(0, 1 - Math.abs(cursorDocY - y) / FALLOFF);
@@ -146,35 +152,46 @@ export function initSpine() {
       });
       path.setAttribute('d', catmullRom(bent));
       dDirty = false;
+      worked = true;
     }
 
     // continuity ramp: faint trace in the first viewport → 0.42 below it (composed with breath in CSS)
-    svg.style.setProperty('--fc-spine-fade', (0.24 + 0.76 * clamp01(scrollY / fadeRef)).toFixed(3));
+    const fade = (0.24 + 0.76 * clamp01(scrollY / fadeRef)).toFixed(3);
+    if (fade !== lastFade) { svg.style.setProperty('--fc-spine-fade', fade); lastFade = fade; worked = true; }
 
+    // ── the pulse channels: they WRITE whenever the loop runs, but never CLAIM it
+    // (audit PERF-1). On pages without a live hero dot the loop may suspend at full
+    // rest and the thread holds still — ma. Any input or the sigh timer wakes it.
     const phase = heartbeatPhase();
     const beat = heartbeatBeat(phase);
     const breath = heartbeatBreath(phase);
     svg.style.setProperty('--fc-spine-beat', (beat * (1 - 0.6 * field.breath)).toFixed(3)); // beat recedes during the field's rest-breath (matches the dot — one organism slowing)
     svg.style.setProperty('--fc-spine-breath', breath.toFixed(3));        // cardiac diastole
     svg.style.setProperty('--fc-spine-sigh', field.breath.toFixed(3));    // the field's slow rest-breath — its OWN perceptible channel (the spine breathes deeper as the field rests)
+    if (field.breath > 0.001) worked = true; // while the field sighs, keep animating the sigh channel
 
     if (LEN > 1) {
-      const tip = path.getPointAtLength(dLen);
-      const tx = tip.x.toFixed(1), ty = tip.y.toFixed(1);
-      pulse.setAttribute('cx', tx); pulse.setAttribute('cy', ty);
+      // tip geometry only when the drawn length moved — getPointAtLength every frame
+      // was the single largest idle cost in the whole system (audit PERF-1)
+      if (Math.abs(dLen - tipLen) > 0.4) {
+        const tip = path.getPointAtLength(dLen);
+        tipLen = dLen; tipX = tip.x;
+        const tx = tip.x.toFixed(1), ty = tip.y.toFixed(1);
+        pulse.setAttribute('cx', tx); pulse.setAttribute('cy', ty);
+        ripple.setAttribute('cx', tx); ripple.setAttribute('cy', ty);
+      }
       const advancing = clamp01(Math.abs(drawn - prevDrawn) * 40 + velocity() * 0.08);
       // the tip breathes a golden fraction BEHIND the thread — blood reaching the extremity last
       const nibBreath = heartbeatBreath((phase + 0.146) % 1);
       let nibOp = 0.146 + 0.618 * Math.max(advancing, beat * 0.5 + nibBreath * 0.1);
-      for (const im of field.impulses) { if (Date.now() - im.t < 350 && Math.abs(im.x - tip.x) < 200) { nibOp = Math.min(0.95, nibOp + 0.35); break; } }
+      for (const im of field.impulses) { if (Date.now() - im.t < 350 && Math.abs(im.x - tipX) < 200) { nibOp = Math.min(0.95, nibOp + 0.35); break; } }
       if (drawn > 0.985) nibOp *= clamp01((1 - drawn) / 0.015);
-      pulse.style.opacity = nibOp.toFixed(3);
-      ripple.setAttribute('cx', tx); ripple.setAttribute('cy', ty);
+      if (Math.abs(nibOp - lastNib) > 0.003) { pulse.style.opacity = nibOp.toFixed(3); lastNib = nibOp; }
       if (phase < 0.06 && !rang) { ripple.classList.remove('go'); ripple.getBoundingClientRect(); ripple.classList.add('go'); rang = true; }
       if (phase > 0.12) rang = false;
     }
     prevDrawn = drawn;
-    return true;
+    return worked;
   };
   addTicker(ticker);
 

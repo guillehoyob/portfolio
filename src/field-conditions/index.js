@@ -35,16 +35,25 @@ const tickers = new Set();
 let rafId = 0;
 let running = false;
 let idleFrames = 0;
+let lastT = 0;
 function frame(t) {
+  // real frame delta, clamped (a tab-restore jump must not explode the physics) —
+  // every ticker receives it so ambient decays are refresh-rate independent (PERF-2)
+  const dt = lastT ? Math.min(50, t - lastT) : 16.7;
+  lastT = t;
   let worked = false;
-  for (const fn of tickers) { if (fn(t)) worked = true; }
+  for (const fn of tickers) { if (fn(t, dt)) worked = true; }
   if (worked) idleFrames = 0;
   else if (++idleFrames > 90) { running = false; return; }
   rafId = requestAnimationFrame(frame);
 }
 export function wake() {
-  if (!running && tickers.size && !document.hidden) { running = true; idleFrames = 0; rafId = requestAnimationFrame(frame); }
+  if (!running && tickers.size && !document.hidden) { running = true; idleFrames = 0; lastT = 0; rafId = requestAnimationFrame(frame); }
 }
+/* dt-normalized retention: keep^(dt/16.7). A per-frame factor calibrated at 60Hz
+   (e.g. energy *= 0.97) decays identically at 90/120/144Hz (audit PERF-2) — without
+   this, every "óptimo" the owner approves would feel different on his next monitor. */
+export const dtKeep = (k, dt) => Math.pow(k, (dt || 16.7) / 16.7);
 export function addTicker(fn) { tickers.add(fn); wake(); }
 export function removeTicker(fn) {
   tickers.delete(fn);
@@ -121,10 +130,10 @@ addEventListener('pointermove', (e) => {
 }, { passive: true });
 // the energy integrator — decays toward calm each frame; prunes spent impulses. NEVER keeps
 // the loop alive on its own (returns work only while energy/impulses persist), so idle-suspend holds.
-function integrateEnergy() {
-  if (field.energy > 0) { field.energy *= 0.97; if (field.energy < 0.0008) field.energy = 0; } // slower decay → the stir LINGERS, so click/mote variation is perceptible
+function integrateEnergy(t, dt) {
+  if (field.energy > 0) { field.energy *= dtKeep(0.97, dt); if (field.energy < 0.0008) field.energy = 0; } // slower decay → the stir LINGERS, so click/mote variation is perceptible
   if (field.impulses.length) { const now = Date.now(); field.impulses = field.impulses.filter((im) => now - im.t < 700); }
-  field.cursorVel *= 0.9;
+  field.cursorVel *= dtKeep(0.9, dt);
   return field.energy > 0.001 || field.impulses.length > 0;
 }
 

@@ -39,16 +39,27 @@ export function initParticles() {
     };
   });
 
-  const ticker = (t) => {
+  // honest work reporting (audit PERF-1): the motes animate while there is presence
+  // (energy / cursor motion) plus a settle grace in which the twinkle eases out —
+  // then they hold still until you stir the air again. On home the live dot keeps
+  // the loop running anyway; on interior pages this lets the whole field sleep.
+  const GRACE_MS = 2600;
+  let lastLive = 0;
+  const ticker = (t, dt) => {
     const e = field.energy, cx = field.cursorX, cy = field.cursorY, lx = laneX();
+    if (e > 0.001 || field.cursorVel > 0.005) lastLive = t;
+    const grace = t - lastLive;
+    if (grace > GRACE_MS) return false; // settled — frozen sparks, the air at rest
+    const settle = 1 - grace / GRACE_MS; // 1→0 as stillness arrives
+    const dtF = (dt || 16.7) / 16.7;
     for (const m of motes) {
-      m.y -= 0.05 + e * 0.4;                              // slow rise, quicker when the field stirs
+      m.y -= (0.05 + e * 0.4) * dtF;                      // slow rise, quicker when the field stirs (dt-normalized)
       if (m.y < -10) m.y = innerHeight + 10;
       const x = lx + m.off + Math.sin(t / 2600 + m.tw) * 9; // gentle sway in the gutter
       // TWINKLE — opacity fades in/out; faster + brighter with cursor SPEED (energy) and proximity
       const twk = Math.sin((t / 1000) * m.sp * (1 + e * 1.5) + m.tw) * 0.5 + 0.5;
       const near = Math.max(0, 1 - Math.hypot(x - cx, m.y - cy) / 240);
-      const op = 0.05 + twk * (0.32 + e * 0.4) + near * 0.35; // faint base, sparkles, surges near the cursor
+      const op = 0.05 + (twk * (0.32 + e * 0.4) + near * 0.35) * settle; // faint base, sparkles, surges near the cursor — easing out into stillness
       m.el.style.opacity = Math.min(0.9, op).toFixed(3);
       m.el.style.transform = `translate3d(${x.toFixed(1)}px, ${m.y.toFixed(1)}px, 0)`;
     }

@@ -359,6 +359,13 @@ main { flex: 1 0 auto; }
   padding: var(--space-2) var(--space-3);
   max-width: 38ch;
 }
+/* P3 (@starting-style): the honesty popover fades in declaratively instead of snapping */
+@media (prefers-reduced-motion: no-preference) {
+  .ph-pop { transition: opacity var(--dur-180) var(--ease-react), display var(--dur-180) allow-discrete; }
+  .ph-pop:popover-open { opacity: 1; }
+  @starting-style { .ph-pop:popover-open { opacity: 0; } }
+  .ph-pop { opacity: 0; }
+}
 /* the nav knows when it floats (BREAK-6 — scroll-state, Chrome 133+; the hairline
    takes the hour's light; everyone else keeps the nav--scrolled look) */
 .nav { container-type: scroll-state; }

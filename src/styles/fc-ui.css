@@ -112,6 +112,14 @@ html.fc-boost .fc-intensity__glyph {
 .wn-chat.is-thinking .wn-chat__thread { transform: scaleX(1); }
 @keyframes wn-ask-think { from { transform: scaleX(0.08); } to { transform: scaleX(1); } }
 .wn-chat__log { flex: 1; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
+/* P3 (@starting-style, score 8): each inserted message RISES in declaratively — no
+   JS arming, no is-in class. Unsupported engines paint it visible = Stage-0 honest. */
+@media (prefers-reduced-motion: no-preference) {
+  .wn-chat__msg {
+    transition: opacity var(--dur-300) var(--ease-run), transform var(--dur-300) var(--ease-run);
+  }
+  @starting-style { .wn-chat__msg { opacity: 0; transform: translateY(7px); } }
+}
 .wn-chat__msg p { margin: 0 0 var(--space-2); font-size: var(--text-body); line-height: var(--lh-body); }
 .wn-chat__msg--you { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--washi) 72%, transparent); }
 .wn-chat__who { color: color-mix(in srgb, var(--washi) 45%, transparent); }

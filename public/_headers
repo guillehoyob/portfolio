@@ -17,3 +17,8 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
+  # CSP (audit HEADERS-CSP-1): the last net under the chat that injects LLM HTML.
+  # style 'unsafe-inline' is required — the whole stylesheet is inlined in <head> (§6.4);
+  # connect-src allows the same-origin /api/ask POST + the one sanctioned third-party.
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.open-meteo.com; frame-ancestors 'self'; base-uri 'none'; form-action 'self'; object-src 'none'
+  Permissions-Policy: geolocation=(), microphone=(), camera=()

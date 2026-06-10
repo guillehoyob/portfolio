@@ -1278,6 +1278,13 @@ main { flex: 1 0 auto; }
   padding: var(--space-2) var(--space-3);
   max-width: 38ch;
 }
+/* P3 (@starting-style): the honesty popover fades in declaratively instead of snapping */
+@media (prefers-reduced-motion: no-preference) {
+  .ph-pop { transition: opacity var(--dur-180) var(--ease-react), display var(--dur-180) allow-discrete; }
+  .ph-pop:popover-open { opacity: 1; }
+  @starting-style { .ph-pop:popover-open { opacity: 0; } }
+  .ph-pop { opacity: 0; }
+}
 /* the nav knows when it floats (BREAK-6 — scroll-state, Chrome 133+; the hairline
    takes the hour's light; everyone else keeps the nav--scrolled look) */
 .nav { container-type: scroll-state; }
@@ -1702,15 +1709,18 @@ html.fc-boost .fc-fog i:last-child  { opacity: 0.14; }
    10–16h — never coexists with overcast/fog; iris XOR moon XOR sprite by state/hour.
    Pastels = phenomenon DATA (Cloud Atlas), sanctioned like the heliostat ANCHORS (§f.7). */
 .fc-iris {
-  position: fixed; left: clamp(2vw, calc(var(--fc-sun-x, 80%) + 6vw), 82vw); top: calc(var(--fc-sun-y, 14%) + 2vh);
+  /* QA Q2: offset CLEARLY off the sun's yellow peak (+12vw, not +6vw) so the pastels
+     don't wash out against the glow; tighter mask concentrates the colour into a band */
+  position: fixed; left: clamp(2vw, calc(var(--fc-sun-x, 80%) + 12vw), 78vw); top: calc(var(--fc-sun-y, 14%) + 4vh);
   width: 16vw; height: 7vw; z-index: var(--z-haze); pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 8s linear;
-  -webkit-mask-image: radial-gradient(50% 50%, #000 30%, transparent 70%);
-  mask-image: radial-gradient(50% 50%, #000 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(50% 50%, #000 45%, transparent 80%);
+  mask-image: radial-gradient(50% 50%, #000 45%, transparent 80%);
 }
 html[data-wx="clear"] .fc-iris, html[data-wx="partly"] .fc-iris { opacity: 0.14; }
 .fc-iris i {
   position: absolute; left: 50%; top: 50%; width: 200%; aspect-ratio: 1; translate: -50% -50%; display: block;
-  background: conic-gradient(#F4C8D8, #C8E8D4, #F5E6C4, #CFE0F2, #E8D4E2, #F4C8D8);
+  /* more saturated stops than the original near-white pastels — reads as iridescence, not haze */
+  background: conic-gradient(#F4A6C8, #A6E6C8, #F5D89A, #A8CBF2, #D8AEE2, #F4A6C8);
 }
 @keyframes wn-iris-turn { to { rotate: 360deg; } }
 @media (prefers-reduced-motion: no-preference) {
@@ -1719,8 +1729,8 @@ html[data-wx="clear"] .fc-iris, html[data-wx="partly"] .fc-iris { opacity: 0.14;
 }
 /* V5.3 (owner: "no veo la iridiscencia") — in boost the prize reads CLEARLY: bigger,
    brighter, and the hour gate is relaxed in weather.js so WX:CLEAR shows it on demand */
-html.fc-boost[data-wx="clear"] .fc-iris, html.fc-boost[data-wx="partly"] .fc-iris { opacity: 0.5; }
-html.fc-boost .fc-iris { width: 30vw; height: 12vw; }
+html.fc-boost[data-wx="clear"] .fc-iris, html.fc-boost[data-wx="partly"] .fc-iris { opacity: 0.62; }
+html.fc-boost .fc-iris { width: 32vw; height: 13vw; }
 
 /* boost entries are the demo throttle: 1.2s ONLY under fc-boost (CONTRACTS §f.3b) */
 html.fc-boost .fc-clouds, html.fc-boost .fc-fog, html.fc-boost .fc-iris { transition: opacity 1.2s linear; }
@@ -1756,11 +1766,12 @@ html.fc-boost .fc-clouds, html.fc-boost .fc-fog, html.fc-boost .fc-iris { transi
   stroke-width: calc(2px + var(--fc-breath, 0) * 1px * var(--fc-int-breath, 1));
   stroke-dasharray: var(--fc-spine-len, 4000);
   stroke-dashoffset: var(--fc-spine-len, 4000);
-  /* base 0.42→0.50→0.66 (V5.3): the owner saw the thread "go behind / almost
-     disappear" going down — the warm sun glow brightens the gutter mid-page and ate
-     the faint red's contrast. A higher floor keeps it a clear thread the whole way.
-     Same in both presets (RED_LOCKED); opacity only, so the red AREA is unchanged. */
-  opacity: calc((0.66 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-breath, 0) * 0.20 * var(--fc-int-breath, 1)) * var(--fc-spine-fade, 1));
+  /* base 0.42→0.50→0.66→0.72 (V5.3): QA measured the breath term swinging opacity
+     0.38↔0.58 in the hero — the thread "flickered toward invisible" in each valley
+     (contrast ~2.0:1). Higher base + a HALVED breath swing (0.20→0.10) keep the valley
+     legible (~0.61 floor) while the thread still breathes. Same in both presets
+     (RED_LOCKED); opacity only, so the red AREA is unchanged. */
+  opacity: calc((0.72 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-breath, 0) * 0.10 * var(--fc-int-breath, 1)) * var(--fc-spine-fade, 1));
 }
 /* HILO-3 — the pinky-promise knots: full-red ring, perforated loop (fill = field),
    NO gold (owner veto). Eje `knot` BLOQUEADO (RED_LOCKED): boost never scales it —
@@ -2263,6 +2274,14 @@ html.fc-boost .fc-intensity__glyph {
 .wn-chat.is-thinking .wn-chat__thread { transform: scaleX(1); }
 @keyframes wn-ask-think { from { transform: scaleX(0.08); } to { transform: scaleX(1); } }
 .wn-chat__log { flex: 1; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
+/* P3 (@starting-style, score 8): each inserted message RISES in declaratively — no
+   JS arming, no is-in class. Unsupported engines paint it visible = Stage-0 honest. */
+@media (prefers-reduced-motion: no-preference) {
+  .wn-chat__msg {
+    transition: opacity var(--dur-300) var(--ease-run), transform var(--dur-300) var(--ease-run);
+  }
+  @starting-style { .wn-chat__msg { opacity: 0; transform: translateY(7px); } }
+}
 .wn-chat__msg p { margin: 0 0 var(--space-2); font-size: var(--text-body); line-height: var(--lh-body); }
 .wn-chat__msg--you { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--washi) 72%, transparent); }
 .wn-chat__who { color: color-mix(in srgb, var(--washi) 45%, transparent); }

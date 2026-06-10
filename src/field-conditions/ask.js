@@ -42,7 +42,7 @@ export function initAsk() {
           placeholder="What did he build at Zelebrix?" aria-label="Ask about Guillermo">
         <button class="wn-chat__send" type="submit" aria-label="Send">→</button>
       </form>
-      <p class="wn-chat__hint">grounded in this site · cites its sources · only your question leaves the page</p>
+      <p class="wn-chat__hint">grounded in this site · cites its sources · your question is answered by an AI model</p>
     </div>`;
   document.body.appendChild(root);
 

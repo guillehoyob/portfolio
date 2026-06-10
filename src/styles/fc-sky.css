@@ -223,15 +223,18 @@ html.fc-boost .fc-fog i:last-child  { opacity: 0.14; }
    10–16h — never coexists with overcast/fog; iris XOR moon XOR sprite by state/hour.
    Pastels = phenomenon DATA (Cloud Atlas), sanctioned like the heliostat ANCHORS (§f.7). */
 .fc-iris {
-  position: fixed; left: clamp(2vw, calc(var(--fc-sun-x, 80%) + 6vw), 82vw); top: calc(var(--fc-sun-y, 14%) + 2vh);
+  /* QA Q2: offset CLEARLY off the sun's yellow peak (+12vw, not +6vw) so the pastels
+     don't wash out against the glow; tighter mask concentrates the colour into a band */
+  position: fixed; left: clamp(2vw, calc(var(--fc-sun-x, 80%) + 12vw), 78vw); top: calc(var(--fc-sun-y, 14%) + 4vh);
   width: 16vw; height: 7vw; z-index: var(--z-haze); pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 8s linear;
-  -webkit-mask-image: radial-gradient(50% 50%, #000 30%, transparent 70%);
-  mask-image: radial-gradient(50% 50%, #000 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(50% 50%, #000 45%, transparent 80%);
+  mask-image: radial-gradient(50% 50%, #000 45%, transparent 80%);
 }
 html[data-wx="clear"] .fc-iris, html[data-wx="partly"] .fc-iris { opacity: 0.14; }
 .fc-iris i {
   position: absolute; left: 50%; top: 50%; width: 200%; aspect-ratio: 1; translate: -50% -50%; display: block;
-  background: conic-gradient(#F4C8D8, #C8E8D4, #F5E6C4, #CFE0F2, #E8D4E2, #F4C8D8);
+  /* more saturated stops than the original near-white pastels — reads as iridescence, not haze */
+  background: conic-gradient(#F4A6C8, #A6E6C8, #F5D89A, #A8CBF2, #D8AEE2, #F4A6C8);
 }
 @keyframes wn-iris-turn { to { rotate: 360deg; } }
 @media (prefers-reduced-motion: no-preference) {
@@ -240,8 +243,8 @@ html[data-wx="clear"] .fc-iris, html[data-wx="partly"] .fc-iris { opacity: 0.14;
 }
 /* V5.3 (owner: "no veo la iridiscencia") — in boost the prize reads CLEARLY: bigger,
    brighter, and the hour gate is relaxed in weather.js so WX:CLEAR shows it on demand */
-html.fc-boost[data-wx="clear"] .fc-iris, html.fc-boost[data-wx="partly"] .fc-iris { opacity: 0.5; }
-html.fc-boost .fc-iris { width: 30vw; height: 12vw; }
+html.fc-boost[data-wx="clear"] .fc-iris, html.fc-boost[data-wx="partly"] .fc-iris { opacity: 0.62; }
+html.fc-boost .fc-iris { width: 32vw; height: 13vw; }
 
 /* boost entries are the demo throttle: 1.2s ONLY under fc-boost (CONTRACTS §f.3b) */
 html.fc-boost .fc-clouds, html.fc-boost .fc-fog, html.fc-boost .fc-iris { transition: opacity 1.2s linear; }

@@ -1,61 +1,97 @@
 /**
- * WHITE NOON — fc-sky (plane: CIELO · owner: W1-cielo-clima)
- * Split verbatim from field-conditions.css (CONTRACTS §c.1): heliostat tint/sun,
- * the daypart night swap, and the sky motes. Everything new for the living sky
- * (clouds/rain/fog/iris/sprite/voidflash/thunder, heliostatic shadows,
- * --hairline-lit) lands HERE and only here.
+ * WHITE NOON — fc-sky (plane: CIELO · owner: W1-cielo-clima · DESIGN-V5 §2)
+ * Everything the sky paints: the zenith→horizon hour gradient (SKY-1), the
+ * breathing sun/moon (SKY-2/3 + BRE-2 canonical block), heliostatic shadows +
+ * --hairline-lit (SKY-4), and the weather phenomena (SKY-6..11): clouds, the
+ * calligraphic gutter rain, snow-mode motes, storm flash/thunder/red-sprite,
+ * fog veils (flag-gated) and cloud iridescence.
+ *
+ * LAWS HONORED HERE:
+ * - Red is BINARY: the sprite strokes are full --signal, never multiplied by any
+ *   --fc-int-* axis (its ::before halo is the one sanctioned bounce-light ≤6%, §f.5).
+ * - Entry transitions floor 4s; every 1.2s entry below exists ONLY under
+ *   html.fc-boost (demo/QA — CONTRACTS §f.3b).
+ * - BOOST values: the html.fc-boost overrides below are DESIGN-V5's hand-tuned
+ *   numbers (≈×1.5); they ARE the --fc-int-weather axis expressed as exact
+ *   art-directed values (the registry's 1.5 is the nominal gain).
+ * - Reduced motion: state (tint, clouds, fog) stays static; drift/fall/turn
+ *   animations are all gated behind (prefers-reduced-motion: no-preference).
  */
 
-/* Register the Heliostat tint as a typed <color> so the 4s daypart crossfade
-   interpolates through warm in-betweens, not desaturated grey (craft §9). The
-   alpha hard cap (--fc-tint-cap) is unchanged — this only prettifies the transition path. */
-@property --fc-tint {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: transparent;
-}
+/* ===== Typed sky channels (SKY-1/BRE-2/BRE-4 — CONTRACTS §b.2) =====
+   zen/hor/horpos live on the .fc-tint ELEMENT (inherits:false → zero custom-prop
+   storm); sun-op/rest-warm inherit (heliostat/breath write them on :root).
+   No @property support → the gradient still paints; the 1/min change snaps
+   without interpolating (≤1% alpha — invisible). */
+@property --fc-sky-zen    { syntax: "<color>";      inherits: false; initial-value: transparent; }
+@property --fc-sky-hor    { syntax: "<color>";      inherits: false; initial-value: transparent; }
+@property --fc-sky-horpos { syntax: "<percentage>"; inherits: false; initial-value: 55%; }
+@property --fc-sun-op     { syntax: "<number>";     inherits: true;  initial-value: 0; }
+@property --fc-rest-warm  { syntax: "<number>";     inherits: true;  initial-value: 0; }
+/* compat: the legacy flat tint var stays typed (heliostat still publishes it; the
+   harness Heliostat row reads it) even though the gradient below took over the paint */
+@property --fc-tint { syntax: "<color>"; inherits: true; initial-value: transparent; }
 
-/* ===== Stage 4 — Heliostat (§5.1): time-of-day field state, tints from tokens ===== */
+/* ===== SKY-1 — Heliostat 2.0: the hour as a zenith→horizon gradient ===== */
 .fc-tint {
   position: fixed; inset: 0; z-index: var(--z-haze);
-  background: var(--fc-tint); pointer-events: none;
-  transition: background-color var(--dur-ambient-min) linear; /* the hour's colour crossfades smoothly */
-  /* TOP-DOWN wash: the sky's light comes from above and fades toward the foot */
-  /* mask floor lowered (82%→92%, mid 40%@55%) so the wash survives further down the hero →
-     ~doubles the effective alpha without raising the peak cap (Fase 1: the mask halved the tint) */
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--fc-sky-zen), var(--fc-sky-hor) var(--fc-sky-horpos), transparent 96%);
+  transition: --fc-sky-zen var(--dur-ambient-min) linear, --fc-sky-hor var(--dur-ambient-min) linear, --fc-sky-horpos var(--dur-ambient-min) linear;
+  /* TOP-DOWN wash: the sky's light comes from above and fades toward the foot
+     (mask CONSERVED from v4 — it ~halves effective alpha below the hero) */
   -webkit-mask-image: linear-gradient(180deg, #000, color-mix(in srgb, #000 40%, transparent) 55%, transparent 92%);
   mask-image: linear-gradient(180deg, #000, color-mix(in srgb, #000 40%, transparent) 55%, transparent 92%);
 }
-/* NOTE: Heliostat writes --fc-tint as an INLINE style every minute, which out-specifies any
-   html[data-daypart] --fc-tint rule — so per-daypart tint rules here would be DEAD CODE (Fase 1).
-   Only the night --fc-field / --fc-pulse-alpha swap below is reachable (JS doesn't set those). */
-html[data-daypart="night"]   { --fc-field: var(--field-0-dim); --fc-pulse-alpha: 1; }
-/* the field itself crossfades at the night boundary */
+/* DOC-04: the dead html[data-daypart="night"] rule was DELETED — heliostat writes
+   --fc-field and --fc-pulse-alpha inline on every apply (night included), so a
+   daypart CSS rule could never win. Night dim now lives in the ANCHORS (SKY-3). */
+/* the field itself crossfades as the light moves */
 html.fc-motion body { transition: background-color var(--dur-ambient-min) linear; }
-@media (prefers-reduced-motion: reduce) { .fc-tint, body { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .fc-tint, .fc-sun, body { transition: none; } }
 /* first heliostat apply lands instantly — no 4s ramp from transparent on page load
-   (audit CIE-01); the class is dropped two frames later so the day still crossfades */
+   (CIE-01); the class drops two frames later so the day still crossfades. Also the
+   boost helio-snap (INT-4) reuses this gate. */
 html.fc-helio-instant .fc-tint, html.fc-helio-instant .fc-sun,
 html.fc-helio-instant body { transition: none !important; }
 
-/* ===== "Sun" — the hour's light made VISIBLE in one part of the field (the flat top-down
-   tint was imperceptible). A soft warm radial that travels low→high→low and east→west through
-   the day and warms at dawn/dusk. Warm-on-warm so the field stays warm-white (no new hue, no
-   red); JS (heliostat) drives position + intensity. Behind all content (z-haze). */
+/* ===== SKY-2/SKY-3 + BRE-2 — the SUN (and the moon): the canonical breathing block =====
+   Heliostat drives --fc-sun-op/-x/-y/-size/-glow (day disc / night moon); breath.js
+   drives --fc-breath (10.4s cycle) and --fc-rest-warm (deep-rest warm floor ≤0.07).
+   Swell = opacity +0.10 AND scale +0.045 (variant B — slow opacity alone is condemned
+   by change blindness). Caps: JS writes sun-op ≤0.40; this CSS clamps the SUM ≤0.46. */
 .fc-sun {
   position: fixed; inset: 0; z-index: var(--z-haze); pointer-events: none;
-  background: radial-gradient(var(--fc-sun-size, 38vw) calc(var(--fc-sun-size, 38vw) * 0.9) at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 62%);
-  opacity: var(--fc-sun-op, 0);
-  transition: opacity var(--dur-ambient-min) linear;
+  transition: --fc-sun-op var(--dur-ambient-min) linear, --fc-rest-warm 3s linear; /* the hourly crossfade lives HERE */
+  opacity: min(0.46, calc(var(--fc-sun-op, 0)
+    + var(--fc-breath, 0) * 0.10 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
+    + var(--fc-rest-warm, 0)));
+  transform: scale(calc(1 + var(--fc-breath, 0) * 0.045 * var(--fc-int-breath, 1)));
+  transform-origin: var(--fc-sun-x, 80%) var(--fc-sun-y, 14%);
+  background: radial-gradient(var(--fc-sun-size, 38vw) calc(var(--fc-sun-size, 38vw) * 0.88)
+    at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 62%);
 }
-@media (prefers-reduced-motion: reduce) { .fc-sun { transition: none; } }
 
-/* ===== SKY light (redesigned): soft warm light-blooms high in the field (in'ei) =====
-   The sky stratum's atmosphere — soft WARMTH, not hard specks (those read as screen-dirt on
-   white). JS drives the layer opacity by the field's energy (the sky brightens when the field stirs). */
-/* z-index ABOVE content (so they're not occluded by the opaque body bg, the old bug) +
-   mix-blend-mode: multiply → soft WARM dust that only ever DARKENS (so text contrast can only
-   improve — AA-safe over everything). Pointer-events:none, faint, transient. */
+/* ===== SKY-4 — the hour's light on shadows + hairlines =====
+   Heliostat writes --fc-shadow-dx (+morning → −afternoon, ×--fc-int-shadow in JS),
+   --fc-shadow-blur (10px noon → 26px dawn/dusk) and --fc-shadow-tint (zenith 35%
+   into ink). Resting card shadow is NEW art-direction (validate with the owner;
+   retreat = hover only). The void band's shadow is W3's urushi — NOT here (§f.11).
+   --hairline-lit (ONE owner: W1) = the hour's hue mixed into the hairline; consumed
+   by W3's seams and the footer scanline track with fallback var(--hairline). */
+html.fc-motion { --hairline-lit: color-mix(in srgb, var(--fc-hour-hue, var(--hairline)) 35%, var(--hairline)); }
+html.fc-boost.fc-motion { --hairline-lit: color-mix(in srgb, var(--fc-hour-hue, var(--hairline)) 55%, var(--hairline)); }
+html.fc-motion .wn-card:not(:hover) {
+  box-shadow: var(--fc-shadow-dx, 0px) 3px var(--fc-shadow-blur, 12px) -7px
+    color-mix(in srgb, var(--fc-shadow-tint, var(--ink)) 11%, transparent);
+}
+html.fc-boost.fc-motion .wn-card:not(:hover) {
+  box-shadow: var(--fc-shadow-dx, 0px) 3px var(--fc-shadow-blur, 12px) -7px
+    color-mix(in srgb, var(--fc-shadow-tint, var(--ink)) 20%, transparent);
+}
+html.fc-boost.fc-motion .wn-card { border-color: var(--hairline-lit); }
+
+/* ===== SKY light motes (v4, verbatim) — soft warm light-blooms high in the field ===== */
 .fc-sky { position: fixed; inset: 0; z-index: var(--z-warm); pointer-events: none; overflow: hidden; }
 .fc-mote {
   position: absolute; top: 0; left: 0; border-radius: 50%; mix-blend-mode: multiply; opacity: 0; /* JS drives the twinkle */
@@ -64,3 +100,170 @@ html.fc-helio-instant body { transition: none !important; }
      (screen/additive was rejected: on a near-white field it lightens toward white = invisible.) */
   background: radial-gradient(circle, color-mix(in srgb, var(--sun) 82%, var(--fc-sky-hue, var(--sun))), transparent 60%);
 }
+
+/* ===== SKY-8 — SNOW: the motes change regime (multiply over the void = black by
+   the math; the cold flake needs NORMAL blend to glow washi over black and read
+   grey-blue over white — research 3.7, judge-OBLIGATORY). Particle physics = W4. */
+.fc-sky--snow .fc-mote {
+  mix-blend-mode: normal;
+  background: radial-gradient(circle, color-mix(in srgb, var(--sky) 70%, var(--washi)), transparent 60%);
+}
+html.fc-boost .fc-sky--snow .fc-mote { scale: 1.15; } /* independent property: never clobbers the ticker's translate3d */
+
+/* ===== SKY-6 — CLOUDS with drift + the light governor (heliostat dims the sun by scene) =====
+   240vw strip = the 0–100vw content + byte-exact copies at +100vw → the -100vw drift
+   loops PERFECTLY by construction. filter rasterizes once; baseFrequency never animates.
+   RM: the layer exists STATIC (clouds are state, like data-wx); only the drift is gated. */
+.fc-clouds {
+  position: fixed; top: 0; left: 0; width: 240vw; height: 22vh; z-index: var(--z-haze);
+  pointer-events: none; filter: url(#fc-cloud); opacity: var(--fc-cloud-op, 0); transition: opacity 6s linear;
+  /* alphas calibrated +2-3pt over the design draft (6/9/6 → 8/12/8): the spec's own
+     PASS criterion (strip diff >6% px ≥Δ10 vs clear) measured 5.8% at draft values */
+  background:
+   radial-gradient(38vw 9vh at 12vw 6vh,  color-mix(in srgb, var(--ink) 8%, transparent), transparent 70%),
+   radial-gradient(46vw 11vh at 58vw 4vh, color-mix(in srgb, var(--sky) 12%, transparent), transparent 70%),
+   radial-gradient(30vw 8vh at 96vw 8vh,  color-mix(in srgb, var(--fc-hour-hue, var(--sky)) 8%, transparent), transparent 70%),
+   radial-gradient(38vw 9vh at 112vw 6vh, color-mix(in srgb, var(--ink) 8%, transparent), transparent 70%),
+   radial-gradient(46vw 11vh at 158vw 4vh,color-mix(in srgb, var(--sky) 12%, transparent), transparent 70%),
+   radial-gradient(30vw 8vh at 196vw 8vh, color-mix(in srgb, var(--fc-hour-hue, var(--sky)) 8%, transparent), transparent 70%);
+  mask-image: linear-gradient(180deg, #000 30%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent);
+}
+html[data-wx="partly"]   .fc-clouds { --fc-cloud-op: 0.55; }
+html[data-wx="overcast"] .fc-clouds { --fc-cloud-op: 1; }
+html[data-wx="storm"] .fc-clouds, html[data-wx="snow"] .fc-clouds { --fc-cloud-op: 1; }
+html[data-wx="storm"]    .fc-clouds { filter: url(#fc-cloud) brightness(0.93); }
+@keyframes wn-cloud-drift { to { transform: translateX(-100vw); } }
+@media (prefers-reduced-motion: no-preference) {
+  html.fc-motion .fc-clouds { animation: wn-cloud-drift calc(180s - var(--fc-wx-wind, 0) * 90s) linear infinite; }
+  html.fc-boost.fc-motion .fc-clouds { animation-duration: calc((180s - var(--fc-wx-wind, 0) * 90s) * 0.6); }
+  /* SKY-10b fog mitigation: ONE low cloud at op .4, drifting at HALF speed (wins over boost: fog stays slow) */
+  html.fc-motion[data-wx="fog"] .fc-clouds--low { animation-duration: calc((180s - var(--fc-wx-wind, 0) * 90s) * 2); }
+}
+html[data-wx="fog"] .fc-clouds--low { --fc-cloud-op: 0.4; }
+html.fc-boost[data-wx="partly"]   .fc-clouds { --fc-cloud-op: 0.85; }
+html.fc-boost[data-wx="overcast"] .fc-clouds { --fc-cloud-op: 1.3; } /* clamps at 1 — headroom against the storm dim */
+
+/* ===== SKY-7 — calligraphic RAIN in the gutters (≥1024px, motion only — weather.js
+   gates the DOM). Wrapper rotated 12° + overflow hidden = the slant; the inner <i>
+   carries a repeating-gradient of 1px strokes and falls EXACT multiples of its
+   period (650px = 10×65px · 630px = 14×45px) → seamless loop by construction.
+   The animation only RUNS under a matching data-wx (never animates invisible). */
+.fc-rain {
+  position: fixed; top: -12vh; left: 0; width: 20vw; height: 124vh; transform: rotate(12deg);
+  overflow: hidden; z-index: var(--z-haze); pointer-events: none; opacity: 0; transition: opacity 5s linear;
+  mask-image: linear-gradient(180deg, transparent, #000 20% 70%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 20% 70%, transparent);
+}
+.fc-rain--east { left: auto; right: -2vw; width: 10vw; }
+/* strokes calibrated from the draft (1px @ sky-40% measured Δ10 max — invisible, the
+   owner's recurring "no veo"; the spec's own gutter criterion needs ≥Δ16): 2px @ 70%.
+   The 65px/45px PERIODS are untouched — the fall keyframes stay exact multiples. */
+.fc-rain > i {
+  position: absolute; left: 0; right: 0; top: -660px; bottom: 0; display: block;
+  background: repeating-linear-gradient(180deg, transparent 0 63px, color-mix(in srgb, var(--sky) 85%, transparent) 63px 65px);
+}
+html[data-wx="rain"] .fc-rain { opacity: 0.30; }
+html[data-wx="rain"] .fc-rain--east { opacity: 0.18; }
+html[data-wx="rain-heavy"] .fc-rain, html[data-wx="storm"] .fc-rain { opacity: 0.42; }
+html[data-wx="rain-heavy"] .fc-rain > i, html[data-wx="storm"] .fc-rain > i {
+  background: repeating-linear-gradient(180deg, transparent 0 43px, color-mix(in srgb, var(--sky) 88%, transparent) 43px 45px);
+}
+@keyframes wn-rain-fall   { to { transform: translateY(650px); } }  /* 10 × 65px exact */
+@keyframes wn-rain-fall-h { to { transform: translateY(630px); } }  /* 14 × 45px exact */
+@media (prefers-reduced-motion: no-preference) {
+  html.fc-motion[data-wx="rain"] .fc-rain > i { animation: wn-rain-fall 4s linear infinite; }
+  html.fc-motion[data-wx="rain-heavy"] .fc-rain > i, html.fc-motion[data-wx="storm"] .fc-rain > i { animation: wn-rain-fall-h 3.2s linear infinite; }
+}
+/* honest static rain at half voice if RM flips mid-shower (weather's cleanup then removes the DOM) */
+@media (prefers-reduced-motion: reduce) {
+  html[data-wx="rain"] .fc-rain { opacity: 0.15; }
+  html[data-wx="rain"] .fc-rain--east { opacity: 0.09; }
+  html[data-wx="rain-heavy"] .fc-rain, html[data-wx="storm"] .fc-rain { opacity: 0.21; }
+}
+html.fc-boost[data-wx="rain"] .fc-rain { opacity: 0.45; }
+html.fc-boost[data-wx="rain"] .fc-rain--east { opacity: 0.27; }
+html.fc-boost[data-wx="rain-heavy"] .fc-rain, html.fc-boost[data-wx="storm"] .fc-rain { opacity: 0.58; }
+
+/* ===== SKY-9 — STORM: flash in the void + thunder + the RED SPRITE (1/session) ===== */
+/* the flash is a DEDICATED child of .wn-void — its ::after is RESERVED for W3's
+   byōbu frame (CONTRACTS §f.10); z-index 1 keeps the light BEHIND the washi text */
+.fc-voidflash {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(60% 120% at 50% 0%, color-mix(in srgb, var(--washi) 14%, transparent), transparent);
+  opacity: 0;
+}
+.fc-voidflash.go { animation: wn-flash 480ms linear; }
+@keyframes wn-flash { 0%, 100% { opacity: 0; } 8% { opacity: var(--fc-flash-peak, 0.6); } 14% { opacity: 0.1; } 22% { opacity: 0.35; } 38% { opacity: 0; } }
+html.fc-boost { --fc-flash-peak: 0.8; }
+/* thunder: 900ms field shiver — on class removal body returns to its clean 4s flow */
+html.fc-thunder body { transition-duration: 480ms; background: color-mix(in srgb, var(--fc-field) 95%, var(--field-0-dim)); }
+/* RED SPRITE — full-saturation --signal strokes (BINARY red, never axis-multiplied);
+   the ::before halo is the sky's one sanctioned bounce-light (6% × 120ms — §f.5) */
+.fc-sprite { position: fixed; top: 6vh; right: 3vw; width: 10vw; height: 14vh; z-index: var(--z-haze); pointer-events: none; }
+.fc-sprite svg { width: 100%; height: 100%; }
+.fc-sprite::before {
+  content: ""; position: absolute; inset: -20%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--signal) 6%, transparent), transparent);
+  opacity: 0;
+}
+.fc-sprite path { stroke: var(--signal); stroke-width: 1.2; fill: none; stroke-dasharray: 100; stroke-dashoffset: 100; opacity: 0.85; }
+.fc-sprite.go::before { animation: wn-sprite-halo 120ms linear; }
+@keyframes wn-sprite-halo { 0% { opacity: 0; } 50% { opacity: 0.5; } 100% { opacity: 0; } }
+.fc-sprite.go path { stroke-dashoffset: 0; transition: stroke-dashoffset 180ms var(--ease-crack) 120ms; } /* draw AFTER the halo */
+.fc-sprite.fade { opacity: 0; transition: opacity 240ms linear; }
+
+/* ===== SKY-10a — FOG VEILS (GATED: weather.fogVeils=false until the owner approves
+   ?fc-wx=fog in live). Two pre-mixed never-grey veils in counter-phase (LTM);
+   default fog (10b) is pure SUBTRACTION via heliostat — no veil, nothing here runs. */
+.fc-fog {
+  position: fixed; top: 0; left: 0; right: 0; height: 48vh; z-index: var(--z-haze);
+  pointer-events: none; opacity: 0; transition: opacity 8s linear;
+  mask-image: linear-gradient(180deg, #000 55%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent);
+}
+html[data-wx="fog"] .fc-fog { opacity: 1; }
+.fc-fog i {
+  position: absolute; left: -8vw; right: -8vw; display: block;
+  background: color-mix(in srgb, color-mix(in srgb, var(--sky) 35%, var(--field-0)) 70%, var(--field-0));
+}
+.fc-fog i:first-child { top: 0; height: 28vh; opacity: 0.14; }
+.fc-fog i:last-child { top: 16vh; height: 20vh; opacity: 0.09; }
+@keyframes wn-fog-east { from { transform: translateX(calc(var(--fc-fog-amp, 4vw) * -1)); } to { transform: translateX(var(--fc-fog-amp, 4vw)); } }
+@media (prefers-reduced-motion: no-preference) {
+  html.fc-motion .fc-fog i:first-child { animation: wn-fog-east 55s linear infinite alternate; }
+  html.fc-motion .fc-fog i:last-child  { animation: wn-fog-east 85s linear infinite alternate-reverse; }
+}
+@media (prefers-reduced-motion: reduce) { /* static ×0.6 */
+  .fc-fog i:first-child { opacity: 0.084; }
+  .fc-fog i:last-child  { opacity: 0.054; }
+}
+html.fc-boost .fc-fog { --fc-fog-amp: 7vw; }
+html.fc-boost .fc-fog i:first-child { opacity: 0.22; }
+html.fc-boost .fc-fog i:last-child  { opacity: 0.14; }
+
+/* ===== SKY-11 — cloud IRIDESCENCE: the clear-sky daytime prize (flag weather.iris).
+   THE LAW (§f.9): this is the ONE animated trace of the white viewport in clear sky
+   10–16h — never coexists with overcast/fog; iris XOR moon XOR sprite by state/hour.
+   Pastels = phenomenon DATA (Cloud Atlas), sanctioned like the heliostat ANCHORS (§f.7). */
+.fc-iris {
+  position: fixed; left: clamp(2vw, calc(var(--fc-sun-x, 80%) + 6vw), 82vw); top: calc(var(--fc-sun-y, 14%) + 2vh);
+  width: 16vw; height: 7vw; z-index: var(--z-haze); pointer-events: none; overflow: hidden; opacity: 0; transition: opacity 8s linear;
+  -webkit-mask-image: radial-gradient(50% 50%, #000 30%, transparent 70%);
+  mask-image: radial-gradient(50% 50%, #000 30%, transparent 70%);
+}
+html[data-wx="clear"] .fc-iris, html[data-wx="partly"] .fc-iris { opacity: 0.14; }
+.fc-iris i {
+  position: absolute; left: 50%; top: 50%; width: 200%; aspect-ratio: 1; translate: -50% -50%; display: block;
+  background: conic-gradient(#F4C8D8, #C8E8D4, #F5E6C4, #CFE0F2, #E8D4E2, #F4C8D8);
+}
+@keyframes wn-iris-turn { to { rotate: 360deg; } }
+@media (prefers-reduced-motion: no-preference) {
+  html.fc-motion .fc-iris i { animation: wn-iris-turn 150s linear infinite; }
+  html.fc-boost.fc-motion .fc-iris i { animation-duration: 80s; }
+}
+html.fc-boost[data-wx="clear"] .fc-iris, html.fc-boost[data-wx="partly"] .fc-iris { opacity: 0.24; }
+html.fc-boost .fc-iris { width: 20vw; }
+
+/* boost entries are the demo throttle: 1.2s ONLY under fc-boost (CONTRACTS §f.3b) */
+html.fc-boost .fc-clouds, html.fc-boost .fc-rain, html.fc-boost .fc-fog, html.fc-boost .fc-iris { transition: opacity 1.2s linear; }

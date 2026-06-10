@@ -185,12 +185,6 @@ function mkClouds() {
   if (sun) sun.after(el); else document.body.prepend(el); // AFTER .fc-sun: the cloud covers the sun
   return [el];
 }
-function mkRain() {
-  const a = mkDiv('fc-rain'); a.innerHTML = '<i></i>';
-  const b = mkDiv('fc-rain fc-rain--east'); b.innerHTML = '<i></i>';
-  document.body.append(a, b);
-  return [a, b];
-}
 function mkFog() {
   const el = mkDiv('fc-fog'); el.innerHTML = '<i></i><i></i>';
   document.body.appendChild(el);
@@ -210,7 +204,11 @@ function syncSnow() {
 function syncIris() {
   const state = root().dataset.wx;
   const h = effectiveHour();
-  const want = cfgW.iris !== false && !reduced && (state === 'clear' || state === 'partly') && h >= 10 && h <= 16;
+  const boost = root().classList.contains('fc-boost');
+  // the clear-sky prize. In BOOST the hour gate is RELAXED (owner: "no veo la
+  // iridiscencia") so WX:CLEAR shows it at any hour for auditioning; in subtle it
+  // keeps its natural 10–16h window so it stays a rare midday gift.
+  const want = cfgW.iris !== false && !reduced && (state === 'clear' || state === 'partly') && (boost || (h >= 10 && h <= 16));
   if (want) ensure('iris', mkIris); else fadeRemove('iris', 8000);
 }
 
@@ -222,9 +220,11 @@ function syncLayers(state) {
     const els = ensure('clouds', mkClouds);
     if (els) els[0].classList.toggle('fc-clouds--low', wantLow);
   } else fadeRemove('clouds', 6000);
-  // calligraphic rain — desktop, motion only; DOM REMOVED on exit (never animates invisible)
-  if (['rain', 'rain-heavy', 'storm'].includes(state) && matchMedia('(min-width: 1024px)').matches && !reduced) ensure('rain', mkRain);
-  else fadeRemove('rain', 5000);
+  // RAIN STREAKS REMOVED (V5.3, owner: "la lluvia va fatal"): the diagonal gutter
+  // lines read as jagged noise against the calm field. Rain now lives ONLY as a
+  // dimmer sky (heliostat governor reads data-wx) + livelier ocean rings on click
+  // (ocean.js SKY-12.2) — felt, not drawn. The state still exists; the layer never does.
+  fadeRemove('rain', 1);
   // fog veils — SKY-10a, gated on weather.fogVeils (owner approval pending)
   if (state === 'fog' && cfgW.fogVeils && !reduced) ensure('fog', mkFog);
   else fadeRemove('fog', 8000);
@@ -317,6 +317,7 @@ function onIntensity(e) {
   // re-applies its scene itself — weather only re-arms the demo sprite cadence
   clearTimeout(demoT); demoT = 0;
   if (e.detail && e.detail.mode === 'boost' && !reduced) demoT = setTimeout(demoSprite, 8000);
+  syncIris(); // boost relaxes the iris hour-gate — re-evaluate now (owner can see it on demand)
 }
 
 /* ════════ init ════════ */
@@ -338,6 +339,12 @@ export function initWeather(config) {
     const syn = synthetic();
     if (st && st !== 'auto' && VALID.has(st)) apply(st, syn.wind, CLOUDS[st]);
     else apply(syn.state, syn.wind, syn.clouds);
+    // V5.3 — auditioning the RED SPRITE: selecting STORM via the LOUD chip fires one
+    // sprite right away (boost only) so the owner SEES the red lightning on demand,
+    // instead of waiting out the 1/session quota.
+    if (st === 'storm' && root().classList.contains('fc-boost') && !reduced && !document.hidden) {
+      clearTimeout(demoT); demoT = setTimeout(spawnSprite, 1400);
+    }
   };
   document.addEventListener('wn:wx-force', onForce);
   snowT = setTimeout(syncSnow, 1200); // .fc-sky is born later in boot (particles) — re-sync once

@@ -934,25 +934,25 @@ try {
   rec('Boost perceptibility', true, pass, `subtle↔boost @16h: max=${d.max} (≥16) pctGe8=${d.pctGe8}% (≥0.8%) — perceptible is an ASSERT`, pass);
 } catch (e) { rec('Boost perceptibility', true, false, 'ERR ' + e.message, false); }
 
-/* ───────────────── 37. ASK THE FIELD (V5.2) — grounded assistant, honest offline ───────────────── */
+/* ───────────────── 37. ASK THE FIELD (V5.3) — inline chat dock, honest offline ───────────────── */
 try {
   const c = await newCtx();
   const page = await c.newPage();
   await page.goto(HOME, { waitUntil: 'networkidle' });
   await page.waitForTimeout(800);
-  const cta = await page.$eval('[data-ask]', (el) => !el.hidden).catch(() => false);
-  await page.click('[data-ask]');
+  const dock = await page.$$eval('.wn-chat__tab', (e) => e.length); // always-present dock (not a modal/link)
+  await page.click('.wn-chat__tab');
   await page.waitForTimeout(300);
-  const open = await page.$eval('dialog.wn-ask', (d) => d.open).catch(() => false);
-  await page.fill('.wn-ask__input', 'what did he build?');
-  await page.click('.wn-ask__send');
+  const opened = await page.$eval('.wn-chat', (el) => el.classList.contains('is-open') && !el.querySelector('.wn-chat__panel').hidden);
+  await page.fill('.wn-chat__input', 'what did he build?');
+  await page.click('.wn-chat__send');
   await page.waitForTimeout(1500); // preview has no /api/ask → the QUIET fallback must speak
-  const fallback = await page.$$eval('.wn-ask__msg--quiet', (els) => els.some((el) => /guillehoyob@gmail\.com/.test(el.textContent)));
+  const fallback = await page.$$eval('.wn-chat__msg--quiet', (els) => els.some((el) => /guillehoyob@gmail\.com/.test(el.textContent)));
   await page.keyboard.press('Escape');
   await page.waitForTimeout(200);
-  const closed = await page.$eval('dialog.wn-ask', (d) => !d.open);
-  const pass = cta && open && fallback && closed;
-  rec('Ask the field', cta, pass, `cta=${cta} open=${open} honest-fallback=${fallback} esc-closes=${closed}`, pass);
+  const collapsed = await page.$eval('.wn-chat', (el) => !el.classList.contains('is-open'));
+  const pass = dock === 1 && opened && fallback && collapsed;
+  rec('Ask the field', dock === 1, pass, `dock=${dock} opens-inline=${opened} honest-fallback=${fallback} esc-collapses=${collapsed}`, pass);
   await c.close();
 } catch (e) { rec('Ask the field', true, false, 'ERR ' + e.message, false); }
 

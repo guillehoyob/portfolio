@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<!-- WHITE NOON — interactive key/security guide. LOCAL ONLY: not a Vite input, never
+     deployed, contains NO secrets. Open with: double-click, or  npx serve docs  .
+     It explains where the Azure key lives, why the browser never sees it, and how to
+     verify that yourself. Everything here is safe to commit. -->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WHITE NOON — Guía de la llave Azure (segura)</title>
+<style>
+  :root{
+    --field:#F7F7F5;--ink:#1A1917;--ghost:#5A5855;--hair:#D6D4D0;--void:#0F0E0D;
+    --washi:#F5F0E8;--signal:#E8341A;--sun:#FFC42E;--gold:#D2A22A;--moss:#5C6B55;
+    --mono:"Share Tech Mono",ui-monospace,monospace;--sans:"DM Sans",system-ui,sans-serif;
+    --disp:"Space Grotesk",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--field);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:clamp(2rem,6vw,5rem) clamp(1.2rem,5vw,3rem) 6rem}
+  h1{font-family:var(--disp);font-weight:700;font-size:clamp(2rem,6vw,3.4rem);line-height:1.02;letter-spacing:-.02em;margin:0 0 .4rem}
+  h2{font-family:var(--disp);font-weight:700;font-size:1.5rem;margin:3rem 0 1rem;letter-spacing:-.01em}
+  h3{font-family:var(--disp);font-weight:500;font-size:1.05rem;margin:1.6rem 0 .5rem}
+  .eyebrow{font-family:var(--mono);font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--ghost);margin:0 0 1rem}
+  .lead{font-size:1.15rem;max-width:60ch;color:var(--ink)}
+  p{max-width:66ch}
+  code,kbd{font-family:var(--mono);font-size:.86em;background:#EDECEA;padding:.1em .35em;border-radius:3px}
+  .signal{color:var(--signal)}
+  .rule{height:1px;background:var(--hair);border:0;margin:2.5rem 0}
+  /* the void verdict block */
+  .void{background:var(--void);color:var(--washi);border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);
+    padding:1.6rem 1.8rem;margin:2rem 0;border-radius:2px}
+  .void b{color:var(--sun)}
+  .void code{background:#26231f;color:var(--washi)}
+  /* diagram */
+  .stage{background:#fff;border:1px solid var(--hair);border-radius:4px;padding:1.6rem;margin:1.5rem 0;overflow-x:auto}
+  .flow{display:flex;align-items:stretch;gap:0;min-width:640px}
+  .node{flex:1;border:1px solid var(--hair);border-radius:3px;padding:1rem;text-align:center;background:var(--field);position:relative}
+  .node--browser{border-color:var(--hair)}
+  .node--cf{border-color:var(--moss);background:color-mix(in srgb,var(--moss) 8%,var(--field))}
+  .node--azure{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 10%,var(--field))}
+  .node h4{font-family:var(--disp);margin:.2rem 0 .4rem;font-size:1rem}
+  .node small{font-family:var(--mono);font-size:.72rem;color:var(--ghost);text-transform:uppercase;letter-spacing:.05em}
+  .node p{font-size:.82rem;margin:.5rem 0 0;color:var(--ghost);max-width:none}
+  .arrow{flex:0 0 64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;color:var(--signal);font-family:var(--mono);font-size:.62rem;text-align:center}
+  .arrow svg{width:100%;height:18px}
+  .arrow .dash{stroke-dasharray:4 4;animation:flow 1s linear infinite}
+  @keyframes flow{to{stroke-dashoffset:-8}}
+  .keyflag{display:inline-block;margin-top:.6rem;font-family:var(--mono);font-size:.7rem;padding:.2em .5em;border-radius:3px}
+  .keyflag--no{background:#fde8e5;color:#9b1c0c;border:1px solid #f3b4ab}
+  .keyflag--yes{background:color-mix(in srgb,var(--gold) 22%,#fff);color:#6b4e0a;border:1px solid var(--gold)}
+  /* tabs */
+  .tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin:1.5rem 0 0}
+  .tabs button{font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ghost);
+    background:none;border:1px solid var(--hair);border-radius:999px;padding:.5em 1em;cursor:pointer}
+  .tabs button[aria-selected=true]{color:var(--ink);border-color:var(--ink);background:#fff}
+  .panel{display:none;border:1px solid var(--hair);border-top:0;padding:1.4rem;background:#fff}
+  .panel[data-open]{display:block}
+  .cmd{display:flex;align-items:flex-start;gap:.6rem;background:var(--void);color:var(--washi);padding:.9rem 1rem;border-radius:3px;margin:.8rem 0;font-family:var(--mono);font-size:.8rem;overflow-x:auto}
+  .cmd code{background:none;color:var(--washi);white-space:pre}
+  .cmd button{flex:0 0 auto;background:none;border:1px solid color-mix(in srgb,var(--washi) 30%,transparent);color:var(--washi);
+    border-radius:3px;padding:.2em .6em;font-family:var(--mono);font-size:.7rem;cursor:pointer}
+  .cmd button:hover{border-color:var(--sun);color:var(--sun)}
+  /* checklist */
+  .check{list-style:none;padding:0;margin:1rem 0}
+  .check li{display:flex;gap:.8rem;align-items:flex-start;padding:.7rem 0;border-bottom:1px solid var(--hair)}
+  .check input{margin-top:.35rem;width:18px;height:18px;accent-color:var(--moss);flex:0 0 auto}
+  .check label{cursor:pointer}
+  .check .why{display:block;font-size:.85rem;color:var(--ghost);margin-top:.2rem}
+  .scoreline{font-family:var(--mono);font-size:.85rem;color:var(--ghost);margin-top:1rem}
+  .scoreline b{color:var(--moss)}
+  details{border:1px solid var(--hair);border-radius:3px;padding:.8rem 1rem;margin:.8rem 0;background:#fff}
+  summary{cursor:pointer;font-family:var(--disp);font-weight:500}
+  .warn{border-left:3px solid var(--signal);padding-left:1rem;color:var(--ink)}
+  .ok{color:var(--moss);font-weight:700}
+  .no{color:var(--signal);font-weight:700}
+  footer{margin-top:4rem;font-family:var(--mono);font-size:.75rem;color:var(--ghost)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">WHITE NOON · seguridad · documento local (no se publica)</p>
+  <h1>Dónde vive la llave<br>y por qué nadie la ve.</h1>
+  <p class="lead">El chatbot del portfolio habla con Azure OpenAI. Eso necesita una <b>API key</b> — la cosa más peligrosa de filtrar. Esta guía te enseña, con un diagrama vivo y comprobaciones que puedes correr tú mismo, <b>exactamente</b> dónde está esa llave, por qué tu navegador (y cualquier atacante mirando el código) nunca la ve, y cómo verificarlo.</p>
+
+  <div class="void">
+    <b>La idea en una frase.</b> La llave <b>nunca está en el código</b> ni en lo que se descarga el navegador. Vive cifrada en los servidores de Cloudflare y solo se inyecta, en memoria, dentro de una pequeña función de servidor en el instante de hablar con Azure. El navegador del visitante solo ve <code>/api/ask</code> — jamás la llave.
+  </div>
+
+  <h2>1 · El recorrido de una pregunta</h2>
+  <p>Cuando alguien pregunta al chat, esto es lo que ocurre. Fíjate en dónde aparece (y dónde <i>no</i>) la llave 🔑:</p>
+  <div class="stage">
+    <div class="flow">
+      <div class="node node--browser">
+        <small>Tu navegador</small><h4>El sitio</h4>
+        <p>Envía solo la <i>pregunta</i> a <code>/api/ask</code> (mismo dominio).</p>
+        <span class="keyflag keyflag--no">🔑 NO está aquí</span>
+      </div>
+      <div class="arrow"><span>POST<br>pregunta</span><svg viewBox="0 0 64 18"><line class="dash" x1="2" y1="9" x2="56" y2="9" stroke="currentColor" stroke-width="2"/><polygon points="56,4 64,9 56,14" fill="currentColor"/></svg></div>
+      <div class="node node--cf">
+        <small>Cloudflare (servidor)</small><h4>functions/api/ask.js</h4>
+        <p>Lee la llave de <code>env</code> (cifrada), llama a Azure, devuelve solo la respuesta.</p>
+        <span class="keyflag keyflag--yes">🔑 solo aquí, en memoria</span>
+      </div>
+      <div class="arrow"><span>POST<br>+ api-key</span><svg viewBox="0 0 64 18"><line class="dash" x1="2" y1="9" x2="56" y2="9" stroke="currentColor" stroke-width="2"/><polygon points="56,4 64,9 56,14" fill="currentColor"/></svg></div>
+      <div class="node node--azure">
+        <small>Azure OpenAI</small><h4>tu deployment</h4>
+        <p>gpt-5.4-mini responde con grounding del sitio.</p>
+        <span class="keyflag keyflag--yes">🔑 valida la llave</span>
+      </div>
+    </div>
+  </div>
+  <p>El salto del medio (Cloudflare → Azure) ocurre <b>servidor a servidor</b>. Ese tramo nunca toca el navegador, así que la llave nunca viaja a través de él hacia el visitante. La respuesta que vuelve al navegador es solo texto + enlaces del propio sitio.</p>
+
+  <h2>2 · ¿Cómo es esto posible? Las tres reglas</h2>
+
+  <h3>Regla 1 — La llave es una <i>variable de entorno</i>, no una línea de código</h3>
+  <p>En el código del repo, la función pide la llave así — fíjate en que <b>no hay ninguna llave escrita</b>, solo el <i>nombre</i> de una variable que Cloudflare rellena en ejecución:</p>
+  <div class="cmd"><code>// functions/api/ask.js  (esto SÍ está en git — y es seguro)
+headers: { 'api-key': env.AZURE_OPENAI_API_KEY }   // ← un hueco, no un valor</code><button data-copy="headers: { 'api-key': env.AZURE_OPENAI_API_KEY }">copiar</button></div>
+  <p>El valor real lo pones <b>una sola vez en el panel de Cloudflare</b> (paso 4). Cloudflare lo guarda cifrado y lo inyecta en <code>env</code> cuando la función se ejecuta. Git nunca lo ve; el build nunca lo ve.</p>
+
+  <h3>Regla 2 — Hay una frontera entre "navegador" y "servidor"</h3>
+  <p>Todo lo que vive en <code>src/</code> se compila y se <b>descarga al navegador</b> — ahí jamás puede ir un secreto. La carpeta <code>functions/</code> es distinta: Cloudflare la ejecuta <b>en su servidor</b>, nunca se envía al navegador. La llave solo se toca dentro de <code>functions/</code>.</p>
+  <div class="void"><b>Por eso el chatbot llama a <code>/api/ask</code> y no a Azure directamente.</b> Si el navegador llamara a Azure, tendría que llevar la llave consigo → filtrada al instante. El <code>/api/ask</code> intermedio es justamente el muro que mantiene la llave del lado seguro.</div>
+
+  <h3>Regla 3 — El secreto local también está fuera de git</h3>
+  <p>Para probar en tu portátil con <code>wrangler pages dev</code> usas un fichero <code>.dev.vars</code>. Está en <code>.gitignore</code>, así que <b>nunca se sube</b>. En el repo solo hay <code>.dev.vars.example</code> con <i>placeholders</i>, jamás valores reales.</p>
+
+  <h2>3 · Compruébalo tú mismo (no te fíes, verifica)</h2>
+  <p>Corre estos comandos en la raíz del proyecto. Cada uno demuestra una garantía. <b>Resultado esperado:</b> que tu llave NO aparezca por ningún lado salvo en Cloudflare.</p>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="t1">la llave no está en lo publicado</button>
+    <button role="tab" aria-selected="false" data-tab="t2">la llave no está en git</button>
+    <button role="tab" aria-selected="false" data-tab="t3">el navegador no la recibe</button>
+  </div>
+  <div class="panel" data-open id="t1">
+    <p>Construye el sitio y busca tu llave (o su prefijo) en TODO lo que se sube al navegador. Debe salir <b>0 coincidencias</b>:</p>
+    <div class="cmd"><code>npm run build
+findstr /S /I /M "TU-PREFIJO-DE-LLAVE" dist\*    ::  Windows
+grep -rI "TU-PREFIJO-DE-LLAVE" dist/             ::  macOS/Linux</code><button data-copy="grep -rI 'TU-PREFIJO' dist/">copiar</button></div>
+    <p>También que <code>functions/</code> no acabe en <code>dist/</code> (Cloudflare la ejecuta aparte, no la empaqueta): <code>dist/</code> no contiene <code>api/ask.js</code> como JS del navegador.</p>
+  </div>
+  <div class="panel" id="t2">
+    <p>Comprueba que ningún fichero rastreado por git contiene la llave, y que <code>.dev.vars</code> está ignorado:</p>
+    <div class="cmd"><code>git grep -I "TU-PREFIJO-DE-LLAVE"     ::  debe imprimir NADA
+git check-ignore .dev.vars            ::  debe imprimir  .dev.vars
+git ls-files | findstr ".dev.vars"    ::  solo .dev.vars.example, nunca .dev.vars</code><button data-copy="git grep -I 'TU-PREFIJO' ; git check-ignore .dev.vars">copiar</button></div>
+  </div>
+  <div class="panel" id="t3">
+    <p>Con el sitio abierto, en DevTools → pestaña <b>Network</b>: pregunta algo al chat. Verás una petición a <code>/api/ask</code> (tu dominio) con tu pregunta en el cuerpo y <b>sin api-key</b>. NO verás ninguna llamada del navegador a <code>*.openai.azure.com</code> — ese salto es servidor-a-servidor.</p>
+    <p>En DevTools → <b>Sources</b>: busca (Ctrl+Shift+F) tu prefijo de llave en todos los recursos cargados → 0 resultados.</p>
+  </div>
+
+  <h2>4 · Cómo se ponen las llaves (lo haces tú, una vez)</h2>
+  <p class="warn">No puedo (ni debo) hacer este paso por ti: requiere tu cuenta de Cloudflare. Y es <b>justo así</b> como debe ser — el secreto solo lo conoces tú y Cloudflare.</p>
+  <h3>Producción — panel de Cloudflare</h3>
+  <ol>
+    <li>Cloudflare Dashboard → <b>Workers &amp; Pages</b> → tu proyecto → <b>Settings</b> → <b>Variables and secrets</b>.</li>
+    <li>Añade, marcando cada una como <b>Secret</b> (encrypt), estas 4 — los <i>nombres</i> exactos, tus <i>valores</i> reales:
+      <div class="cmd"><code>AZURE_OPENAI_ENDPOINT      = https://TU-RECURSO.openai.azure.com   (tu endpoint real)
+AZURE_OPENAI_API_KEY       = (tu key — márcala SECRET)
+AZURE_OPENAI_DEPLOYMENT    = gpt-5.4-mini
+AZURE_OPENAI_API_VERSION   = 2024-12-01-preview</code><button data-copy="AZURE_OPENAI_ENDPOINT / AZURE_OPENAI_API_KEY / AZURE_OPENAI_DEPLOYMENT / AZURE_OPENAI_API_VERSION">copiar nombres</button></div>
+      <p style="font-size:.85rem;color:var(--ghost)">Los valores reales (endpoint y key) <b>solo</b> los escribes aquí, en Cloudflare — nunca en un fichero del repo. Por eso este documento usa placeholders.</p>
+    </li>
+    <li>Re-despliega (push a main o "Retry deployment"). Listo: el chat encuentra su voz.</li>
+  </ol>
+  <h3>Alternativa por terminal (wrangler)</h3>
+  <div class="cmd"><code>npx wrangler pages secret put AZURE_OPENAI_API_KEY
+# te pide el valor de forma interactiva — nunca queda en el historial ni en un fichero</code><button data-copy="npx wrangler pages secret put AZURE_OPENAI_API_KEY">copiar</button></div>
+  <h3>Local (para probar el chat en tu portátil)</h3>
+  <div class="cmd"><code>copy .dev.vars.example .dev.vars   ::  y pon tus valores reales en .dev.vars (ya ignorado por git)
+npx wrangler pages dev -- npm run preview</code><button data-copy="copy .dev.vars.example .dev.vars">copiar</button></div>
+
+  <h2>5 · Lista de seguridad (márcala)</h2>
+  <ul class="check" id="checklist">
+    <li><input type="checkbox" id="c1"><label for="c1">La llave nunca aparece en <code>src/</code>, <code>dist/</code> ni en ningún commit.<span class="why">Verificado con los comandos del paso 3.</span></label></li>
+    <li><input type="checkbox" id="c2"><label for="c2"><code>.dev.vars</code> está en <code>.gitignore</code>; el repo solo tiene <code>.dev.vars.example</code> con placeholders.</label></li>
+    <li><input type="checkbox" id="c3"><label for="c3">Las 4 variables están puestas como <b>Secret</b> en Cloudflare (no como texto plano visible).</label></li>
+    <li><input type="checkbox" id="c4"><label for="c4">El navegador solo llama a <code>/api/ask</code>; ninguna llamada directa a <code>*.openai.azure.com</code>.<span class="why">DevTools → Network.</span></label></li>
+    <li><input type="checkbox" id="c5"><label for="c5">La función rechaza POST de otros dominios (guard de <code>Origin</code>), limita el tamaño del cuerpo y la longitud de la pregunta.<span class="why">Anti-abuso: cada llamada cuesta dinero.</span></label></li>
+    <li><input type="checkbox" id="c6"><label for="c6">Los errores de Azure nunca se reenvían tal cual al navegador (solo un código genérico).<span class="why">Evita filtrar contexto interno.</span></label></li>
+    <li><input type="checkbox" id="c7"><label for="c7">Si rotas/regeneras la llave en Azure, solo la cambias en Cloudflare — cero cambios de código.</label></li>
+  </ul>
+  <p class="scoreline">Seguridad verificada: <b><span id="score">0</span> / 7</b></p>
+
+  <h2>6 · Si algo va mal</h2>
+  <details><summary>El chat dice "el asistente no está conectado"</summary>
+    <p>La función devolvió <code>503 unconfigured</code>: falta alguna de las 4 variables en Cloudflare, o el deployment no existe. Revisa el paso 4. El sitio sigue perfecto — solo el chat espera su voz.</p></details>
+  <details><summary>¿Y si alguien me roba la llave igualmente?</summary>
+    <p>Con esta arquitectura tendría que entrar en tu cuenta de Cloudflare o de Azure (ambas con su propio login/2FA) — no le sirve de nada mirar el código ni la red. Si sospechas: en Azure, <b>regenera la key</b> (Keys → Regenerate) y actualiza solo Cloudflare. La vieja muere al instante.</p></details>
+  <details><summary>¿La pregunta del visitante es privada?</summary>
+    <p>La pregunta viaja a Azure (tercero) para ser respondida — como cualquier asistente. No guardamos historial en servidor; el contexto se queda en la pestaña del visitante. El colofón del sitio ya divulga el uso de servicios externos.</p></details>
+
+  <hr class="rule">
+  <footer>WHITE NOON · esta guía es local y no contiene secretos · ábrela cuando quieras, compártela sin miedo · el chatbot responde con <i>grounding</i> del propio sitio y cita sus fuentes (precisión = solo afirma lo que el sitio puede probar).</footer>
+</div>
+<script>
+  // copy buttons
+  document.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',async()=>{
+    try{await navigator.clipboard.writeText(b.dataset.copy);const t=b.textContent;b.textContent='copiado ✓';setTimeout(()=>b.textContent=t,1400);}catch(e){}
+  }));
+  // tabs
+  const tabs=document.querySelectorAll('[role=tab]');
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.setAttribute('aria-selected',x===t?'true':'false'));
+    document.querySelectorAll('.panel').forEach(p=>p.toggleAttribute('data-open',p.id===t.dataset.tab));
+  }));
+  // checklist score
+  const boxes=[...document.querySelectorAll('#checklist input')];
+  const score=document.getElementById('score');
+  boxes.forEach(b=>b.addEventListener('change',()=>{score.textContent=boxes.filter(x=>x.checked).length;}));
+</script>
+</body>
+</html>

@@ -151,46 +151,10 @@ html[data-wx="fog"] .fc-clouds--low { --fc-cloud-op: 0.4; }
 html.fc-boost[data-wx="partly"]   .fc-clouds { --fc-cloud-op: 0.85; }
 html.fc-boost[data-wx="overcast"] .fc-clouds { --fc-cloud-op: 1.3; } /* clamps at 1 — headroom against the storm dim */
 
-/* ===== SKY-7 — calligraphic RAIN in the gutters (≥1024px, motion only — weather.js
-   gates the DOM). Wrapper rotated 12° + overflow hidden = the slant; the inner <i>
-   carries a repeating-gradient of 1px strokes and falls EXACT multiples of its
-   period (650px = 10×65px · 630px = 14×45px) → seamless loop by construction.
-   The animation only RUNS under a matching data-wx (never animates invisible). */
-.fc-rain {
-  position: fixed; top: -12vh; left: 0; width: 20vw; height: 124vh; transform: rotate(12deg);
-  overflow: hidden; z-index: var(--z-haze); pointer-events: none; opacity: 0; transition: opacity 5s linear;
-  mask-image: linear-gradient(180deg, transparent, #000 20% 70%, transparent);
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 20% 70%, transparent);
-}
-.fc-rain--east { left: auto; right: -2vw; width: 10vw; }
-/* strokes calibrated from the draft (1px @ sky-40% measured Δ10 max — invisible, the
-   owner's recurring "no veo"; the spec's own gutter criterion needs ≥Δ16): 2px @ 70%.
-   The 65px/45px PERIODS are untouched — the fall keyframes stay exact multiples. */
-.fc-rain > i {
-  position: absolute; left: 0; right: 0; top: -660px; bottom: 0; display: block;
-  background: repeating-linear-gradient(180deg, transparent 0 63px, color-mix(in srgb, var(--sky) 85%, transparent) 63px 65px);
-}
-html[data-wx="rain"] .fc-rain { opacity: 0.30; }
-html[data-wx="rain"] .fc-rain--east { opacity: 0.18; }
-html[data-wx="rain-heavy"] .fc-rain, html[data-wx="storm"] .fc-rain { opacity: 0.42; }
-html[data-wx="rain-heavy"] .fc-rain > i, html[data-wx="storm"] .fc-rain > i {
-  background: repeating-linear-gradient(180deg, transparent 0 43px, color-mix(in srgb, var(--sky) 88%, transparent) 43px 45px);
-}
-@keyframes wn-rain-fall   { to { transform: translateY(650px); } }  /* 10 × 65px exact */
-@keyframes wn-rain-fall-h { to { transform: translateY(630px); } }  /* 14 × 45px exact */
-@media (prefers-reduced-motion: no-preference) {
-  html.fc-motion[data-wx="rain"] .fc-rain > i { animation: wn-rain-fall 4s linear infinite; }
-  html.fc-motion[data-wx="rain-heavy"] .fc-rain > i, html.fc-motion[data-wx="storm"] .fc-rain > i { animation: wn-rain-fall-h 3.2s linear infinite; }
-}
-/* honest static rain at half voice if RM flips mid-shower (weather's cleanup then removes the DOM) */
-@media (prefers-reduced-motion: reduce) {
-  html[data-wx="rain"] .fc-rain { opacity: 0.15; }
-  html[data-wx="rain"] .fc-rain--east { opacity: 0.09; }
-  html[data-wx="rain-heavy"] .fc-rain, html[data-wx="storm"] .fc-rain { opacity: 0.21; }
-}
-html.fc-boost[data-wx="rain"] .fc-rain { opacity: 0.45; }
-html.fc-boost[data-wx="rain"] .fc-rain--east { opacity: 0.27; }
-html.fc-boost[data-wx="rain-heavy"] .fc-rain, html.fc-boost[data-wx="storm"] .fc-rain { opacity: 0.58; }
+/* RAIN STREAKS REMOVED (V5.3, owner: "la lluvia va fatal además") — the diagonal
+   gutter lines read as jagged noise against the calm field. Rain is now FELT, not
+   drawn: heliostat dims the sky on data-wx=rain|storm (governor) and the ocean
+   rings answer a click more readily (ocean.js SKY-12.2). The layer is never made. */
 
 /* ===== SKY-9 — STORM: flash in the void + thunder + the RED SPRITE (1/session) ===== */
 /* the flash is a DEDICATED child of .wn-void — its ::after is RESERVED for W3's
@@ -215,6 +179,11 @@ html.fc-thunder body { transition-duration: 480ms; background: color-mix(in srgb
   opacity: 0;
 }
 .fc-sprite path { stroke: var(--signal); stroke-width: 1.2; fill: none; stroke-dasharray: 100; stroke-dashoffset: 100; opacity: 0.85; }
+/* V5.3 (owner: "no veo el relámpago rojo") — in boost the red sprite reads BOLD:
+   bigger, thicker, with a wider halo. Still transient (≤640ms), still RED_LOCKED
+   in count (the halo is the one sanctioned bounce-light). */
+html.fc-boost .fc-sprite { width: 16vw; height: 22vh; }
+html.fc-boost .fc-sprite path { stroke-width: 2; }
 .fc-sprite.go::before { animation: wn-sprite-halo 120ms linear; }
 @keyframes wn-sprite-halo { 0% { opacity: 0; } 50% { opacity: 0.5; } 100% { opacity: 0; } }
 .fc-sprite.go path { stroke-dashoffset: 0; transition: stroke-dashoffset 180ms var(--ease-crack) 120ms; } /* draw AFTER the halo */
@@ -269,8 +238,10 @@ html[data-wx="clear"] .fc-iris, html[data-wx="partly"] .fc-iris { opacity: 0.14;
   html.fc-motion .fc-iris i { animation: wn-iris-turn 150s linear infinite; }
   html.fc-boost.fc-motion .fc-iris i { animation-duration: 80s; }
 }
-html.fc-boost[data-wx="clear"] .fc-iris, html.fc-boost[data-wx="partly"] .fc-iris { opacity: 0.24; }
-html.fc-boost .fc-iris { width: 20vw; }
+/* V5.3 (owner: "no veo la iridiscencia") — in boost the prize reads CLEARLY: bigger,
+   brighter, and the hour gate is relaxed in weather.js so WX:CLEAR shows it on demand */
+html.fc-boost[data-wx="clear"] .fc-iris, html.fc-boost[data-wx="partly"] .fc-iris { opacity: 0.5; }
+html.fc-boost .fc-iris { width: 30vw; height: 12vw; }
 
 /* boost entries are the demo throttle: 1.2s ONLY under fc-boost (CONTRACTS §f.3b) */
-html.fc-boost .fc-clouds, html.fc-boost .fc-rain, html.fc-boost .fc-fog, html.fc-boost .fc-iris { transition: opacity 1.2s linear; }
+html.fc-boost .fc-clouds, html.fc-boost .fc-fog, html.fc-boost .fc-iris { transition: opacity 1.2s linear; }

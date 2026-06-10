@@ -301,8 +301,10 @@ export function initSpine() {
       worked = true;
     }
 
-    // continuity ramp (HILO-4 floor): present from the first viewport → full below it
-    const fade = (0.72 + 0.28 * clamp01(scrollY / fadeRef)).toFixed(3); // V5.1: floor 0.55→0.72 — the thread must READ at the hero, where the owner judges
+    // continuity ramp (HILO-4 floor): present from the first viewport → full below it.
+    // V5.3: floor 0.72→0.85 so the hero reads strong and there is barely any "fade-in"
+    // band left to misread as the thread weakening as you scroll.
+    const fade = (0.85 + 0.15 * clamp01(scrollY / fadeRef)).toFixed(3);
     if (fade !== lastFade) { svg.style.setProperty('--fc-spine-fade', fade); lastFade = fade; worked = true; }
 
     // ── the pulse channels: they WRITE whenever the loop runs, but never CLAIM it

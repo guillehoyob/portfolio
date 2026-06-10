@@ -40,6 +40,14 @@ export async function onRequestPost({ request, env }) {
   if (!(env.AZURE_OPENAI_ENDPOINT && env.AZURE_OPENAI_API_KEY && env.AZURE_OPENAI_DEPLOYMENT)) {
     return json({ error: 'unconfigured' }, 503);
   }
+  // ── abuse guards (the function spends money on every call) ──
+  // 1) same-origin only: a cross-site page cannot POST here (blocks drive-by abuse)
+  const origin = request.headers.get('origin');
+  if (origin) { try { if (new URL(origin).host !== new URL(request.url).host) return json({ error: 'forbidden' }, 403); } catch { return json({ error: 'forbidden' }, 403); } }
+  // 2) body size cap before parsing
+  const clen = +(request.headers.get('content-length') || 0);
+  if (clen > 8000) return json({ error: 'too-large' }, 413);
+
   let body;
   try { body = await request.json(); } catch { return json({ error: 'bad-json' }, 400); }
   const q = String((body && body.q) || '').trim().slice(0, 400);
@@ -50,22 +58,23 @@ export async function onRequestPost({ request, env }) {
         .map((m) => ({ role: m.role, content: m.content.slice(0, 500) }))
     : [];
 
-  const version = env.AZURE_OPENAI_API_VERSION || '2024-10-21';
+  const version = env.AZURE_OPENAI_API_VERSION || '2024-12-01-preview';
   const url = `${env.AZURE_OPENAI_ENDPOINT.replace(/\/$/, '')}/openai/deployments/${env.AZURE_OPENAI_DEPLOYMENT}/chat/completions?api-version=${version}`;
+  const messages = [{ role: 'system', content: SYSTEM }, ...history, { role: 'user', content: q }];
+  const call = (payload) => fetch(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'api-key': env.AZURE_OPENAI_API_KEY },
+    body: JSON.stringify(payload),
+  });
+  // gpt-5 / reasoning deployments (2024-12-01-preview) want max_completion_tokens and
+  // reject a non-default temperature; older gpt-4o deployments want max_tokens. Try the
+  // modern shape first, fall back ONCE on a 400 (param mismatch) — works for both.
   let res;
   try {
-    res = await fetch(url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'api-key': env.AZURE_OPENAI_API_KEY },
-      body: JSON.stringify({
-        messages: [{ role: 'system', content: SYSTEM }, ...history, { role: 'user', content: q }],
-        temperature: 0.3,
-        max_tokens: 400,
-        response_format: { type: 'json_object' },
-      }),
-    });
+    res = await call({ messages, max_completion_tokens: 500, response_format: { type: 'json_object' } });
+    if (res.status === 400) res = await call({ messages, max_tokens: 500, temperature: 0.3, response_format: { type: 'json_object' } });
   } catch { return json({ error: 'upstream' }, 502); }
-  if (!res.ok) return json({ error: 'upstream', status: res.status }, 502);
+  if (!res.ok) return json({ error: 'upstream', status: res.status }, 502); // NEVER echo the upstream body (it can carry request context)
 
   let answer = '', sources = [];
   try {

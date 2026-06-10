@@ -29,9 +29,11 @@
   stroke-width: calc(2px + var(--fc-breath, 0) * 1px * var(--fc-int-breath, 1));
   stroke-dasharray: var(--fc-spine-len, 4000);
   stroke-dashoffset: var(--fc-spine-len, 4000);
-  /* base 0.42→0.50 (V5.1): the owner judges the thread at the hero and on project pages —
-     it must READ as a thread, not a ghost. Same in both presets (RED_LOCKED). */
-  opacity: calc((0.50 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-breath, 0) * 0.20 * var(--fc-int-breath, 1)) * var(--fc-spine-fade, 1));
+  /* base 0.42→0.50→0.66 (V5.3): the owner saw the thread "go behind / almost
+     disappear" going down — the warm sun glow brightens the gutter mid-page and ate
+     the faint red's contrast. A higher floor keeps it a clear thread the whole way.
+     Same in both presets (RED_LOCKED); opacity only, so the red AREA is unchanged. */
+  opacity: calc((0.66 + var(--fc-spine-breath, 0) * 0.04 + var(--fc-breath, 0) * 0.20 * var(--fc-int-breath, 1)) * var(--fc-spine-fade, 1));
 }
 /* HILO-3 — the pinky-promise knots: full-red ring, perforated loop (fill = field),
    NO gold (owner veto). Eje `knot` BLOQUEADO (RED_LOCKED): boost never scales it —

@@ -50,9 +50,6 @@ export const main = `<header class="hero" id="hero">
         <a class="wn-btn wn-btn--secondary" href="/method">${e(hero.ctaSecondary)}</a>
         <a class="wn-btn wn-btn--quiet" href="/cv">Download CV (PDF)</a>
       </div>
-      <button class="ask-cta" type="button" data-ask hidden>
-        <span class="ask-cta__dot" aria-hidden="true"></span><span class="ask-cta__ghost">Ask this portfolio anything</span><span class="ask-cta__arrow" aria-hidden="true">→</span>
-      </button>
     </div>
   </div>
   ${chevron()}

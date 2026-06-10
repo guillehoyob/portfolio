@@ -7,6 +7,9 @@ shots/
 Thumbs.db
 .env
 .env.*
+# Cloudflare Pages local secrets — the Azure key for `wrangler pages dev`.
+# NEVER committed: the key lives ONLY in Cloudflare's encrypted env at runtime.
+.dev.vars
 screenshots/
 
 .claude/worktrees/

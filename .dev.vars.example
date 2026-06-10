@@ -1,0 +1,10 @@
+# WHITE NOON — local secrets for `npx wrangler pages dev` ONLY.
+# Copy this file to `.dev.vars` (which is GITIGNORED) and paste your real values.
+# NEVER commit `.dev.vars`. In production these live in Cloudflare Pages →
+# Settings → Variables and secrets (encrypted at rest, injected at runtime).
+# The browser bundle never sees them — the key only exists inside the Function.
+
+AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE.openai.azure.com
+AZURE_OPENAI_API_KEY=PASTE_YOUR_KEY_HERE
+AZURE_OPENAI_DEPLOYMENT=gpt-5.4-mini
+AZURE_OPENAI_API_VERSION=2024-12-01-preview

@@ -118,6 +118,24 @@
   background: radial-gradient(closest-side, color-mix(in srgb, var(--signal) 5%, transparent), transparent);
 }
 html.fc-boost .wn-btn--primary::before { inset: -2.4em; }
+/* CV — recruiters always ask for it (owner): a prominent, unmissable download.
+   Void-dark pill (not red — keeps the one-red law) so it stands out against the warm
+   field; gold download arrow nods to "valuable". Lifts + warms on hover. */
+.wn-btn--cv {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  background: var(--void); color: var(--washi);
+  font-family: var(--font-display); font-weight: var(--weight-ui);
+  font-size: var(--text-ui); letter-spacing: var(--ls-h2);
+  border-radius: var(--radius-pill); padding: var(--space-3) var(--space-6);
+  min-height: 48px;
+  transition: transform var(--dur-180) var(--ease-react), box-shadow var(--dur-180) var(--ease-react), background-color var(--dur-180) var(--ease-react);
+}
+.wn-btn--cv .wn-btn__dl { color: var(--sun); font-size: 1.1em; line-height: 1; transition: transform var(--dur-180) var(--ease-react); }
+.wn-btn--cv .wn-btn__pdf { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--washi) 55%, transparent); padding-left: var(--space-1); }
+.wn-btn--cv:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -12px color-mix(in srgb, var(--void) 70%, transparent); background: #1c1a18; }
+.wn-btn--cv:hover .wn-btn__dl { transform: translateY(2px); }
+.wn-btn--cv:active { transform: translateY(0); transition-duration: var(--dur-90); }
+
 /* Quiet tertiary — mono, for the "Download CV" utility affordance */
 .wn-btn--quiet {
   color: var(--ink-ghost);

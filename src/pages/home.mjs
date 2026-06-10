@@ -48,8 +48,12 @@ export const main = `<header class="hero" id="hero">
       <div class="hero__cta">
         <a class="wn-btn wn-btn--primary" href="/work"><span>${e(hero.ctaPrimary)}</span><span aria-hidden="true">→</span></a>
         <a class="wn-btn wn-btn--secondary" href="/method">${e(hero.ctaSecondary)}</a>
-        <a class="wn-btn wn-btn--quiet" href="/cv">Download CV (PDF)</a>
+        <a class="wn-btn wn-btn--cv" href="/cv" download><span class="wn-btn__dl" aria-hidden="true">↓</span>Download CV<span class="wn-btn__pdf">PDF</span></a>
       </div>
+      <!-- ASK THE FIELD — the centerpiece (the owner: "lo principal de mi página"):
+           a grounded chat about Guillermo, embedded right under the CTAs. ask.js
+           fills this in; with JS off it stays hidden (the dock never blocks anything). -->
+      <div class="hero__ask" data-ask-embed hidden></div>
     </div>
   </div>
   ${chevron()}

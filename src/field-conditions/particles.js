@@ -77,7 +77,6 @@ export function initParticles() {
   const onTap = (e) => { tapX = e.clientX; tapY = e.clientY; tapT = Date.now(); wake(); };
   addEventListener('pointerdown', onTap, { passive: true });
 
-  let drift = 0; // lateral wind drift, wrapped horizontally (SKY-12.1)
   const ticker = (t, dt) => {
     const wx = field.wx;
     const snow = !!wx && wx.state === 'snow';
@@ -94,7 +93,6 @@ export function initParticles() {
     const restMul = field.rest ? 0.6 : 1;                    // BRE-4: the motes settle
     const dtF = (dt || 16.7) / 16.7;
     const sprd = spread();
-    if (!snow) drift += wind * 0.12 * dtF;                   // wind pushes the air sideways
     const W = innerWidth + 32;
 
     for (const m of motes) {
@@ -105,11 +103,19 @@ export function initParticles() {
       if (snow && m.y > innerHeight + 10) m.y = -10;
       if (!snow && m.y < -10) m.y = innerHeight + 10;
 
-      const swayAmp = snow ? 14 : 9 + wind * 8;
-      let x = lx + m.off * sprd * (snow ? 1.5 : 1)
-        + Math.sin(t / (snow ? 3400 : 2600) + m.tw) * swayAmp
-        + (snow ? wind * 18 : drift);
-      x = ((x + 16) % W + W) % W - 16;                       // horizontal wrap for the drift
+      // V5.4 FIX (owner: "las motas están al borde del texto, no en el hilo"): the wind
+      // used to ACCUMULATE a drift that wrapped them across the WHOLE width — they ended
+      // up far from the spine. Now, in the AIR they stay home in the gutter beside the
+      // thread (bounded sway + a small bounded wind lean). Only SNOW spreads across the
+      // page and wraps — snow falls everywhere; the air-dust lives by the thread.
+      const swayAmp = snow ? 14 : 9 + wind * 6;
+      let x;
+      if (snow) {
+        x = lx + m.off * sprd * 1.5 + Math.sin(t / 3400 + m.tw) * swayAmp + wind * 18;
+        x = ((x + 16) % W + W) % W - 16; // snow wraps the full width
+      } else {
+        x = lx + m.off * sprd + Math.sin(t / 2600 + m.tw) * swayAmp + wind * 8; // never leaves the gutter
+      }
 
       // V5.1 — the click-wave TOUCHES the dust ("la onda no interactúa con nada"):
       // as the ring's front passes a mote it nudges it outward and makes it catch

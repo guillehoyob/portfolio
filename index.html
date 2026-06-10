@@ -572,6 +572,24 @@ a { color: inherit; }
   background: radial-gradient(closest-side, color-mix(in srgb, var(--signal) 5%, transparent), transparent);
 }
 html.fc-boost .wn-btn--primary::before { inset: -2.4em; }
+/* CV — recruiters always ask for it (owner): a prominent, unmissable download.
+   Void-dark pill (not red — keeps the one-red law) so it stands out against the warm
+   field; gold download arrow nods to "valuable". Lifts + warms on hover. */
+.wn-btn--cv {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  background: var(--void); color: var(--washi);
+  font-family: var(--font-display); font-weight: var(--weight-ui);
+  font-size: var(--text-ui); letter-spacing: var(--ls-h2);
+  border-radius: var(--radius-pill); padding: var(--space-3) var(--space-6);
+  min-height: 48px;
+  transition: transform var(--dur-180) var(--ease-react), box-shadow var(--dur-180) var(--ease-react), background-color var(--dur-180) var(--ease-react);
+}
+.wn-btn--cv .wn-btn__dl { color: var(--sun); font-size: 1.1em; line-height: 1; transition: transform var(--dur-180) var(--ease-react); }
+.wn-btn--cv .wn-btn__pdf { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--washi) 55%, transparent); padding-left: var(--space-1); }
+.wn-btn--cv:hover { transform: translateY(-3px); box-shadow: 0 12px 28px -12px color-mix(in srgb, var(--void) 70%, transparent); background: #1c1a18; }
+.wn-btn--cv:hover .wn-btn__dl { transform: translateY(2px); }
+.wn-btn--cv:active { transform: translateY(0); transition-duration: var(--dur-90); }
+
 /* Quiet tertiary — mono, for the "Download CV" utility affordance */
 .wn-btn--quiet {
   color: var(--ink-ghost);
@@ -2222,7 +2240,8 @@ html.fc-boost .fc-intensity__glyph {
    Bottom-left (mirror of the FIELD capsule). Collapsed = a quiet pill with a
    breathing dot; click expands a compact void-styled panel UPWARD, in place — no
    modal, no backdrop, the page stays live. Small, clean, "there in the page". */
-.wn-chat {
+/* DOCK (inner pages): a fixed corner widget bottom-left */
+.wn-chat--dock {
   position: fixed;
   left: calc(var(--space-4) + env(safe-area-inset-left, 0px));
   bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
@@ -2231,6 +2250,21 @@ html.fc-boost .fc-intensity__glyph {
   width: min(340px, calc(100vw - 2 * var(--space-4)));
   font-family: var(--font-body);
 }
+/* EMBED (home centerpiece): in-flow under the hero CTAs — a void card that READS,
+   prominent and inviting, echoing the void band. Always open, input ready. */
+.wn-chat--embed {
+  display: block; width: 100%; max-width: 52ch; margin-top: var(--space-12);
+  font-family: var(--font-body);
+}
+.wn-chat--embed .wn-chat__eyebrow {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono);
+  text-transform: uppercase; color: var(--ink-ghost); margin: 0 0 var(--space-3);
+}
+.wn-chat--embed .wn-chat__dot { width: 7px; height: 7px; border-radius: var(--radius-pill); background: var(--sun); transform: scale(calc(1 + var(--fc-breath, 0) * 0.55)); }
+.wn-chat--embed .wn-chat__panel { max-height: none; }
+.wn-chat--embed .wn-chat__log:empty { display: none; }
+.wn-chat--embed .wn-chat__log { max-height: 320px; }
 /* the tab — always visible, quiet (the breathing dot says it's alive) */
 .wn-chat__tab {
   order: 2; /* the panel sits ABOVE the tab */
@@ -2359,8 +2393,12 @@ html.fc-boost .fc-intensity__glyph {
       <div class="hero__cta">
         <a class="wn-btn wn-btn--primary" href="/work"><span>See the work</span><span aria-hidden="true">→</span></a>
         <a class="wn-btn wn-btn--secondary" href="/method">How I work with Claude</a>
-        <a class="wn-btn wn-btn--quiet" href="/cv">Download CV (PDF)</a>
+        <a class="wn-btn wn-btn--cv" href="/cv" download><span class="wn-btn__dl" aria-hidden="true">↓</span>Download CV<span class="wn-btn__pdf">PDF</span></a>
       </div>
+      <!-- ASK THE FIELD — the centerpiece (the owner: "lo principal de mi página"):
+           a grounded chat about Guillermo, embedded right under the CTAs. ask.js
+           fills this in; with JS off it stays hidden (the dock never blocks anything). -->
+      <div class="hero__ask" data-ask-embed hidden></div>
     </div>
   </div>
   <a class="hero__chevron" href="#proof" aria-label="Scroll to content"><svg class="wn-chevron" viewBox="0 0 16 16" width="28" height="28" aria-hidden="true"><path d="M 2 5 L 8 11 L 14 5" fill="none" stroke="var(--signal)" stroke-width="2" stroke-linecap="square"/></svg></a>
@@ -2522,7 +2560,7 @@ html.fc-boost .fc-intensity__glyph {
       <a class="wn-signal-link wn-signal-link--body footer__mono" href="https://www.linkedin.com/in/guillermo-bravo" rel="me">linkedin.com/in/guillermo-bravo</a>
     </div>
     <div class="footer__col">
-      <p class="footer__colophon">Designed with Claude Design, built with Claude Code, shipped from a static host. The site is the method’s first proof. · weather by open-meteo.com</p>
+      <p class="footer__colophon">Designed with Claude Design, built with Claude Code, shipped from a static host. The site is the method’s first proof. · The field shifts with the hour, the real weather and your presence. · weather by open-meteo.com</p>
       <p class="wn-status footer__mono" style="margin-top:var(--space-8)">
         <span class="wn-status__dot wn-status__dot--static" aria-hidden="true"></span>GUILLERMO — AI ENGINEER / MADRID
       </p>

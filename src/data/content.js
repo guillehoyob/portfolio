@@ -104,7 +104,7 @@ export const contact = {
 
 /* the open-meteo credit is BOTH attribution (CC-BY 4.0) and the honest disclosure
    that one weather GET leaves the page (CONTRACTS §f.4) */
-export const colophon = 'Designed with Claude Design, built with Claude Code, shipped from a static host. The site is the method’s first proof. · weather by open-meteo.com';
+export const colophon = 'Designed with Claude Design, built with Claude Code, shipped from a static host. The site is the method’s first proof. · The field shifts with the hour, the real weather and your presence. · weather by open-meteo.com';
 export const footerStatus = 'GUILLERMO — AI ENGINEER / MADRID';
 
 /* ============ /method page (method.md) ============ */

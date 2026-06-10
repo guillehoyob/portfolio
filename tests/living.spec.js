@@ -824,8 +824,10 @@ try {
     return s ? { op: getComputedStyle(s).opacity, off: s.getAttribute('stroke-dashoffset') } : null;
   });
   await c.close();
-  const pass = top.off <= top.LEN * 0.95 && top.op >= 0.2 && top.knot >= 0.65 && !!stitch && stitch.op === '1'; // knot quieted to 0.72 in V5.1 (owner: "cantosos")
-  rec('Spine presence', true, pass, `scroll-0: off=${top.off | 0} ≤ ${(top.LEN * 0.95) | 0}, op=${num(top.op)}, knot=${num(top.knot)}; stitch op=${stitch && stitch.op}`, pass);
+  // stitch now lights only on a VISIBLE next waypoint (V5.4) — assert it EXISTS, not
+  // that it's lit at this exact scroll (knot quieted to 0.72 in V5.1)
+  const pass = top.off <= top.LEN * 0.95 && top.op >= 0.2 && top.knot >= 0.65 && !!stitch;
+  rec('Spine presence', true, pass, `scroll-0: off=${top.off | 0} ≤ ${(top.LEN * 0.95) | 0}, op=${num(top.op)}, knot=${num(top.knot)}; stitch=${!!stitch}`, pass);
 } catch (e) { rec('Spine presence', true, false, 'ERR ' + e.message, false); }
 
 /* ───────────────── 32. Living name route (HILO-1a) ───────────────── */
@@ -934,26 +936,33 @@ try {
   rec('Boost perceptibility', true, pass, `subtle↔boost @16h: max=${d.max} (≥16) pctGe8=${d.pctGe8}% (≥0.8%) — perceptible is an ASSERT`, pass);
 } catch (e) { rec('Boost perceptibility', true, false, 'ERR ' + e.message, false); }
 
-/* ───────────────── 37. ASK THE FIELD (V5.3) — inline chat dock, honest offline ───────────────── */
+/* ───────────────── 37. ASK THE FIELD (V5.4) — embed on home + dock on inner pages ───────────────── */
 try {
   const c = await newCtx();
   const page = await c.newPage();
+  // HOME: the chat is the EMBEDDED centerpiece under the hero CTAs (always open, visible)
   await page.goto(HOME, { waitUntil: 'networkidle' });
   await page.waitForTimeout(800);
-  const dock = await page.$$eval('.wn-chat__tab', (e) => e.length); // always-present dock (not a modal/link)
-  await page.click('.wn-chat__tab');
-  await page.waitForTimeout(300);
-  const opened = await page.$eval('.wn-chat', (el) => el.classList.contains('is-open') && !el.querySelector('.wn-chat__panel').hidden);
-  await page.fill('.wn-chat__input', 'what did he build?');
-  await page.click('.wn-chat__send');
+  const embed = await page.$$eval('.wn-chat--embed .wn-chat__input', (e) => e.length); // input present + visible
+  const noDockHome = await page.$$eval('.wn-chat--dock', (e) => e.length);
+  const cv = await page.$$eval('.wn-btn--cv', (e) => e.length); // the prominent CV button
+  await page.fill('.wn-chat--embed .wn-chat__input', 'what did he build?');
+  await page.click('.wn-chat--embed .wn-chat__send');
   await page.waitForTimeout(1500); // preview has no /api/ask → the QUIET fallback must speak
   const fallback = await page.$$eval('.wn-chat__msg--quiet', (els) => els.some((el) => /guillehoyob@gmail\.com/.test(el.textContent)));
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(200);
-  const collapsed = await page.$eval('.wn-chat', (el) => !el.classList.contains('is-open'));
-  const pass = dock === 1 && opened && fallback && collapsed;
-  rec('Ask the field', dock === 1, pass, `dock=${dock} opens-inline=${opened} honest-fallback=${fallback} esc-collapses=${collapsed}`, pass);
   await c.close();
+  // INNER PAGE: the small corner dock, opens inline
+  const c2 = await newCtx();
+  const page2 = await c2.newPage();
+  await page2.goto(BASE + '/method.html', { waitUntil: 'networkidle' });
+  await page2.waitForTimeout(700);
+  const dock = await page2.$$eval('.wn-chat--dock .wn-chat__tab', (e) => e.length);
+  await page2.click('.wn-chat--dock .wn-chat__tab');
+  await page2.waitForTimeout(300);
+  const opens = await page2.$eval('.wn-chat--dock', (el) => el.classList.contains('is-open'));
+  await c2.close();
+  const pass = embed === 1 && noDockHome === 0 && cv === 1 && fallback && dock === 1 && opens;
+  rec('Ask the field', embed === 1, pass, `home embed=${embed} (dock=${noDockHome}); CV btn=${cv}; fallback=${fallback}; inner dock opens=${opens}`, pass);
 } catch (e) { rec('Ask the field', true, false, 'ERR ' + e.message, false); }
 
 /* ───────────────── 38. V5.2 surface (spec-rules · variable wght · popover ph · magnet) ───────────────── */

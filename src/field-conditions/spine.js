@@ -183,9 +183,11 @@ export function initSpine() {
     anchorLens = LEN > 1 ? ys.map((y) => lenAtY(y)) : [];
     anchorYs = LEN > 1 ? ys.slice() : []; // doc-Y per waypoint (QA-4: visibility check per frame, no sampling)
     headPinY = junction ? junction.y + 30 : -1; // QA-1b: below this the bend ramps in; above, the head is welded to the route
-    // the knots sit at the junction (origin) and on the email hook (dest)
+    // V5.4 (owner: "el círculo no coincide con el hilo"): weld the origin knot to the
+    // ACTUAL point of the thread where it settles into the lane (junction.y + 30 — the
+    // elbow's bottom), not 30px above it where nothing was drawn.
     knotO.setAttribute('cx', (junction ? laneX : pts[0][0]).toFixed(1));
-    knotO.setAttribute('cy', (junction ? junction.y : pts[0][1]).toFixed(1));
+    knotO.setAttribute('cy', (junction ? junction.y + 30 : pts[0][1]).toFixed(1));
     knotD.setAttribute('cx', destPt[0].toFixed(1));
     knotD.setAttribute('cy', destPt[1].toFixed(1));
     stitch.setAttribute('d', path.getAttribute('d'));

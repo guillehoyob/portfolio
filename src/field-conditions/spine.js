@@ -83,7 +83,7 @@ export function initSpine() {
   document.body.appendChild(svg);
   let wps = []; // {el, len}
 
-  let LEN = 0, basePts = [], fadeRef = 0, minP = 0.05, anchorLens = [], anchorYs = [], headPinY = -1;
+  let LEN = 0, basePts = [], fadeRef = 0, minP = 0.05, anchorLens = [], anchorYs = [], headPinY = -1, destDocY = -1;
   let tipLen = -1, tipX = 0, lastFade = '', lastNib = -1, lastNext = -1, tied = false, wasBent = false;
   const build = () => {
     const w = document.documentElement.clientWidth;
@@ -190,6 +190,7 @@ export function initSpine() {
     anchorLens = LEN > 1 ? ys.map((y) => lenAtY(y)) : [];
     anchorYs = LEN > 1 ? ys.slice() : []; // doc-Y per waypoint (QA-4: visibility check per frame, no sampling)
     headPinY = junction ? junction.y + 30 : -1; // QA-1b: below this the bend ramps in; above, the head is welded to the route
+    destDocY = destPt[1]; // doc-Y of the email — the thread ties here when CONTACT is reached, not the page foot (V5.8)
     // (re)build the station dots ON the thread, one per real section anchor
     wpG.textContent = '';
     wps = LEN > 1 ? anchorLens.map((len) => {
@@ -276,7 +277,13 @@ export function initSpine() {
     // the thread EXISTS before the first scroll (HILO-4): min-draw in real pixels down
     // to ~mid first viewport (cap 0.18) — IDENTICAL in boost (the red never scales).
     // It still grows from 0 on load (the ease below seeps toward the floor).
-    const p = Math.max(progress(), minP);
+    // V5.8 (owner: "el nudo del email ata demasiado tarde, solo al pie de página"):
+    // the thread is drawn by OVERALL scroll progress, which includes the footer below
+    // the contact section — so the tip lagged the email until you scrolled past the foot.
+    // Once the email itself is IN VIEW (contact reached), draw to FULL so the knot ties
+    // THERE, when that section arrives, not at the absolute bottom.
+    const reached = destDocY > 0 && (scrollY + innerHeight * 0.9 >= destDocY);
+    const p = reached ? 1 : Math.max(progress(), minP);
     if (Math.abs(p - drawn) > 0.00005) { // gate kills idle cost only — the visible tail of the seep (~2px) must finish, the nib travels it
       // velocity-eased draw: a fast flick lets the nib race ahead and settle; a slow scroll seeps
       drawn += (p - drawn) * Math.min(1, (0.146 + 0.114 * clamp01(velocity() * 0.1)) * dtF);
@@ -388,9 +395,9 @@ export function initSpine() {
         if (wp._on !== on) { wp.el.classList.toggle('is-passed', on); wp._on = on; worked = true; }
       }
 
-      // ── HILO-3: the destination knot ties when the thread arrives (hysteresis) ──
-      if (drawn > 0.97 && !tied) { knotD.classList.add('is-tied'); tied = true; worked = true; }
-      else if (drawn < 0.9 && tied) { knotD.classList.remove('is-tied'); tied = false; worked = true; }
+      // ── HILO-3: the destination knot ties when CONTACT is reached (email in view) ──
+      if (reached && !tied) { knotD.classList.add('is-tied'); tied = true; worked = true; }
+      else if (destDocY > 0 && scrollY + innerHeight * 0.9 < destDocY - 160 && tied) { knotD.classList.remove('is-tied'); tied = false; worked = true; }
     }
     prevDrawn = drawn;
     return worked;

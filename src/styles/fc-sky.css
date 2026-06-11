@@ -275,12 +275,15 @@ html.fc-boost .fc-iris { width: 32vw; height: 13vw; }
    AA + the one-red recognizable; the body bg transition makes the shift a soft fade.
    Removing the .fc-snow class (no snow) reverts everything — fully reversible. ===== */
 html.fc-snow {
-  --field-0: color-mix(in srgb, #F7F7F5 95%, var(--sky));
-  --field-1: color-mix(in srgb, #EDECEA 93%, var(--sky));
-  --hairline: color-mix(in srgb, #D6D4D0 82%, var(--sky));
-  --ink-ghost: color-mix(in srgb, #5A5855 90%, var(--sky));
-  --signal: color-mix(in srgb, #E8341A 86%, var(--sky));
-  --signal-deep: color-mix(in srgb, #B3270F 86%, var(--sky));
+  --field-0: color-mix(in srgb, #F7F7F5 84%, var(--sky));   /* clearly cooler now (owner couldn't see 5%) */
+  --field-0-dim: color-mix(in srgb, #F3F0EA 80%, var(--sky));
+  --field-1: color-mix(in srgb, #EDECEA 82%, var(--sky));
+  --field-2: color-mix(in srgb, #E4E2DE 80%, var(--sky));
+  --hairline: color-mix(in srgb, #D6D4D0 64%, var(--sky));
+  --ink-ghost: color-mix(in srgb, #5A5855 80%, var(--sky));
+  --ink: color-mix(in srgb, #1A1917 92%, var(--sky));        /* even the ink takes a faint blue */
+  --signal: color-mix(in srgb, #E8341A 70%, var(--sky));     /* the red itself goes wintry (owner: "no me importa que deje de ser tan rojo") */
+  --signal-deep: color-mix(in srgb, #B3270F 70%, var(--sky));
 }
 html.fc-motion.fc-snow body { transition: background-color var(--dur-ambient-min) linear; }
 

@@ -24,6 +24,19 @@ html[data-wx="rain-heavy"] .wn-void__word,
 html[data-wx="storm"] .wn-void__word {
   -webkit-box-reflect: below 4px linear-gradient(transparent 55%, color-mix(in srgb, var(--washi) 16%, transparent));
 }
+/* V5.8 (owner: "el reflejo también en el título, y la página más lúgubre" en lluvia):
+   the hero/identity title casts a wet reflection too, and rain/storm SOMBER the field
+   a touch — a darker, heavier air. Reversible the instant the rain stops. */
+html[data-wx="rain"] .hero__h1, html[data-wx="rain-heavy"] .hero__h1, html[data-wx="storm"] .hero__h1,
+html[data-wx="rain"] .identity__title, html[data-wx="rain-heavy"] .identity__title, html[data-wx="storm"] .identity__title {
+  -webkit-box-reflect: below 6px linear-gradient(transparent 62%, color-mix(in srgb, var(--ink) 12%, transparent));
+}
+html.fc-motion[data-wx="rain"], html.fc-motion[data-wx="rain-heavy"], html.fc-motion[data-wx="storm"] {
+  --field-0: color-mix(in srgb, #F7F7F5 92%, var(--ink));   /* the light goes grey-heavy under rain */
+  --field-1: color-mix(in srgb, #EDECEA 92%, var(--ink));
+  --ink-ghost: color-mix(in srgb, #5A5855 90%, var(--ink));
+}
+html.fc-motion[data-wx="rain"] body, html.fc-motion[data-wx="rain-heavy"] body, html.fc-motion[data-wx="storm"] body { transition: background-color var(--dur-ambient-min) linear; }
 
 /* ===== Stage 3 — Threshold Cut (§5.8): the void detonates, no fade/stagger ===== */
 html.fc-motion .wn-void.fc-cut-armed .wn-void__word,

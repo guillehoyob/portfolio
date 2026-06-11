@@ -98,6 +98,12 @@ let hourOverride = null;
 let _reapply = null;
 export function setHourOverride(h) { hourOverride = (h == null ? null : ((+h % 24) + 24) % 24); if (_reapply) _reapply(); }
 
+/* PLACE bias (the PREVIEW panel — owner: "no noto el sol según el lugar"): the sun
+   rides LOWER toward the poles, HIGH at the tropics. A visible latitude feel. */
+let placeY = 0;
+const PLACE_Y = { auto: 0, arctic: 22, tropic: -2, ocean: 7, jungle: 13 };
+export function setPlace(p) { placeY = PLACE_Y[p] || 0; if (_reapply) _reapply(); }
+
 /* The effective hour every sky consumer agrees on (weather.js gates the iris by it). */
 export function effectiveHour() {
   if (hourOverride != null) return hourOverride;
@@ -189,7 +195,7 @@ export function initHeliostat() {
       root.style.setProperty('--fc-sun-op', Math.min(0.40, sunOpEff * (0.25 + illum * 0.85)).toFixed(3));
     } else {
       sx = (6 + Math.max(0, Math.min(1, (t - 5) / 15)) * 88).toFixed(0);   // 6%→94% east→west (5h→20h)
-      const sy = (4 + Math.min(1, Math.abs(t - 13) / 8) * 28).toFixed(0);  // high (4%) at noon, low (32%) at dawn/dusk
+      const sy = Math.max(2, Math.min(48, 4 + Math.min(1, Math.abs(t - 13) / 8) * 28 + placeY)).toFixed(0);  // high at noon, low at dawn/dusk; +placeY = latitude (poles lower)
       const size = 34 + Math.min(1, Math.abs(t - 13) / 6.5) * 12 + (intensity.sun > 1 ? 6 : 0); // 34vw noon → 46vw dawn/dusk (SKY-2)
       root.style.setProperty('--fc-sun-x', sx + '%');
       root.style.setProperty('--fc-sun-y', sy + '%');

@@ -10,7 +10,7 @@
  * owner closes calibration (or migrate to the quiet footer variant).
  */
 import { applyIntensity } from './index.js';
-import { setHourOverride } from './heliostat.js';
+import { setHourOverride, setPlace, effectiveHour } from './heliostat.js';
 
 export function initIntensityControl() {
   if (document.querySelector('.fc-intensity')) return; // idempotent
@@ -61,15 +61,22 @@ export function initIntensityControl() {
   const PLACES = [['auto', 'AUTO'], ['arctic', 'ARCTIC'], ['tropic', 'TROPIC'], ['ocean', 'OCEAN'], ['jungle', 'JUNGLE']];
   const PLACE_WX = { auto: 'auto', arctic: 'snow', tropic: 'clear', ocean: 'partly', jungle: 'rain' };
   prev.innerHTML = `<label class="fc-preview__row"><span>TIME</span>
-      <input class="fc-preview__time" type="range" min="0" max="24" step="0.5" value="12" aria-label="Preview hour">
+      <input class="fc-preview__time" type="range" min="0" max="24" step="0.25" value="12" aria-label="Preview hour">
+      <span class="fc-preview__hr" aria-live="polite">—</span>
       <button type="button" class="fc-preview__auto" aria-label="Real time">AUTO</button></label>
     <div class="fc-preview__row fc-preview__places">${PLACES.map(([k, l]) => `<button type="button" data-place="${k}"${k === 'auto' ? ' aria-pressed="true"' : ''}>${l}</button>`).join('')}</div>`;
   const timeEl = prev.querySelector('.fc-preview__time');
-  timeEl.addEventListener('input', () => setHourOverride(+timeEl.value));
-  prev.querySelector('.fc-preview__auto').addEventListener('click', () => { setHourOverride(null); });
+  const hrEl = prev.querySelector('.fc-preview__hr');
+  const fmt = (h) => { const m = Math.round((h % 1) * 60); return String(Math.floor(h) % 24).padStart(2, '0') + ':' + String(m).padStart(2, '0'); };
+  const showHr = () => { const h = effectiveHour(); hrEl.textContent = fmt(h) + (hourOverrideOn ? '' : ' · live'); };
+  let hourOverrideOn = false;
+  timeEl.addEventListener('input', () => { hourOverrideOn = true; setHourOverride(+timeEl.value); showHr(); });
+  prev.querySelector('.fc-preview__auto').addEventListener('click', () => { hourOverrideOn = false; setHourOverride(null); timeEl.value = String(effectiveHour()); showHr(); });
   prev.querySelectorAll('[data-place]').forEach((b) => b.addEventListener('click', () => {
     prev.querySelectorAll('[data-place]').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    setPlace(b.dataset.place); // the SUN rides lower/higher by latitude
     document.dispatchEvent(new CustomEvent('wn:wx-force', { detail: { state: PLACE_WX[b.dataset.place] } }));
+    showHr();
   }));
 
   const render = () => {
@@ -78,9 +85,11 @@ export function initIntensityControl() {
     btn.setAttribute('aria-label', on ? 'Field intensity: loud. Switch to subtle.' : 'Field intensity: subtle. Switch to loud.');
     label.textContent = 'FIELD: ' + (on ? 'LOUD' : 'SUBTLE');
     wx.hidden = !on; prev.hidden = !on;
-    if (!on) { // leaving LOUD returns the sky + clock to the truth
+    if (on) { timeEl.value = String(effectiveHour()); showHr(); } // reflect the real local hour on open
+    else { // leaving LOUD returns the sky + clock + place to the truth
       if (wxIdx !== 0) { wxIdx = 0; renderWx(); document.dispatchEvent(new CustomEvent('wn:wx-force', { detail: { state: 'auto' } })); }
-      setHourOverride(null);
+      hourOverrideOn = false; setHourOverride(null); setPlace('auto');
+      prev.querySelectorAll('[data-place]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.place === 'auto' ? 'true' : 'false'));
     }
   };
 

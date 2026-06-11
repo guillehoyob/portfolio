@@ -54,6 +54,24 @@ html.fc-boost .fc-intensity__glyph {
 .fc-intensity--wx {
   bottom: calc(var(--space-4) + 48px + env(safe-area-inset-bottom, 0px));
 }
+/* the PREVIEW panel (V5.7) — time + place, stacked above the WX chip, LOUD only */
+.fc-preview {
+  bottom: calc(var(--space-4) + 96px + env(safe-area-inset-bottom, 0px));
+  flex-direction: column; align-items: stretch; gap: var(--space-2);
+  width: min(280px, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-3) var(--space-4); cursor: default;
+}
+.fc-preview__row { display: flex; align-items: center; gap: var(--space-2); font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: var(--ls-mono); color: var(--ink-ghost); }
+.fc-preview__row > span { flex: none; width: 3em; }
+.fc-preview__time { flex: 1; accent-color: var(--ink); min-height: 24px; }
+.fc-preview__auto, .fc-preview__places button {
+  font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: var(--ls-mono); text-transform: uppercase;
+  color: var(--ink-ghost); background: none; border: 1px solid var(--hairline); border-radius: var(--radius-tag);
+  padding: 3px 6px; min-height: 26px; cursor: pointer;
+}
+.fc-preview__places { flex-wrap: wrap; gap: 4px; }
+.fc-preview__auto:hover, .fc-preview__places button:hover { color: var(--ink); border-color: var(--ink); }
+.fc-preview__places button[aria-pressed="true"] { color: var(--ink); border-color: var(--ink); background: var(--field-1); }
 @media print { .fc-intensity { display: none; } }
 
 /* ===== ASK THE FIELD (V5.3) — a small, always-present inline chat dock =====

@@ -15,6 +15,16 @@
  * tormenta usa el hijo dedicado .fc-voidflash.
  */
 
+/* ===== V5.7 — WET GROUND on rain/storm (owner: "como el suelo mojado que refleja lo
+   de arriba"): the void word casts a faint, fading reflection below it — the black band
+   reads as wet asphalt mirroring the sky. -webkit-box-reflect is progressive (other
+   engines simply don't reflect); reduced-motion safe (it's static). ===== */
+html[data-wx="rain"] .wn-void__word,
+html[data-wx="rain-heavy"] .wn-void__word,
+html[data-wx="storm"] .wn-void__word {
+  -webkit-box-reflect: below 4px linear-gradient(transparent 55%, color-mix(in srgb, var(--washi) 16%, transparent));
+}
+
 /* ===== Stage 3 — Threshold Cut (§5.8): the void detonates, no fade/stagger ===== */
 html.fc-motion .wn-void.fc-cut-armed .wn-void__word,
 html.fc-motion .wn-void.fc-cut-armed .wn-void__body { opacity: 0; transform: scale(0.98); }

@@ -93,14 +93,35 @@ function warpHour(t) {
   } catch { return t; }
 }
 
+/* runtime hour override (the PREVIEW panel's time slider) — beats the scrubber+warp */
+let hourOverride = null;
+let _reapply = null;
+export function setHourOverride(h) { hourOverride = (h == null ? null : ((+h % 24) + 24) % 24); if (_reapply) _reapply(); }
+
 /* The effective hour every sky consumer agrees on (weather.js gates the iris by it). */
 export function effectiveHour() {
+  if (hourOverride != null) return hourOverride;
   try {
     const q = new URLSearchParams(location.search).get('fc-hour');
     if (q != null && q !== '' && !isNaN(+q)) return ((+q % 24) + 24) % 24; // scrubber bypasses the warp too
   } catch { /* */ }
   const now = new Date();
   return warpHour(now.getHours() + now.getMinutes() / 60);
+}
+
+/* SPECIAL DAY (owner: iridescence only on special days) — equinoxes/solstices, New
+   Year, and the full moon. Deterministic, zero network. Returns a kind string or ''. */
+export function specialDay() {
+  try {
+    const n = new Date(); const m = n.getMonth() + 1, d = n.getDate();
+    if (m === 1 && d === 1) return 'newyear';
+    if (m === 3 && d >= 19 && d <= 21) return 'equinox';
+    if (m === 9 && d >= 21 && d <= 23) return 'equinox';
+    if (m === 6 && d >= 20 && d <= 22) return 'solstice';
+    if (m === 12 && d >= 20 && d <= 22) return 'solstice';
+    if (moonIllumination() > 0.985) return 'fullmoon';
+  } catch { /* */ }
+  return '';
 }
 
 export function initHeliostat() {
@@ -123,10 +144,15 @@ export function initHeliostat() {
     // ── tint channel (SKY-1): zenith→horizon gradient on the .fc-tint ELEMENT (inherits:false)
     const alphaEff = Math.min(8, Math.max(Math.min(TINT_CAP, L.alpha) * tintScene * intensity.tint, intensity.tintFloor));
     const aZen = alphaEff * 0.72 / 100, aHor = Math.min(8, alphaEff * 1.15) / 100;
+    // SNOW cools the whole sky (owner: "todo más azulado"): pull zen/hor toward blue
+    // (−R, +B), clamped. Paired with the snow body-class that cools the field + red.
+    const snowCool = wx === 'snow';
+    const cool = (c) => snowCool ? [Math.round(c[0] * 0.82), Math.round(c[1] * 0.94), Math.min(255, Math.round(c[2] * 1.12))] : c;
+    const Z = cool(L.zen), H = cool(L.hor);
     const tintEl = document.querySelector('.fc-tint');
     if (tintEl) {
-      tintEl.style.setProperty('--fc-sky-zen', `rgba(${L.zen[0]},${L.zen[1]},${L.zen[2]},${aZen.toFixed(4)})`);
-      tintEl.style.setProperty('--fc-sky-hor', `rgba(${L.hor[0]},${L.hor[1]},${L.hor[2]},${aHor.toFixed(4)})`);
+      tintEl.style.setProperty('--fc-sky-zen', `rgba(${Z[0]},${Z[1]},${Z[2]},${(aZen * (snowCool ? 1.5 : 1)).toFixed(4)})`);
+      tintEl.style.setProperty('--fc-sky-hor', `rgba(${H[0]},${H[1]},${H[2]},${(aHor * (snowCool ? 1.4 : 1)).toFixed(4)})`);
       tintEl.style.setProperty('--fc-sky-horpos', (38 + (L.comp + (intensity.tint > 1 ? 0.06 : 0)) * 34).toFixed(1) + '%');
     }
     root.style.setProperty('--fc-hour-hue', L.horHex); // FULL hue of the hour — hairlines/clouds mix it down themselves
@@ -190,7 +216,10 @@ export function initHeliostat() {
     root.style.setProperty('--fc-pulse-alpha', (field.rest >= 1) ? '0.70' : night ? '1' : '0.85');
 
     root.dataset.daypart = daypartFor(Math.floor(t)); // state (harness + any daypart reader)
+    const sp = specialDay(); if (sp) root.dataset.special = sp; else delete root.dataset.special;
+    root.classList.toggle('fc-snow', wx === 'snow'); // body-class cools the field + the red (CSS)
   };
+  _reapply = apply;
 
   // first paint lands INSTANTLY (CIE-01) — the 4s ambient crossfade starts on the SECOND apply
   const instant = () => {

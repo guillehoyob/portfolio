@@ -10,6 +10,7 @@
  * owner closes calibration (or migrate to the quiet footer variant).
  */
 import { applyIntensity } from './index.js';
+import { setHourOverride } from './heliostat.js';
 
 export function initIntensityControl() {
   if (document.querySelector('.fc-intensity')) return; // idempotent
@@ -50,16 +51,36 @@ export function initIntensityControl() {
   });
   renderWx();
 
+  // ── V5.7: the PREVIEW panel — TIME + PLACE (owner: "déjame botones para controlar
+  // la hora y para estar en distintos lugares del mundo"). LOUD only; a demo lens, so
+  // the owner can SEE the day and the biome shift on demand. AUTO restores the truth. */
+  const prev = document.createElement('div');
+  prev.className = 'fc-intensity fc-preview';
+  prev.hidden = true;
+  // place presets → a representative biome weather (forced through the same wn:wx path)
+  const PLACES = [['auto', 'AUTO'], ['arctic', 'ARCTIC'], ['tropic', 'TROPIC'], ['ocean', 'OCEAN'], ['jungle', 'JUNGLE']];
+  const PLACE_WX = { auto: 'auto', arctic: 'snow', tropic: 'clear', ocean: 'partly', jungle: 'rain' };
+  prev.innerHTML = `<label class="fc-preview__row"><span>TIME</span>
+      <input class="fc-preview__time" type="range" min="0" max="24" step="0.5" value="12" aria-label="Preview hour">
+      <button type="button" class="fc-preview__auto" aria-label="Real time">AUTO</button></label>
+    <div class="fc-preview__row fc-preview__places">${PLACES.map(([k, l]) => `<button type="button" data-place="${k}"${k === 'auto' ? ' aria-pressed="true"' : ''}>${l}</button>`).join('')}</div>`;
+  const timeEl = prev.querySelector('.fc-preview__time');
+  timeEl.addEventListener('input', () => setHourOverride(+timeEl.value));
+  prev.querySelector('.fc-preview__auto').addEventListener('click', () => { setHourOverride(null); });
+  prev.querySelectorAll('[data-place]').forEach((b) => b.addEventListener('click', () => {
+    prev.querySelectorAll('[data-place]').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    document.dispatchEvent(new CustomEvent('wn:wx-force', { detail: { state: PLACE_WX[b.dataset.place] } }));
+  }));
+
   const render = () => {
     const on = isBoost();
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     btn.setAttribute('aria-label', on ? 'Field intensity: loud. Switch to subtle.' : 'Field intensity: subtle. Switch to loud.');
     label.textContent = 'FIELD: ' + (on ? 'LOUD' : 'SUBTLE');
-    wx.hidden = !on;
-    if (!on && wxIdx !== 0) { // leaving LOUD returns the sky to the truth
-      wxIdx = 0;
-      renderWx();
-      document.dispatchEvent(new CustomEvent('wn:wx-force', { detail: { state: 'auto' } }));
+    wx.hidden = !on; prev.hidden = !on;
+    if (!on) { // leaving LOUD returns the sky + clock to the truth
+      if (wxIdx !== 0) { wxIdx = 0; renderWx(); document.dispatchEvent(new CustomEvent('wn:wx-force', { detail: { state: 'auto' } })); }
+      setHourOverride(null);
     }
   };
 
@@ -70,5 +91,5 @@ export function initIntensityControl() {
   const onCrest = () => { glyph.classList.add('fc-crest'); setTimeout(() => glyph.classList.remove('fc-crest'), 500); };
   document.addEventListener('fc:crest', onCrest);
   render();
-  document.body.append(btn, wx);
+  document.body.append(btn, wx, prev);
 }

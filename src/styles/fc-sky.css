@@ -246,5 +246,43 @@ html[data-wx="clear"] .fc-iris, html[data-wx="partly"] .fc-iris { opacity: 0.14;
 html.fc-boost[data-wx="clear"] .fc-iris, html.fc-boost[data-wx="partly"] .fc-iris { opacity: 0.62; }
 html.fc-boost .fc-iris { width: 32vw; height: 13vw; }
 
+/* ===== IRIDESCENCE → the HEADINGS on SPECIAL DAYS (V5.7, owner: "aplícalo a las
+   palabras de los titulares, y solo en días especiales") — a slow tornasol sheen
+   sweeps the H1/void word on equinox/solstice/new-year/full-moon (html[data-special],
+   set by heliostat.specialDay()). The text stays INK-dominant (legible, AA): only a
+   thin iridescent band travels through it. Reduced-motion: never runs (text = plain
+   ink). The static iris sphere is retired. */
+@media (prefers-reduced-motion: no-preference) {
+  /* light-background headings only — the void word is washi-on-black, excluded */
+  html.fc-motion[data-special] .hero__h1,
+  html.fc-motion[data-special] .identity__title {
+    background-image: linear-gradient(100deg,
+      var(--ink) 40%,
+      color-mix(in srgb, #C9A0D9 62%, var(--ink)) 47%,
+      color-mix(in srgb, #9FD9C2 62%, var(--ink)) 50%,
+      color-mix(in srgb, #E6CF93 62%, var(--ink)) 53%,
+      var(--ink) 60%);
+    background-size: 320% 100%; background-repeat: no-repeat;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: wn-iris-sweep 9s var(--ease-run) infinite;
+  }
+  @keyframes wn-iris-sweep { from { background-position: 120% 0; } to { background-position: -20% 0; } }
+}
+
+/* ===== SNOW cools the WHOLE palette (owner: "todos los colores, hasta el rojo y el
+   hilo, más azulados") — a gentle cool BIAS on the core tokens, so the field, the
+   hairlines, AND the red (CTA/crack/thread) all lean toward --sky. Modest mixes keep
+   AA + the one-red recognizable; the body bg transition makes the shift a soft fade.
+   Removing the .fc-snow class (no snow) reverts everything — fully reversible. ===== */
+html.fc-snow {
+  --field-0: color-mix(in srgb, #F7F7F5 95%, var(--sky));
+  --field-1: color-mix(in srgb, #EDECEA 93%, var(--sky));
+  --hairline: color-mix(in srgb, #D6D4D0 82%, var(--sky));
+  --ink-ghost: color-mix(in srgb, #5A5855 90%, var(--sky));
+  --signal: color-mix(in srgb, #E8341A 86%, var(--sky));
+  --signal-deep: color-mix(in srgb, #B3270F 86%, var(--sky));
+}
+html.fc-motion.fc-snow body { transition: background-color var(--dur-ambient-min) linear; }
+
 /* boost entries are the demo throttle: 1.2s ONLY under fc-boost (CONTRACTS §f.3b) */
 html.fc-boost .fc-clouds, html.fc-boost .fc-fog, html.fc-boost .fc-iris { transition: opacity 1.2s linear; }

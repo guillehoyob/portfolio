@@ -204,12 +204,13 @@ function syncSnow() {
 function syncIris() {
   const state = root().dataset.wx;
   const h = effectiveHour();
-  const boost = root().classList.contains('fc-boost');
-  // the clear-sky prize. In BOOST the hour gate is RELAXED (owner: "no veo la
-  // iridiscencia") so WX:CLEAR shows it at any hour for auditioning; in subtle it
-  // keeps its natural 10–16h window so it stays a rare midday gift.
-  const want = cfgW.iris !== false && !reduced && (state === 'clear' || state === 'partly') && (boost || (h >= 10 && h <= 16));
-  if (want) ensure('iris', mkIris); else fadeRemove('iris', 8000);
+  // V5.7 (owner: "la esfera estática no me gusta nada; aplícalo a los titulares y solo
+  // en días especiales"): the static iris SPHERE is RETIRED. Iridescence now lives as a
+  // slow tornasol SHEEN that sweeps the HEADINGS on SPECIAL DAYS only (equinox/solstice/
+  // new-year/full-moon) — pure CSS gated on html[data-special] (set by heliostat). So
+  // here we just make sure the old sphere never renders.
+  void state; void h;
+  fadeRemove('iris', 1);
 }
 
 function syncLayers(state) {
@@ -277,24 +278,27 @@ function sessionT0() {
   try { const s = sessionStorage.getItem('wn.beatAnchor'); if (s) return +s; } catch { /* */ }
   return Date.now() - performance.now();
 }
+// V5.7 (owner: "quiero ver el rayo más veces, en bucle, 1 o más a la vez, en posición
+// random arriba"): while it STORMS the red sprite LOOPS — a random gap, sometimes a
+// double strike, each at a random x along the top. Still transient (≤640ms), still
+// the rare-1/session quota for NON-storm naturally-occurring weather (kept below).
 function scheduleSprite() {
-  if (spriteT) return;
-  try { if (sessionStorage.getItem('wn.sprite') === '1') return; } catch { /* */ }
-  spriteT = setTimeout(fireSprite, Math.max(0, 90e3 - (Date.now() - sessionT0())) + Math.random() * 30e3);
+  clearTimeout(spriteT);
+  const first = root().classList.contains('fc-boost') ? 1500 : 6000 + Math.random() * 8000;
+  spriteT = setTimeout(fireSprite, first);
 }
 function fireSprite() {
   spriteT = 0;
-  if (document.hidden || root().dataset.wx !== 'storm') {
-    if (!spriteRetried) { spriteRetried = true; spriteT = setTimeout(fireSprite, 45e3); } // re-arm ONCE
-    return;
-  }
-  try { sessionStorage.setItem('wn.sprite', '1'); } catch { /* */ } // hard quota: once per session
-  spawnSprite();
+  if (document.hidden || root().dataset.wx !== 'storm') return; // disarmStorm stops the loop
+  const strikes = Math.random() < 0.3 ? 2 : 1; // sometimes a double bolt
+  for (let i = 0; i < strikes; i++) setTimeout(() => spawnSprite(8 + Math.random() * 72), i * (120 + Math.random() * 220));
+  spriteT = setTimeout(fireSprite, 7000 + Math.random() * 13000); // 7–20s between bursts
 }
 // 600ms total: halo 120ms (the ONE sanctioned bounce-light in the sky, §f.5) → draw 180ms
 // (--ease-crack) → hold 60ms at op .85 → fade 240ms → remove(). FULL saturation, ~0.07% transient.
-function spawnSprite() {
+function spawnSprite(leftVw) {
   const w = mkDiv('fc-sprite');
+  if (leftVw != null) { w.style.left = leftVw.toFixed(1) + 'vw'; w.style.right = 'auto'; } // random x along the top
   w.innerHTML = '<svg viewBox="0 0 100 140">'
     + '<path pathLength="100" d="M52 0 V42"/><path pathLength="100" d="M52 42 L40 86"/>'
     + '<path pathLength="100" d="M52 42 L63 92"/><path pathLength="100" d="M52 42 V98"/>'

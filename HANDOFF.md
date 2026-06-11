@@ -1,10 +1,10 @@
 # WHITE NOON — Portfolio · HANDOFF (V6)
 
 > Read this, then `CONCEPT.md §7` (the V5 laws) and `src/field-conditions/config.js`
-> (the INTENSITY registry + flags). Status: shipped to `main` through **V6** (`6b99bb4`),
+> (the INTENSITY registry + flags). Status: shipped to `main` through **V6.1** (`4cc0a2c`),
 > Cloudflare Pages auto-deploys every push. Harness `npm run living` = **42/42 ALL GREEN**.
-> The owner (Guillermo) iterates live and reports what he still doesn't like — §A is the
-> open queue. Reply to him in Spanish.
+> The owner (Guillermo) iterates live and reports what he still doesn't see/understand —
+> §A is the verify-with-owner + open queue. Reply to him in Spanish.
 
 ---
 
@@ -36,15 +36,20 @@ Living layer in `src/field-conditions/*.js`, each flag-gated in `config.js`; hub
 ## 4 · The behaviors (where each lives)
 heliostat.js (day/sun/moon, tint, shadows, `--fc-hour-hue`, `specialDay()`, `setHourOverride`/`setPlace`) · weather.js (Open-Meteo + synthetic, clouds/fog/snow-class/storm-flash+thunder+**looping red sprite**/shooting-stars/iris-retired) · spine.js (the red thread: baton-pass from the name route, knots, sashiko stitch, waypoint **stations**, `fc:cite` live-retrieval glow, scroll-driven draw to the contact email) · new-route.js (the name's living route) · breath.js (10.4s resonance, `--fc-breath`, crest, rest tiers) · heartbeat.js · particles.js (gold motes hugging the thread; snow regime) · ocean.js (click ripple; rain livens it) · warm-lens.js · reveals/scanline/threshold-cut/crack/first-breath/hero-entrance/slipstream/crosswind · patina.js (memory) · intensity-control.js (FIELD + WX + PREVIEW panel) · ask.js · magnet.js · hum.js (sound, flag OFF) · vt-morph.js. Assets: `src/data/route-viz.mjs` (per-project route SVGs + favicon/og via `scripts/make-cv-pdf.mjs`/`make-og.mjs`).
 
-## A · OPEN QUEUE — what the owner still wants (V6 live review, in priority order)
-Each is a real complaint with the exact lever. **All must keep the laws in §1 + CONCEPT §7.**
+## A · VERIFY-WITH-OWNER + OPEN QUEUE
+**First**, walk the owner (in LOUD, via the PREVIEW panel) through the V6.1 changes so he confirms what he can now see — these were his complaints and are SHIPPED but need his eye:
+- **Chat** — the invitation now speaks in the Cormorant breath voice over a borderless editorial input (no boxed widget). Ask him if it's finally beautiful; if not, redesign further (it's been his #1 complaint 4×). Files: `ask.js` + `fc-ui.css` (`.wn-chat--embed`/`--dock`).
+- **Sun** — now small + faint (`fc-sky.css .fc-sun`, radius ×0.8/0.55, cap 0.20/0.28). Confirm it no longer degrades white-noon.
+- **Special days** — PREVIEW panel → DAY selector (NONE/EQUINOX/SOLSTICE/NEW YEAR/FULL MOON); each sweeps a distinct iridescent palette on the headings. Confirm each looks good.
+- **Place/latitude** — PREVIEW → SUN row (AUTO/ARCTIC/TEMPERATE/TROPIC/EQUATOR) rides the sun height only (no faked weather). Confirm he now notices it.
+- **Location/weather readout** — the bottom line of the PREVIEW panel (`location · weather · hour`). Confirm he finds + understands it.
 
-1. **THE CHAT IS STILL NOT BEAUTIFUL** (his #1, repeated 4×). It needs a genuine, component-by-component aesthetic redesign — not another tweak. Investigate reference-grade conversational UI that fits a calm white-noon editorial page (type hierarchy, the assistant's voice maybe in the Cormorant `--font-breath`, generous *ma*, the input, the sources, the dock). Files: `src/field-conditions/ask.js` (markup) + `fc-ui.css` (`.wn-chat--embed` / `.wn-chat--dock`). Consider a small design panel (judge) if the owner opts into ultracode. **This is the top job.**
-2. **The sun is too big — it degrades the white-noon effect. Make it smaller/subtler.** Lever: `fc-sky.css .fc-sun` (currently radius `calc(--fc-sun-size*1.7) × 1.25`, opacity cap 0.30 / 0.40 boost) + heliostat `--fc-sun-size` anchors. Shrink the radius and/or lower the cap so it's a faint warmth, not a glow blob.
-3. **The sunset→night transition is ABRUPT; night/the moon are not represented — night should read as a clear DEEP-BLUE sky.** Lever: `heliostat.js` — the night branch (`t≥21.3 || t<4.7`) hard-swaps sun→moon and the ANCHORS jump; smooth the dusk→night crossfade, and push the **night sky anchors deeper blue** (zen/hor `#3A3A52`/`#515175` at ~4–4.5% alpha is too faint — make the night sky clearly blue at the top band) WITHOUT dropping the field below the legible white floor. The moon already follows real phase (`moonIllumination()`) — make it clearly visible against the deep-blue night.
-4. **"SHOW SPECIAL DAY" shows nothing, AND he wants to SELECT which special date** to preview each distinct effect. Levers: (a) debug why `html[data-special] .hero__h1` iridescence sweep isn't visible (it sets `data-special="preview"`; the `background-clip:text` sweep in `fc-sky.css` may be too faint or shadowed) — make it clearly visible; (b) give EACH special day a DISTINCT effect (equinox / solstice / new-year / full-moon) and add a **selector** in the PREVIEW panel to choose which to preview (today it's a single on/off toggle). Files: `intensity-control.js` (panel) + `heliostat.js specialDay()` + `fc-sky.css`.
+**Still open / likely next (he flagged these):**
+1. **NIGHT at the HERO stays bright.** V6.1 deepened the night sky (blue top band, max-cap alpha) + a defined brighter moon, but the HERO block is bright by design, so "night" reads best on scroll / inner pages, not the hero. The owner may want the **hero itself to darken at night** — that is a DELIBERATE trade-off against the ≥90%-white/legibility law he ALSO insists on. Discuss before doing; if yes, it's a hero-specific night treatment (`.hero__sky` + a night body bias), kept AA on the text. Lever: `layout.css .hero__sky`, `heliostat.js` night branch.
+2. **clear/partly/overcast** differentiation — check if still too subtle for him; if so push cloud density / overcast grey further (`fc-sky.css`, `weather.js`).
+3. **The comet** (alongside the shooting stars) — approved, not yet built (`weather.js` night-clear gate, like `spawnStar`).
 
-**Also queued (approved earlier, not yet built):** the **comet** (alongside shooting stars); the **RAG architecture diagram** on the project pages (card-viz idiom); refine **live-retrieval** (thread→cited section) for cross-page; lower the thread's start a touch; differentiate clear/partly/overcast even more if still weak. **Rejected (do NOT re-propose):** lateral scroll-jacking carousel (breaks the scroll-drawn spine), rain-as-drops, persistent fog veil, a faster heartbeat, gold on the spine.
+**Also queued (approved, not built):** RAG architecture diagram on the project pages (card-viz idiom); refine **live-retrieval** (thread→cited section) for cross-page citations; lower the thread's start a touch. **Rejected (do NOT re-propose):** lateral scroll-jacking carousel (breaks the scroll-drawn spine), rain-as-drops, persistent fog veil, a faster heartbeat, gold on the spine.
 
 ## 5 · Laws (CONCEPT §7 is the source) — the hard invariants
 ONE red ≤1.5% binary (`RED_LOCKED`, boost never scales it) · field ≥90% warm-white **and legible** (the owner's re-emphasis: weather tints the world but must NOT compromise reading) · AA · CLS≈0 · JS budget OK · reduced-motion honest · zero new npm deps · open-meteo is the ONLY sanctioned third-party · everything flag-reversible (flag off ⇒ byte-identical Stage-0).
@@ -56,4 +61,4 @@ ONE red ≤1.5% binary (`RED_LOCKED`, boost never scales it) · field ≥90% war
 - Parallel writers (if used) MUST be in isolated worktrees with disjoint files; workflows resume from cache after session limits (`resumeFromRunId`). Only spawn workflows when the owner opts into ultracode.
 
 ## 7 · Recent commits (newest first)
-`6b99bb4` V6 (hero re-flow, editorial chat, nav-sticky fix, legible snow, calm stitch, honest preview) · `2b6c5ac` V5.9 (nav horizon, shooting stars, clear/partly/overcast, live-retrieval) · `8c54cc1` V5.8 (stitch ties at contact, snow cools, rain somber, place→sun) · `a6a64fb` V5.7 · `030030f` V5.6 (editorial light chat + real CV PDF) · `7c7bbd6` V5.3.1 (security audit fixes) · `f46d873` V5.3 (chat dock + Azure hardening) · … V5/V4 below.
+`4cc0a2c` V6.1 (small sun · deep-blue legible night + defined moon · special-day DAY selector w/ distinct palettes · Cormorant chat voice) · `6b99bb4` V6 (hero re-flow, editorial chat, nav-sticky fix, legible snow, calm stitch, honest preview) · `2b6c5ac` V5.9 (nav horizon, shooting stars, clear/partly/overcast, live-retrieval) · `8c54cc1` V5.8 (stitch ties at contact, snow cools, rain somber, place→sun) · `a6a64fb` V5.7 · `030030f` V5.6 (editorial light chat + real CV PDF) · `7c7bbd6` V5.3.1 · `f46d873` V5.3 (chat dock + Azure hardening) · … V5/V4 below.

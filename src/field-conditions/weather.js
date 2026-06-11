@@ -196,6 +196,37 @@ function mkIris() {
   return [el];
 }
 
+/* SHOOTING STARS — a rare washi streak on clear/partly NIGHTS (owner's celestial idea).
+   Self-rescheduling 12–28s; one (rarely two) at a random spot up high; ≤700ms, gone. */
+let starT = 0;
+function nightClear(state) {
+  if (reduced) return false;
+  if (state !== 'clear' && state !== 'partly') return false;
+  const h = effectiveHour();
+  return (h >= 21 || h < 5.5);
+}
+function syncStars(state) {
+  if (nightClear(state)) { if (!starT) scheduleStar(); }
+  else { clearTimeout(starT); starT = 0; }
+}
+function scheduleStar() {
+  starT = setTimeout(() => {
+    starT = 0;
+    if (!nightClear(root().dataset.wx) || document.hidden) return;
+    spawnStar();
+    if (Math.random() < 0.22) setTimeout(spawnStar, 200 + Math.random() * 300); // sometimes a pair
+    scheduleStar();
+  }, 12000 + Math.random() * 16000);
+}
+function spawnStar() {
+  const s = mkDiv('fc-shootingstar');
+  s.style.left = (35 + Math.random() * 45) + 'vw';
+  s.style.top = (6 + Math.random() * 22) + 'vh';
+  document.body.appendChild(s);
+  requestAnimationFrame(() => requestAnimationFrame(() => s.classList.add('go')));
+  setTimeout(() => s.remove(), 760);
+}
+
 function syncSnow() {
   const sky = document.querySelector('.fc-sky');
   if (sky) sky.classList.toggle('fc-sky--snow', root().dataset.wx === 'snow');
@@ -229,8 +260,10 @@ function syncLayers(state) {
   // fog veils — SKY-10a, gated on weather.fogVeils (owner approval pending)
   if (state === 'fog' && cfgW.fogVeils && !reduced) ensure('fog', mkFog);
   else fadeRemove('fog', 8000);
-  // iridescence — the clear-sky prize (its own hour gate)
+  // iridescence — retired sphere (now special-day headings); keep the cleanup
   syncIris();
+  // shooting stars — rare washi streaks on CLEAR/PARTLY NIGHTS (owner: celestial)
+  syncStars(state);
   // snow — the motes change regime (particle physics is W4's; this only flips the class)
   syncSnow();
   // storm — flash/thunder/sprite timers
@@ -356,7 +389,7 @@ export function initWeather(config) {
   irisTimer = setInterval(syncIris, 600e3); // hourly drift gate, re-checked every 10 min
 
   registerCleanup('weather', () => {
-    clearInterval(irisTimer); clearTimeout(snowT); clearTimeout(demoT); clearTimeout(thunderT);
+    clearInterval(irisTimer); clearTimeout(snowT); clearTimeout(demoT); clearTimeout(thunderT); clearTimeout(starT);
     disarmStorm();
     if (io) { io.disconnect(); io = null; }
     document.removeEventListener('wn:wx', onWxDoc);

@@ -57,6 +57,13 @@ function makeChat(logEl, formEl, inputEl, sendEl, setThinking) {
       if (history.length > 8) history.splice(0, history.length - 8);
       const src = (out.sources || []).map((s) => `<a class="wn-chat__src" href="${s.href}">${esc(s.title)}</a>`).join('');
       line('wn-chat__msg--field', `<p>${esc(out.answer)}</p>${src ? `<p class="wn-chat__where">WHERE TO LOOK</p><nav class="wn-chat__srcs">${src}</nav>` : ''}`);
+      // LIVE RETRIEVAL (the WOW): if a source points to a section ON THIS page, tell the
+      // red thread to light that station — the grounding made visible, in our own metaphor.
+      const cite = (out.sources || []).map((s) => s.href).find((h) => {
+        const i = h.indexOf('#'); if (i < 0) return false;
+        try { return !!document.querySelector(h.slice(i)); } catch { return false; }
+      });
+      if (cite) document.dispatchEvent(new CustomEvent('fc:cite', { detail: { sel: cite.slice(cite.indexOf('#')) } }));
     } else {
       const why = out && out.error === 'unconfigured' ? 'The assistant isn’t connected yet.'
         : out && out.error === 'rate' ? 'A moment — too many questions at once.'

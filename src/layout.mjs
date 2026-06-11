@@ -89,6 +89,7 @@ export function nav(active = '') {
     ['Contact', '/#contact'],
   ];
   return `<nav class="nav" aria-label="Primary">
+  <span class="nav__horizon" aria-hidden="true"></span><span class="nav__sun" aria-hidden="true"></span>
   <a class="nav__mark" href="/">Guillermo</a>
   <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu" hidden>
     <span class="nav__toggle-bars" aria-hidden="true"></span>

@@ -136,8 +136,13 @@ html.fc-boost .fc-sky--snow .fc-mote { scale: 1.15; } /* independent property: n
   mask-image: linear-gradient(180deg, #000 30%, transparent);
   -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent);
 }
-html[data-wx="partly"]   .fc-clouds { --fc-cloud-op: 0.55; }
+html[data-wx="partly"]   .fc-clouds { --fc-cloud-op: 0.7; }
 html[data-wx="overcast"] .fc-clouds { --fc-cloud-op: 1; }
+/* V5.8 (owner: "no distingo clear/partly/overcast") — make the THREE read clearly:
+   clear = bright + nothing; partly = bright + a few clouds; overcast = a GREY sky
+   (a faint ink wash on the field, lighter than rain). The cloud density does the rest. */
+html.fc-motion[data-wx="overcast"] { --field-0: color-mix(in srgb, #F7F7F5 95.5%, var(--ink)); --field-1: color-mix(in srgb, #EDECEA 95.5%, var(--ink)); }
+html.fc-motion[data-wx="overcast"] body { transition: background-color var(--dur-ambient-min) linear; }
 html[data-wx="storm"] .fc-clouds, html[data-wx="snow"] .fc-clouds { --fc-cloud-op: 1; }
 html[data-wx="storm"]    .fc-clouds { filter: url(#fc-cloud) brightness(0.93); }
 @keyframes wn-cloud-drift { to { transform: translateX(-100vw); } }
@@ -245,6 +250,40 @@ html[data-wx="clear"] .fc-iris, html[data-wx="partly"] .fc-iris { opacity: 0.14;
    brighter, and the hour gate is relaxed in weather.js so WX:CLEAR shows it on demand */
 html.fc-boost[data-wx="clear"] .fc-iris, html.fc-boost[data-wx="partly"] .fc-iris { opacity: 0.62; }
 html.fc-boost .fc-iris { width: 32vw; height: 13vw; }
+
+/* ===== THE NAV HORIZON (V5.8, owner: "que se vea claramente un amanecer y un
+   atardecer, tal vez solo en la zona del menú") — a thin horizon line along the
+   nav's base, tinted by the hour (--fc-hour-hue: dawn pink, noon pale, dusk amber,
+   night deep), with a small sun/moon DOT that rides left→right by --fc-sun-x. The
+   day's arc, made unmistakable, concentrated in the menu so it never muddies the
+   page. Gated on fc-motion; reduced-motion shows it static (honest). ===== */
+.nav { position: relative; }
+.nav__horizon, .nav__sun { position: absolute; pointer-events: none; opacity: 0; }
+.nav__horizon {
+  left: 0; right: 0; bottom: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--fc-hour-hue, var(--hairline)) 60%, transparent), transparent);
+  transition: opacity 1s linear, background var(--dur-ambient-min) linear;
+}
+.nav__sun {
+  bottom: 0; left: var(--fc-sun-x, 80%); width: 9px; height: 9px; border-radius: 50%;
+  transform: translate(-50%, 50%);
+  background: radial-gradient(circle, var(--fc-sun-glow, var(--sun)), transparent 72%);
+  transition: left var(--dur-ambient-min) linear, opacity 1s linear;
+}
+html.fc-motion .nav__horizon { opacity: 0.75; }
+html.fc-motion .nav__sun { opacity: 0.9; }
+
+/* ===== SHOOTING STARS (V5.8, owner: "estrellas fugaces de noche, cometa") — a rare
+   washi streak crosses the upper field on CLEAR/PARTLY nights. Diagonal, ~700ms, gone.
+   weather.js schedules it (night-gated, governor-friendly, reduced-motion off). ===== */
+.fc-shootingstar {
+  position: fixed; z-index: var(--z-haze); pointer-events: none;
+  width: 16vw; height: 1.5px; top: 12vh; left: 60vw;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--washi) 85%, transparent), transparent);
+  transform: rotate(18deg) translateX(40px); opacity: 0;
+}
+.fc-shootingstar.go { animation: wn-shoot 700ms var(--ease-run) forwards; }
+@keyframes wn-shoot { 0% { opacity: 0; transform: rotate(18deg) translateX(40px) scaleX(0.4); } 30% { opacity: 0.9; } 100% { opacity: 0; transform: rotate(18deg) translateX(-220px) scaleX(1.2); } }
 
 /* ===== IRIDESCENCE → the HEADINGS on SPECIAL DAYS (V5.7, owner: "aplícalo a las
    palabras de los titulares, y solo en días especiales") — a slow tornasol sheen

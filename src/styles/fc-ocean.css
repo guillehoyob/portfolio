@@ -53,6 +53,13 @@
    faint ink ring ahead, a settled darker dot once the thread has reached it. */
 .fc-spine__waypoint { fill: var(--field-0); stroke: var(--hairline); stroke-width: 1; opacity: 0.55; transition: opacity var(--dur-300) var(--ease-run), stroke var(--dur-300) var(--ease-run); }
 .fc-spine__waypoint.is-passed { stroke: var(--ink-ghost); opacity: 0.85; }
+/* LIVE RETRIEVAL — the cited section's station flares red, briefly: the thread reaches
+   the answer's source. Transient (≤2.6s), so the red budget holds. */
+.fc-spine__waypoint.is-cited { stroke: var(--signal); fill: color-mix(in srgb, var(--signal) 18%, var(--field-0)); opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .fc-spine__waypoint.is-cited { animation: wn-cite-pulse 1300ms var(--ease-run) 2; transform-box: fill-box; transform-origin: center; }
+}
+@keyframes wn-cite-pulse { 0%, 100% { transform: scale(1); } 40% { transform: scale(2.1); } }
 @media (prefers-reduced-motion: reduce) { .fc-spine__waypoint { transition: none; } }
 /* HILO-5a — the sliding sashiko stitch: ONE 12px dash resting on the NEXT anchor,
    ahead of the nib, ON the thread. Eje `stitch` BLOQUEADO: no boost scaling. */

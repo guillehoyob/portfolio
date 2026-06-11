@@ -270,6 +270,20 @@ export function initSpine() {
     wake();
   };
   document.addEventListener('fc:crest', onCrest);
+  // LIVE RETRIEVAL (the chat cited a section ON this page) → light the thread's station
+  // for that section: the red thread reaches toward the answer's source (WOW, on-brand).
+  const onCite = (e) => {
+    const sel = e.detail && e.detail.sel; if (!sel || !wps.length) return;
+    let el; try { el = document.querySelector(sel); } catch { return; }
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + scrollY;
+    let best = -1, bd = Infinity;
+    for (let i = 0; i < anchorYs.length; i++) { const d = Math.abs(anchorYs[i] - y); if (d < bd) { bd = d; best = i; } }
+    const wp = best >= 0 && wps[best]; if (!wp) return;
+    wp.el.classList.add('is-cited'); wake();
+    clearTimeout(wp._citeT); wp._citeT = setTimeout(() => wp.el.classList.remove('is-cited'), 2600);
+  };
+  document.addEventListener('fc:cite', onCite);
 
   const ticker = (t, dt) => {
     const dtF = (dt || 16.7) / 16.7;

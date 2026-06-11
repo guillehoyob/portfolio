@@ -60,14 +60,15 @@ export function initIntensityControl() {
   // PLACE = LATITUDE only (owner: "la jungla fingiendo lluvia es raro" — the weather
   // stays REAL / WX-chip; place just rides the sun lower/higher, an honest latitude lens).
   const PLACES = [['auto', 'AUTO'], ['arctic', 'ARCTIC'], ['temperate', 'TEMPERATE'], ['tropic', 'TROPIC'], ['equator', 'EQUATOR']];
+  const SPECIALS = [['', 'NONE'], ['equinox', 'EQUINOX'], ['solstice', 'SOLSTICE'], ['newyear', 'NEW YEAR'], ['fullmoon', 'FULL MOON']];
   prev.innerHTML = `<div class="fc-preview__title">PREVIEW THE FIELD</div>
     <label class="fc-preview__row"><span class="fc-preview__k">TIME</span>
       <input class="fc-preview__time" type="range" min="0" max="24" step="0.25" value="12" aria-label="Preview hour">
       <button type="button" class="fc-preview__hr" aria-label="Back to real local time">—</button></label>
     <div class="fc-preview__row"><span class="fc-preview__k">SUN</span>
       <div class="fc-preview__chips fc-preview__places">${PLACES.map(([k, l]) => `<button type="button" data-place="${k}"${k === 'auto' ? ' aria-pressed="true"' : ''}>${l}</button>`).join('')}</div></div>
-    <div class="fc-preview__row"><span class="fc-preview__k">SHOW</span>
-      <div class="fc-preview__chips"><button type="button" class="fc-preview__special" aria-pressed="false">SPECIAL DAY</button></div></div>
+    <div class="fc-preview__row"><span class="fc-preview__k">DAY</span>
+      <div class="fc-preview__chips fc-preview__special">${SPECIALS.map(([k, l]) => `<button type="button" data-special="${k}"${k === '' ? ' aria-pressed="true"' : ''}>${l}</button>`).join('')}</div></div>
     <p class="fc-preview__info" aria-live="polite">—</p>`;
   const timeEl = prev.querySelector('.fc-preview__time');
   const hrEl = prev.querySelector('.fc-preview__hr');
@@ -88,12 +89,14 @@ export function initIntensityControl() {
     prev.querySelectorAll('[data-place]').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
     place = b.dataset.place; setPlace(place); showHr(); // SUN/latitude only — weather stays honest
   }));
-  const specialBtn = prev.querySelector('.fc-preview__special');
-  specialBtn.addEventListener('click', () => { // preview the special-day iridescence on demand
-    const on = document.documentElement.dataset.special === 'preview';
-    if (on) { delete document.documentElement.dataset.special; specialBtn.setAttribute('aria-pressed', 'false'); }
-    else { document.documentElement.dataset.special = 'preview'; specialBtn.setAttribute('aria-pressed', 'true'); }
-  });
+  const specialWrap = prev.querySelector('.fc-preview__special');
+  const setSpecial = (kind) => {
+    const r = document.documentElement;
+    if (kind) { r.dataset.special = kind; r.dataset.specialPreview = kind; }
+    else { delete r.dataset.special; delete r.dataset.specialPreview; }
+    specialWrap.querySelectorAll('[data-special]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.special === kind ? 'true' : 'false'));
+  };
+  specialWrap.querySelectorAll('[data-special]').forEach((b) => b.addEventListener('click', () => setSpecial(b.dataset.special)));
   document.addEventListener('wn:wx', showInfo);
 
   const render = () => {
@@ -107,7 +110,7 @@ export function initIntensityControl() {
       if (wxIdx !== 0) { wxIdx = 0; renderWx(); document.dispatchEvent(new CustomEvent('wn:wx-force', { detail: { state: 'auto' } })); }
       hourOverrideOn = false; setHourOverride(null); place = 'auto'; setPlace('auto');
       prev.querySelectorAll('[data-place]').forEach((x) => x.setAttribute('aria-pressed', x.dataset.place === 'auto' ? 'true' : 'false'));
-      if (document.documentElement.dataset.special === 'preview') { delete document.documentElement.dataset.special; specialBtn.setAttribute('aria-pressed', 'false'); }
+      setSpecial(''); // drop any previewed special day
     }
   };
 

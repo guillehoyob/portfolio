@@ -43,7 +43,7 @@ export function daypartFor(h) {
 //   zenHex (zenith), horHex (horizon), comp (horizon compression 0..1), sunOp]
 // zen/hor are curated DATA — see header (§f.7). The 8th channel REPLACES warmth*0.22 (SKY-2).
 const ANCHORS = [
-  [0,    0.38, 4.5, 0.85, '#3A3A52', '#515175', 0.10, 0.10],
+  [0,    0.40, 6.5, 0.82, '#26305C', '#37477F', 0.20, 0.21], // deep-blue night (V6.1: clear night sky + visible moon)
   [5,    1.00, 5.0, 0.45, '#6F71AA', '#8A76AB', 0.30, 0.22],
   [6.5,  1.00, 6.0, 0.10, '#7072AB', '#EAB0D1', 0.55, 0.25],
   [7.5,  1.00, 6.5, 0.00, '#82ADDB', '#EBB2B1', 0.45, 0.26],
@@ -52,9 +52,10 @@ const ANCHORS = [
   [13,   0.50, 2.0, 0.00, '#B7EAFF', '#94DFFF', 0.05, 0.15],
   [16,   0.60, 4.0, 0.00, '#6E93B8', '#E3C264', 0.45, 0.19],
   [18,   0.78, 5.5, 0.00, '#576E71', '#E1C45E', 0.60, 0.24],
-  [19.5, 0.92, 6.5, 0.12, '#4F6480', '#C5752D', 0.72, 0.26],
-  [21,   0.55, 5.0, 0.55, '#46557E', '#8A76AB', 0.40, 0.12],
-  [24,   0.38, 4.5, 0.85, '#3A3A52', '#515175', 0.10, 0.10],
+  [19.5, 0.92, 6.5, 0.12, '#4F6480', '#C5752D', 0.72, 0.20], // golden dusk
+  [20.5, 0.70, 6.3, 0.32, '#3E4A78', '#7A5E86', 0.55, 0.14], // the gold COOLS into blue — smooths the old abrupt sun-down (V6.1)
+  [22,   0.46, 6.5, 0.70, '#2E3A66', '#46568A', 0.42, 0.20], // deep-blue night, the moon brightening
+  [24,   0.40, 6.5, 0.82, '#26305C', '#37477F', 0.20, 0.21], // deepest blue (matches hour 0)
 ];
 const TINT_CAP = 6.5; // tokenized as --fc-tint-cap (documentation); hard clamp 8 in the formula
 
@@ -222,7 +223,7 @@ export function initHeliostat() {
     root.style.setProperty('--fc-pulse-alpha', (field.rest >= 1) ? '0.70' : night ? '1' : '0.85');
 
     root.dataset.daypart = daypartFor(Math.floor(t)); // state (harness + any daypart reader)
-    const sp = specialDay(); if (sp) root.dataset.special = sp; else if (root.dataset.special !== 'preview') delete root.dataset.special; // never clobber the PREVIEW override
+    const sp = specialDay(); if (sp) root.dataset.special = sp; else if (!root.hasAttribute('data-special-preview')) delete root.dataset.special; // never clobber the PREVIEW selector
     root.classList.toggle('fc-snow', wx === 'snow'); // body-class cools the field + the red (CSS)
   };
   _reapply = apply;

@@ -1555,23 +1555,32 @@ html.fc-helio-instant body { transition: none !important; }
 .fc-sun {
   position: fixed; inset: 0; z-index: var(--z-haze); pointer-events: none;
   transition: --fc-sun-op var(--dur-ambient-min) linear, --fc-rest-warm 3s linear; /* the hourly crossfade lives HERE */
-  /* V6 (owner: "el sol sigue en medio; quiero que viva en el menú") — the page sun is
-     now a BROAD, DIFFUSE warmth (no disc): much larger radius, softer falloff, lower
-     peak. The literal sun/moon now reads as the NAV dot; this is just the field's glow. */
-  opacity: min(0.30, calc(var(--fc-sun-op, 0)
-    + var(--fc-breath, 0) * 0.12 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
+  /* V6.1 (owner: "el sol es demasiado grande, degrada el white noon — hazlo más
+     pequeño"): a SMALL, faint warmth near the sun's position — not a page wash, not a
+     disc. The literal sun/moon reads as the NAV horizon dot; this is just a breath of
+     light in the upper field. Smaller radius, lower peak, tighter falloff. */
+  opacity: min(0.20, calc(var(--fc-sun-op, 0) * 0.8
+    + var(--fc-breath, 0) * 0.10 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
     + var(--fc-rest-warm, 0)));
   transform: scale(calc(1 + var(--fc-breath, 0) * 0.04 * var(--fc-int-breath, 1)));
   transform-origin: var(--fc-sun-x, 80%) var(--fc-sun-y, 14%);
-  background: radial-gradient(calc(var(--fc-sun-size, 38vw) * 1.7) calc(var(--fc-sun-size, 38vw) * 1.25)
-    at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 80%);
+  background: radial-gradient(calc(var(--fc-sun-size, 38vw) * 0.8) calc(var(--fc-sun-size, 38vw) * 0.55)
+    at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 66%);
 }
-/* boost lifts the diffuse warmth a touch more (still no disc) */
+/* boost lifts it a touch (still small + faint) */
 html.fc-boost .fc-sun {
-  opacity: min(0.40, calc(var(--fc-sun-op, 0)
-    + var(--fc-breath, 0) * 0.12 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
+  opacity: min(0.28, calc(var(--fc-sun-op, 0) * 0.8
+    + var(--fc-breath, 0) * 0.10 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
     + var(--fc-rest-warm, 0)));
 }
+/* V6.1 — the MOON at night is a more DEFINED, slightly brighter cool disc (the day sun
+   stays small + diffuse; the night moon should read clearly on the deep-blue sky). */
+html[data-daypart="night"] .fc-sun {
+  opacity: min(0.34, calc(var(--fc-sun-op, 0) + var(--fc-breath, 0) * 0.06 * var(--fc-int-breath, 1) + var(--fc-rest-warm, 0)));
+  background: radial-gradient(calc(var(--fc-sun-size, 22vw) * 0.72) calc(var(--fc-sun-size, 22vw) * 0.72)
+    at var(--fc-sun-x, 50%) var(--fc-sun-y, 9%), var(--fc-sun-glow, transparent), transparent 56%);
+}
+html.fc-boost[data-daypart="night"] .fc-sun { opacity: min(0.42, calc(var(--fc-sun-op, 0) + var(--fc-breath, 0) * 0.06 + var(--fc-rest-warm, 0))); }
 
 /* ===== SKY-4 — the hour's light on shadows + hairlines =====
    Heliostat writes --fc-shadow-dx (+morning → −afternoon, ×--fc-int-shadow in JS),
@@ -1788,20 +1797,23 @@ html.fc-motion .nav__sun { opacity: 0.9; }
    thin iridescent band travels through it. Reduced-motion: never runs (text = plain
    ink). The static iris sphere is retired. */
 @media (prefers-reduced-motion: no-preference) {
-  /* light-background headings only — the void word is washi-on-black, excluded */
+  /* light-background headings only — the void word is washi-on-black, excluded. The
+     heading stays INK-dominant (legible/AA); a CLEAR colored band sweeps through it.
+     Each special day sets its own --iris-a/b/c (distinct sensation). V6.1: bolder,
+     wider band, faster sweep — the owner saw nothing before. */
   html.fc-motion[data-special] .hero__h1,
   html.fc-motion[data-special] .identity__title {
-    background-image: linear-gradient(100deg,
-      var(--ink) 40%,
-      color-mix(in srgb, #C9A0D9 62%, var(--ink)) 47%,
-      color-mix(in srgb, #9FD9C2 62%, var(--ink)) 50%,
-      color-mix(in srgb, #E6CF93 62%, var(--ink)) 53%,
-      var(--ink) 60%);
-    background-size: 320% 100%; background-repeat: no-repeat;
+    --iris-a: #C77FD6; --iris-b: #6FD0AE; --iris-c: #EBC65A; /* default tornasol (equinox) */
+    background-image: linear-gradient(100deg, var(--ink) 34%,
+      var(--iris-a) 44%, var(--iris-b) 50%, var(--iris-c) 56%, var(--ink) 66%);
+    background-size: 260% 100%; background-repeat: no-repeat;
     -webkit-background-clip: text; background-clip: text; color: transparent;
-    animation: wn-iris-sweep 9s var(--ease-run) infinite;
+    animation: wn-iris-sweep 6.5s var(--ease-run) infinite;
   }
-  @keyframes wn-iris-sweep { from { background-position: 120% 0; } to { background-position: -20% 0; } }
+  html.fc-motion[data-special="solstice"] .hero__h1, html.fc-motion[data-special="solstice"] .identity__title { --iris-a: #F0B43E; --iris-b: #E8902E; --iris-c: #F6DE96; } /* the year's fire */
+  html.fc-motion[data-special="newyear"]  .hero__h1, html.fc-motion[data-special="newyear"]  .identity__title { --iris-a: #8FB8F2; --iris-b: #DCE6F4; --iris-c: #A6C0E4; } /* a cool fresh dawn */
+  html.fc-motion[data-special="fullmoon"] .hero__h1, html.fc-motion[data-special="fullmoon"] .identity__title { --iris-a: #BFCAD8; --iris-b: #EEF2F8; --iris-c: #AEBBCC; } /* silver moonlight */
+  @keyframes wn-iris-sweep { from { background-position: 120% 0; } to { background-position: -30% 0; } }
 }
 
 /* ===== SNOW cools the WHOLE palette (owner: "todos los colores, hasta el rojo y el
@@ -2419,8 +2431,14 @@ html.fc-boost .fc-intensity__glyph {
 .wn-chat--embed .wn-chat__thread { display: none; } /* the input underline IS the thread here */
 .wn-chat--embed .wn-chat__log { max-height: 42vh; padding: 0; gap: var(--space-6); }
 .wn-chat--embed .wn-chat__log:empty { display: none; }
-.wn-chat--embed .wn-chat__msg p { max-width: 55ch; color: var(--ink); }
-.wn-chat--embed .wn-chat__msg--field:first-child p { color: var(--ink-ghost); } /* the opening invitation reads as a soft whisper */
+.wn-chat--embed .wn-chat__msg p { max-width: 54ch; color: var(--ink); }
+/* the opening invitation speaks in the Cormorant breath voice — an elegant whisper,
+   distinct from the answers (DM Sans, legible) and the big display input below */
+.wn-chat--embed .wn-chat__msg--field:first-child p {
+  font-family: var(--font-breath); font-style: italic; font-weight: 300;
+  font-size: clamp(1.35rem, 2.4vw, 1.65rem); line-height: 1.4;
+  color: var(--ink-ghost); max-width: 34ch;
+}
 /* one editorial input line — the red thread lives in its underline */
 .wn-chat--embed .wn-chat__form { border: none; padding: var(--space-6) 0 0; margin-top: var(--space-6); gap: var(--space-4); align-items: baseline; position: relative; }
 .wn-chat--embed .wn-chat__input {

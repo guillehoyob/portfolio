@@ -42,8 +42,11 @@ export function initParticles() {
   layer.setAttribute('aria-hidden', 'true');
   document.body.appendChild(layer);
 
-  const laneX = () => innerWidth * (innerWidth >= 1024 ? 0.06 : 0.045); // beside the spine
-  const spread = () => Math.min(75, innerWidth * 0.08); // at 390px the motes never sit on text
+  // MOTAS-1 (owner: "las motas al borde del texto, no en el hilo"): the thread's drawn
+  // x sits a touch LEFT of the nominal lane (the φ-bow), so the motes centre on 0.83×lane
+  // (≈ the real thread x) and the spread is TIGHT — they hug the thread, never reach the text.
+  const laneX = () => innerWidth * (innerWidth >= 1024 ? 0.06 : 0.045) * 0.83;
+  const spread = () => Math.min(34, innerWidth * 0.035);
 
   const motes = Array.from({ length: COUNT }, (_, i) => {
     const el = document.createElement('span');
@@ -114,7 +117,7 @@ export function initParticles() {
         x = lx + m.off * sprd * 1.5 + Math.sin(t / 3400 + m.tw) * swayAmp + wind * 18;
         x = ((x + 16) % W + W) % W - 16; // snow wraps the full width
       } else {
-        x = lx + m.off * sprd + Math.sin(t / 2600 + m.tw) * swayAmp + wind * 8; // never leaves the gutter
+        x = lx + m.off * sprd * 0.7 + Math.sin(t / 2600 + m.tw) * swayAmp + wind * 8; // hugs the thread, never the text
       }
 
       // V5.1 — the click-wave TOUCHES the dust ("la onda no interactúa con nada"):

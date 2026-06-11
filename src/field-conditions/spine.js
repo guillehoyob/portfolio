@@ -73,8 +73,15 @@ export function initSpine() {
     return k;
   };
   const knotO = mkKnot('origin'), knotD = mkKnot('dest');
-  svg.append(path, stitch, ripple, pulse, knotO, knotD);
+  // HILO-3 (owner: "más puntos, el camino que sigue") — a station per section ON the
+  // thread; NEUTRAL (not red/gold — respects the one-red + adorno-budget laws), each
+  // lights from a faint dot to a darker one as the descending thread reaches it: the
+  // path you've walked. Container repopulated in build().
+  const wpG = document.createElementNS(SVGNS, 'g');
+  wpG.setAttribute('class', 'fc-spine__wps');
+  svg.append(path, stitch, wpG, ripple, pulse, knotO, knotD);
   document.body.appendChild(svg);
+  let wps = []; // {el, len}
 
   let LEN = 0, basePts = [], fadeRef = 0, minP = 0.05, anchorLens = [], anchorYs = [], headPinY = -1;
   let tipLen = -1, tipX = 0, lastFade = '', lastNib = -1, lastNext = -1, tied = false, wasBent = false;
@@ -183,11 +190,25 @@ export function initSpine() {
     anchorLens = LEN > 1 ? ys.map((y) => lenAtY(y)) : [];
     anchorYs = LEN > 1 ? ys.slice() : []; // doc-Y per waypoint (QA-4: visibility check per frame, no sampling)
     headPinY = junction ? junction.y + 30 : -1; // QA-1b: below this the bend ramps in; above, the head is welded to the route
-    // V5.4 (owner: "el círculo no coincide con el hilo"): weld the origin knot to the
-    // ACTUAL point of the thread where it settles into the lane (junction.y + 30 — the
-    // elbow's bottom), not 30px above it where nothing was drawn.
-    knotO.setAttribute('cx', (junction ? laneX : pts[0][0]).toFixed(1));
-    knotO.setAttribute('cy', (junction ? junction.y + 30 : pts[0][1]).toFixed(1));
+    // (re)build the station dots ON the thread, one per real section anchor
+    wpG.textContent = '';
+    wps = LEN > 1 ? anchorLens.map((len) => {
+      const q = path.getPointAtLength(len);
+      const c = document.createElementNS(SVGNS, 'circle');
+      c.setAttribute('class', 'fc-spine__waypoint'); c.setAttribute('r', '2.5');
+      c.setAttribute('cx', q.x.toFixed(1)); c.setAttribute('cy', q.y.toFixed(1));
+      wpG.appendChild(c);
+      return { el: c, len };
+    }) : [];
+    // V5.4 (owner: "el círculo no coincide con el hilo") + QA HILO-1: weld the origin
+    // knot to the ACTUAL drawn point of the thread (the resample left it ~3.4px above
+    // junction.y+30). Sample the path at that length so cx/cy land exactly ON the trace.
+    if (junction && LEN > 1) {
+      const q = path.getPointAtLength(lenAtY(junction.y + 30));
+      knotO.setAttribute('cx', q.x.toFixed(1)); knotO.setAttribute('cy', q.y.toFixed(1));
+    } else {
+      knotO.setAttribute('cx', pts[0][0].toFixed(1)); knotO.setAttribute('cy', pts[0][1].toFixed(1));
+    }
     knotD.setAttribute('cx', destPt[0].toFixed(1));
     knotD.setAttribute('cy', destPt[1].toFixed(1));
     stitch.setAttribute('d', path.getAttribute('d'));
@@ -332,7 +353,7 @@ export function initSpine() {
       const advancing = clamp01(Math.abs(drawn - prevDrawn) * 40 + velocity() * 0.08);
       // the tip breathes a golden fraction BEHIND the thread — blood reaching the extremity last
       const nibBreath = heartbeatBreath((phase + 0.146) % 1);
-      let nibOp = 0.146 + 0.618 * Math.max(advancing, beat * 0.5 + nibBreath * 0.1);
+      let nibOp = 0.24 + 0.618 * Math.max(advancing, beat * 0.5 + nibBreath * 0.1); // QA HILO-2: brighter leading bead (was 0.146 — too faint to read), opacity only
       for (const im of field.impulses) { if (Date.now() - im.t < 350 && Math.abs(im.x - tipX) < 200) { nibOp = Math.min(0.95, nibOp + 0.35); break; } }
       if (drawn > 0.985) nibOp *= clamp01((1 - drawn) / 0.015);
       if (Math.abs(nibOp - lastNib) > 0.003) { pulse.style.opacity = nibOp.toFixed(3); lastNib = nibOp; }
@@ -360,6 +381,12 @@ export function initSpine() {
           worked = true;
         }
       } else if (lastNext !== -1) { stitch.style.opacity = '0'; lastNext = -1; worked = true; } // the destination is the KNOT now
+
+      // ── HILO-3: each station lights as the thread reaches it (the camino walked) ──
+      for (const wp of wps) {
+        const on = dLen > wp.len - 2;
+        if (wp._on !== on) { wp.el.classList.toggle('is-passed', on); wp._on = on; worked = true; }
+      }
 
       // ── HILO-3: the destination knot ties when the thread arrives (hysteresis) ──
       if (drawn > 0.97 && !tied) { knotD.classList.add('is-tied'); tied = true; worked = true; }

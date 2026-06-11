@@ -20,6 +20,18 @@
  */
 import { intensity, field, registerCleanup, reduced } from './index.js';
 
+/* CIELO-1 — real lunar phase, pure deterministic astronomy (no network). Synodic month
+   29.530588853 days since a known new moon (2000-01-06 18:14 UTC = JD 2451550.1). Returns
+   illuminated fraction 0..1. If the date math ever throws, callers fall back to full. */
+function moonIllumination() {
+  try {
+    const synodic = 29.530588853;
+    const jd = Date.now() / 86400000 + 2440587.5; // unix ms → Julian Day
+    let age = ((jd - 2451550.1) % synodic + synodic) % synodic; // days since new moon
+    return (1 - Math.cos((age / synodic) * 2 * Math.PI)) / 2;    // 0 new → 1 full → 0 new
+  } catch { return 1; }
+}
+
 export function daypartFor(h) {
   if (h >= 5 && h < 9) return 'dawn';
   if (h >= 9 && h < 17) return 'noon';
@@ -136,13 +148,19 @@ export function initHeliostat() {
     root.style.setProperty('--fc-sun-op', sunOpEff.toFixed(3));
     let sx;
     if (night) {
-      // the MOON: a cool washi disc travelling the top of the field through the night
-      const np = (t >= 21 ? t - 21 : t + 3) / 10;
-      sx = (6 + np * 88).toFixed(0);
+      // the MOON: a cool washi disc travelling the top of the field through the night.
+      // CIELO-1 (owner's celestial idea) — it is no longer ALWAYS FULL: its illumination
+      // follows the REAL lunar phase (deterministic, zero network). New moon → a barely-
+      // there disc (gifting an empty star-less calm sky); full moon → bright. By
+      // subtraction only (opacity), never a hard crescent, never red, field stays ≥90% white.
+      const illum = moonIllumination(); // 0 (new) … 1 (full)
+      sx = (6 + ((t >= 21 ? t - 21 : t + 3) / 10) * 88).toFixed(0);
       root.style.setProperty('--fc-sun-x', sx + '%');
       root.style.setProperty('--fc-sun-y', '9%');
-      root.style.setProperty('--fc-sun-size', intensity.sun > 1 ? '26vw' : '22vw');
+      root.style.setProperty('--fc-sun-size', ((intensity.sun > 1 ? 26 : 22) * (0.7 + illum * 0.3)).toFixed(0) + 'vw');
       root.style.setProperty('--fc-sun-glow', 'color-mix(in srgb, var(--washi) 55%, var(--sky))');
+      // re-scale the moon's own opacity by illumination (the anchor sunOp is the night floor)
+      root.style.setProperty('--fc-sun-op', Math.min(0.40, sunOpEff * (0.25 + illum * 0.85)).toFixed(3));
     } else {
       sx = (6 + Math.max(0, Math.min(1, (t - 5) / 15)) * 88).toFixed(0);   // 6%→94% east→west (5h→20h)
       const sy = (4 + Math.min(1, Math.abs(t - 13) / 8) * 28).toFixed(0);  // high (4%) at noon, low (32%) at dawn/dusk

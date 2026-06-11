@@ -31,6 +31,22 @@ html.fc-motion .wn-status__dot--live::after {
   transform: scale(calc(0.6 + var(--fc-breath, 0) * 0.8));
 }
 
+/* RESP-1 (owner: "sigo sin ver la respiración") — QA found the breath only changed
+   pixels in the top-right sun-glow corner (~1.9%, sub-threshold), off the reading
+   axis. This is a soft warm SWELL centred ON the reading axis that grows + brightens
+   with --fc-breath (10.4s): the whole page inhales, felt in peripheral vision. Warm-
+   on-warm (no new hue, no red), op ≤0.07 so the field stays ≥90% white. The scale
+   gives the micro-transient that beats change-blindness. */
+.fc-breath-halo {
+  position: fixed; inset: 0; z-index: var(--z-haze); pointer-events: none;
+  background: radial-gradient(58vw 58vw at 50% 44%, color-mix(in srgb, var(--sun) 70%, transparent), transparent 68%);
+  opacity: calc(var(--fc-breath, 0) * 0.055 * var(--fc-int-breath, 1));
+  transform: scale(calc(0.96 + var(--fc-breath, 0) * 0.06));
+  transform-origin: 50% 44%;
+  will-change: opacity, transform;
+}
+@media (prefers-reduced-motion: reduce) { .fc-breath-halo { display: none; } }
+
 /* BREAK-3 — the display voice BREATHES its weight: the variable wght axis rides
    --fc-breath (700 → 686 at the crest — sub-pixel width change, no legible
    reflow; ±14 is the cap, validated against CLS). The letter itself exhales. */

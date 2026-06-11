@@ -163,6 +163,7 @@ ${prePaint()}
 <body>
 <div class="fc-tint" aria-hidden="true"></div>
 <div class="fc-sun" aria-hidden="true"></div>
+<div class="fc-breath-halo" aria-hidden="true"></div>
 <div class="fc-bleed" aria-hidden="true"></div>
 <svg class="grain" aria-hidden="true" focusable="false" width="100%" height="100%"><filter id="wn-grain"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#wn-grain)"/></svg>
 <a class="skip" href="#main">Skip to content</a>

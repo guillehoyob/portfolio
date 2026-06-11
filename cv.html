@@ -1790,6 +1790,12 @@ html.fc-boost .fc-clouds, html.fc-boost .fc-fog, html.fc-boost .fc-iris { transi
 .fc-spine__knot--dest { opacity: 0; transition: opacity var(--dur-600) var(--ease-run); }
 .fc-spine__knot--dest.is-tied { opacity: 0.8; animation: wn-knot-tighten var(--dur-600) var(--ease-run); }
 @keyframes wn-knot-tighten { from { transform: scale(1.35); } 60% { transform: scale(0.92); } to { transform: scale(1); } }
+/* HILO-3 — the stations of the path (owner: "el camino que sigue"). NEUTRAL dots on
+   the thread (NOT red/gold — they don't spend the one-red or the adorno budget): a
+   faint ink ring ahead, a settled darker dot once the thread has reached it. */
+.fc-spine__waypoint { fill: var(--field-0); stroke: var(--hairline); stroke-width: 1; opacity: 0.55; transition: opacity var(--dur-300) var(--ease-run), stroke var(--dur-300) var(--ease-run); }
+.fc-spine__waypoint.is-passed { stroke: var(--ink-ghost); opacity: 0.85; }
+@media (prefers-reduced-motion: reduce) { .fc-spine__waypoint { transition: none; } }
 /* HILO-5a — the sliding sashiko stitch: ONE 12px dash resting on the NEXT anchor,
    ahead of the nib, ON the thread. Eje `stitch` BLOQUEADO: no boost scaling. */
 .fc-spine__stitch {
@@ -2143,6 +2149,22 @@ html.fc-motion .wn-status__dot--live::after {
   opacity: calc(var(--fc-breath, 0) * 0.45);
   transform: scale(calc(0.6 + var(--fc-breath, 0) * 0.8));
 }
+
+/* RESP-1 (owner: "sigo sin ver la respiración") — QA found the breath only changed
+   pixels in the top-right sun-glow corner (~1.9%, sub-threshold), off the reading
+   axis. This is a soft warm SWELL centred ON the reading axis that grows + brightens
+   with --fc-breath (10.4s): the whole page inhales, felt in peripheral vision. Warm-
+   on-warm (no new hue, no red), op ≤0.07 so the field stays ≥90% white. The scale
+   gives the micro-transient that beats change-blindness. */
+.fc-breath-halo {
+  position: fixed; inset: 0; z-index: var(--z-haze); pointer-events: none;
+  background: radial-gradient(58vw 58vw at 50% 44%, color-mix(in srgb, var(--sun) 70%, transparent), transparent 68%);
+  opacity: calc(var(--fc-breath, 0) * 0.055 * var(--fc-int-breath, 1));
+  transform: scale(calc(0.96 + var(--fc-breath, 0) * 0.06));
+  transform-origin: 50% 44%;
+  will-change: opacity, transform;
+}
+@media (prefers-reduced-motion: reduce) { .fc-breath-halo { display: none; } }
 
 /* BREAK-3 — the display voice BREATHES its weight: the variable wght axis rides
    --fc-breath (700 → 686 at the crest — sub-pixel width change, no legible

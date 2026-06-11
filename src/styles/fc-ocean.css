@@ -48,6 +48,12 @@
 .fc-spine__knot--dest { opacity: 0; transition: opacity var(--dur-600) var(--ease-run); }
 .fc-spine__knot--dest.is-tied { opacity: 0.8; animation: wn-knot-tighten var(--dur-600) var(--ease-run); }
 @keyframes wn-knot-tighten { from { transform: scale(1.35); } 60% { transform: scale(0.92); } to { transform: scale(1); } }
+/* HILO-3 — the stations of the path (owner: "el camino que sigue"). NEUTRAL dots on
+   the thread (NOT red/gold — they don't spend the one-red or the adorno budget): a
+   faint ink ring ahead, a settled darker dot once the thread has reached it. */
+.fc-spine__waypoint { fill: var(--field-0); stroke: var(--hairline); stroke-width: 1; opacity: 0.55; transition: opacity var(--dur-300) var(--ease-run), stroke var(--dur-300) var(--ease-run); }
+.fc-spine__waypoint.is-passed { stroke: var(--ink-ghost); opacity: 0.85; }
+@media (prefers-reduced-motion: reduce) { .fc-spine__waypoint { transition: none; } }
 /* HILO-5a — the sliding sashiko stitch: ONE 12px dash resting on the NEXT anchor,
    ahead of the nib, ON the thread. Eje `stitch` BLOQUEADO: no boost scaling. */
 .fc-spine__stitch {

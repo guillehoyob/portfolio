@@ -975,6 +975,8 @@ try {
   await page.waitForTimeout(600);
   const wght = await page.evaluate(() => getComputedStyle(document.querySelector('.hero__h1')).fontVariationSettings);
   const cta = await page.$('.wn-btn--primary');
+  await cta.scrollIntoViewIfNeeded(); // the CTAs now sit below the chat centerpiece — bring it into view
+  await page.waitForTimeout(150);
   const box = await cta.boundingBox();
   await page.mouse.move(box.x + box.width / 2 + 30, box.y + box.height / 2, { steps: 4 });
   await page.waitForTimeout(250);

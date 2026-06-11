@@ -63,19 +63,21 @@ html.fc-helio-instant body { transition: none !important; }
 .fc-sun {
   position: fixed; inset: 0; z-index: var(--z-haze); pointer-events: none;
   transition: --fc-sun-op var(--dur-ambient-min) linear, --fc-rest-warm 3s linear; /* the hourly crossfade lives HERE */
-  opacity: min(0.46, calc(var(--fc-sun-op, 0)
-    + var(--fc-breath, 0) * 0.14 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
+  /* V6 (owner: "el sol sigue en medio; quiero que viva en el menú") — the page sun is
+     now a BROAD, DIFFUSE warmth (no disc): much larger radius, softer falloff, lower
+     peak. The literal sun/moon now reads as the NAV dot; this is just the field's glow. */
+  opacity: min(0.30, calc(var(--fc-sun-op, 0)
+    + var(--fc-breath, 0) * 0.12 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
     + var(--fc-rest-warm, 0)));
-  transform: scale(calc(1 + var(--fc-breath, 0) * 0.045 * var(--fc-int-breath, 1)));
+  transform: scale(calc(1 + var(--fc-breath, 0) * 0.04 * var(--fc-int-breath, 1)));
   transform-origin: var(--fc-sun-x, 80%) var(--fc-sun-y, 14%);
-  background: radial-gradient(var(--fc-sun-size, 38vw) calc(var(--fc-sun-size, 38vw) * 0.88)
-    at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 62%);
+  background: radial-gradient(calc(var(--fc-sun-size, 38vw) * 1.7) calc(var(--fc-sun-size, 38vw) * 1.25)
+    at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 80%);
 }
-/* QA F2: in BOOST the cap lifts to 0.52 — at 16-19.5h the 0.46 ceiling was eating
-   20-78% of the breath swell (the channel froze between breath 0.8→1.0) */
+/* boost lifts the diffuse warmth a touch more (still no disc) */
 html.fc-boost .fc-sun {
-  opacity: min(0.52, calc(var(--fc-sun-op, 0)
-    + var(--fc-breath, 0) * 0.14 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
+  opacity: min(0.40, calc(var(--fc-sun-op, 0)
+    + var(--fc-breath, 0) * 0.12 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
     + var(--fc-rest-warm, 0)));
 }
 
@@ -257,8 +259,10 @@ html.fc-boost .fc-iris { width: 32vw; height: 13vw; }
    night deep), with a small sun/moon DOT that rides left→right by --fc-sun-x. The
    day's arc, made unmistakable, concentrated in the menu so it never muddies the
    page. Gated on fc-motion; reduced-motion shows it static (honest). ===== */
-.nav { position: relative; }
-.nav__horizon, .nav__sun { position: absolute; pointer-events: none; opacity: 0; }
+/* NOTE: .nav is position:sticky (layout.css) — already a containing block for these
+   absolute children. We must NOT set position:relative here (it would override sticky
+   and the menu would scroll away — the V5.9 regression). */
+.nav__horizon, .nav__sun { position: absolute; pointer-events: none; opacity: 0; z-index: 0; }
 .nav__horizon {
   left: 0; right: 0; bottom: 0; height: 2px;
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--fc-hour-hue, var(--hairline)) 60%, transparent), transparent);
@@ -313,16 +317,18 @@ html.fc-motion .nav__sun { opacity: 0.9; }
    hairlines, AND the red (CTA/crack/thread) all lean toward --sky. Modest mixes keep
    AA + the one-red recognizable; the body bg transition makes the shift a soft fade.
    Removing the .fc-snow class (no snow) reverts everything — fully reversible. ===== */
+/* V6 (owner: "el ártico azulea demasiado y perdemos legibilidad — la gracia de white
+   noon es el blanco legible"): a HUSH of cool, not a blue wash. The field stays ≥90%
+   white, the INK stays full ink (text legibility untouched), and only the traces lean
+   cool. Perceptible but legible — nature touches the page without compromising it. */
 html.fc-snow {
-  --field-0: color-mix(in srgb, #F7F7F5 84%, var(--sky));   /* clearly cooler now (owner couldn't see 5%) */
-  --field-0-dim: color-mix(in srgb, #F3F0EA 80%, var(--sky));
-  --field-1: color-mix(in srgb, #EDECEA 82%, var(--sky));
-  --field-2: color-mix(in srgb, #E4E2DE 80%, var(--sky));
-  --hairline: color-mix(in srgb, #D6D4D0 64%, var(--sky));
-  --ink-ghost: color-mix(in srgb, #5A5855 80%, var(--sky));
-  --ink: color-mix(in srgb, #1A1917 92%, var(--sky));        /* even the ink takes a faint blue */
-  --signal: color-mix(in srgb, #E8341A 70%, var(--sky));     /* the red itself goes wintry (owner: "no me importa que deje de ser tan rojo") */
-  --signal-deep: color-mix(in srgb, #B3270F 70%, var(--sky));
+  --field-0: color-mix(in srgb, #F7F7F5 92%, var(--sky));
+  --field-0-dim: color-mix(in srgb, #F3F0EA 90%, var(--sky));
+  --field-1: color-mix(in srgb, #EDECEA 91%, var(--sky));
+  --hairline: color-mix(in srgb, #D6D4D0 80%, var(--sky));
+  --ink-ghost: color-mix(in srgb, #5A5855 88%, var(--sky));
+  --signal: color-mix(in srgb, #E8341A 87%, var(--sky));     /* the red leans a touch wintry, still clearly red + AA */
+  --signal-deep: color-mix(in srgb, #B3270F 88%, var(--sky));
 }
 html.fc-motion.fc-snow body { transition: background-color var(--dur-ambient-min) linear; }
 

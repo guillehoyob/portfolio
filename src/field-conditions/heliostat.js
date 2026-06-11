@@ -101,7 +101,7 @@ export function setHourOverride(h) { hourOverride = (h == null ? null : ((+h % 2
 /* PLACE bias (the PREVIEW panel — owner: "no noto el sol según el lugar"): the sun
    rides LOWER toward the poles, HIGH at the tropics. A visible latitude feel. */
 let placeY = 0;
-const PLACE_Y = { auto: 0, arctic: 22, tropic: -2, ocean: 7, jungle: 13 };
+const PLACE_Y = { auto: 0, arctic: 22, temperate: 9, tropic: -1, equator: -3 };
 export function setPlace(p) { placeY = PLACE_Y[p] || 0; if (_reapply) _reapply(); }
 
 /* The effective hour every sky consumer agrees on (weather.js gates the iris by it). */
@@ -222,7 +222,7 @@ export function initHeliostat() {
     root.style.setProperty('--fc-pulse-alpha', (field.rest >= 1) ? '0.70' : night ? '1' : '0.85');
 
     root.dataset.daypart = daypartFor(Math.floor(t)); // state (harness + any daypart reader)
-    const sp = specialDay(); if (sp) root.dataset.special = sp; else delete root.dataset.special;
+    const sp = specialDay(); if (sp) root.dataset.special = sp; else if (root.dataset.special !== 'preview') delete root.dataset.special; // never clobber the PREVIEW override
     root.classList.toggle('fc-snow', wx === 'snow'); // body-class cools the field + the red (CSS)
   };
   _reapply = apply;

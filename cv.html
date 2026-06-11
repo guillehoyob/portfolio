@@ -1290,20 +1290,8 @@ main { flex: 1 0 auto; }
   @starting-style { .ph-pop:popover-open { opacity: 0; } }
   .ph-pop { opacity: 0; }
 }
-/* the nav knows when it floats (BREAK-6 — scroll-state, Chrome 133+; the hairline
-   takes the hour's light; everyone else keeps the nav--scrolled look) */
-.nav { container-type: scroll-state; }
-@supports (container-type: scroll-state) {
-  .nav::after {
-    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
-    background: var(--hairline-lit, var(--hairline));
-    opacity: 0; transition: opacity var(--dur-420) var(--ease-run);
-    pointer-events: none;
-  }
-  @container scroll-state(stuck: top) {
-    .nav::after { opacity: 1; }
-  }
-}
+/* (the scroll-state(stuck) experiment was REMOVED — container-type interfered with the
+   sticky nav; the JS .nav--scrolled hairline already does this job reliably.) */
 
 /* artifacts — text links with access labels (§4.3) */
 .artifacts { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-4); }
@@ -1554,19 +1542,21 @@ html.fc-helio-instant body { transition: none !important; }
 .fc-sun {
   position: fixed; inset: 0; z-index: var(--z-haze); pointer-events: none;
   transition: --fc-sun-op var(--dur-ambient-min) linear, --fc-rest-warm 3s linear; /* the hourly crossfade lives HERE */
-  opacity: min(0.46, calc(var(--fc-sun-op, 0)
-    + var(--fc-breath, 0) * 0.14 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
+  /* V6 (owner: "el sol sigue en medio; quiero que viva en el menú") — the page sun is
+     now a BROAD, DIFFUSE warmth (no disc): much larger radius, softer falloff, lower
+     peak. The literal sun/moon now reads as the NAV dot; this is just the field's glow. */
+  opacity: min(0.30, calc(var(--fc-sun-op, 0)
+    + var(--fc-breath, 0) * 0.12 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
     + var(--fc-rest-warm, 0)));
-  transform: scale(calc(1 + var(--fc-breath, 0) * 0.045 * var(--fc-int-breath, 1)));
+  transform: scale(calc(1 + var(--fc-breath, 0) * 0.04 * var(--fc-int-breath, 1)));
   transform-origin: var(--fc-sun-x, 80%) var(--fc-sun-y, 14%);
-  background: radial-gradient(var(--fc-sun-size, 38vw) calc(var(--fc-sun-size, 38vw) * 0.88)
-    at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 62%);
+  background: radial-gradient(calc(var(--fc-sun-size, 38vw) * 1.7) calc(var(--fc-sun-size, 38vw) * 1.25)
+    at var(--fc-sun-x, 80%) var(--fc-sun-y, 14%), var(--fc-sun-glow, transparent), transparent 80%);
 }
-/* QA F2: in BOOST the cap lifts to 0.52 — at 16-19.5h the 0.46 ceiling was eating
-   20-78% of the breath swell (the channel froze between breath 0.8→1.0) */
+/* boost lifts the diffuse warmth a touch more (still no disc) */
 html.fc-boost .fc-sun {
-  opacity: min(0.52, calc(var(--fc-sun-op, 0)
-    + var(--fc-breath, 0) * 0.14 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
+  opacity: min(0.40, calc(var(--fc-sun-op, 0)
+    + var(--fc-breath, 0) * 0.12 * var(--fc-breath-amp, 1) * var(--fc-int-breath, 1)
     + var(--fc-rest-warm, 0)));
 }
 
@@ -1748,8 +1738,10 @@ html.fc-boost .fc-iris { width: 32vw; height: 13vw; }
    night deep), with a small sun/moon DOT that rides left→right by --fc-sun-x. The
    day's arc, made unmistakable, concentrated in the menu so it never muddies the
    page. Gated on fc-motion; reduced-motion shows it static (honest). ===== */
-.nav { position: relative; }
-.nav__horizon, .nav__sun { position: absolute; pointer-events: none; opacity: 0; }
+/* NOTE: .nav is position:sticky (layout.css) — already a containing block for these
+   absolute children. We must NOT set position:relative here (it would override sticky
+   and the menu would scroll away — the V5.9 regression). */
+.nav__horizon, .nav__sun { position: absolute; pointer-events: none; opacity: 0; z-index: 0; }
 .nav__horizon {
   left: 0; right: 0; bottom: 0; height: 2px;
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--fc-hour-hue, var(--hairline)) 60%, transparent), transparent);
@@ -1804,16 +1796,18 @@ html.fc-motion .nav__sun { opacity: 0.9; }
    hairlines, AND the red (CTA/crack/thread) all lean toward --sky. Modest mixes keep
    AA + the one-red recognizable; the body bg transition makes the shift a soft fade.
    Removing the .fc-snow class (no snow) reverts everything — fully reversible. ===== */
+/* V6 (owner: "el ártico azulea demasiado y perdemos legibilidad — la gracia de white
+   noon es el blanco legible"): a HUSH of cool, not a blue wash. The field stays ≥90%
+   white, the INK stays full ink (text legibility untouched), and only the traces lean
+   cool. Perceptible but legible — nature touches the page without compromising it. */
 html.fc-snow {
-  --field-0: color-mix(in srgb, #F7F7F5 84%, var(--sky));   /* clearly cooler now (owner couldn't see 5%) */
-  --field-0-dim: color-mix(in srgb, #F3F0EA 80%, var(--sky));
-  --field-1: color-mix(in srgb, #EDECEA 82%, var(--sky));
-  --field-2: color-mix(in srgb, #E4E2DE 80%, var(--sky));
-  --hairline: color-mix(in srgb, #D6D4D0 64%, var(--sky));
-  --ink-ghost: color-mix(in srgb, #5A5855 80%, var(--sky));
-  --ink: color-mix(in srgb, #1A1917 92%, var(--sky));        /* even the ink takes a faint blue */
-  --signal: color-mix(in srgb, #E8341A 70%, var(--sky));     /* the red itself goes wintry (owner: "no me importa que deje de ser tan rojo") */
-  --signal-deep: color-mix(in srgb, #B3270F 70%, var(--sky));
+  --field-0: color-mix(in srgb, #F7F7F5 92%, var(--sky));
+  --field-0-dim: color-mix(in srgb, #F3F0EA 90%, var(--sky));
+  --field-1: color-mix(in srgb, #EDECEA 91%, var(--sky));
+  --hairline: color-mix(in srgb, #D6D4D0 80%, var(--sky));
+  --ink-ghost: color-mix(in srgb, #5A5855 88%, var(--sky));
+  --signal: color-mix(in srgb, #E8341A 87%, var(--sky));     /* the red leans a touch wintry, still clearly red + AA */
+  --signal-deep: color-mix(in srgb, #B3270F 88%, var(--sky));
 }
 html.fc-motion.fc-snow body { transition: background-color var(--dur-ambient-min) linear; }
 
@@ -2353,25 +2347,30 @@ html.fc-boost .fc-intensity__glyph {
 .fc-intensity--wx {
   bottom: calc(var(--space-4) + 48px + env(safe-area-inset-bottom, 0px));
 }
-/* the PREVIEW panel (V5.7) — time + place, stacked above the WX chip, LOUD only */
+/* the PREVIEW panel (V6) — TIME + SUN(latitude) + SPECIAL + a live location/weather
+   readout, stacked above the WX chip (LOUD only). Clean rows, nothing overflows;
+   spacing on the Fibonacci --space scale. */
 .fc-preview {
   bottom: calc(var(--space-4) + 96px + env(safe-area-inset-bottom, 0px));
-  flex-direction: column; align-items: stretch; gap: var(--space-2);
-  width: min(280px, calc(100vw - 2 * var(--space-4)));
-  padding: var(--space-3) var(--space-4); cursor: default;
+  flex-direction: column; align-items: stretch; gap: var(--space-3);
+  width: min(300px, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-4); cursor: default;
 }
-.fc-preview__row { display: flex; align-items: center; gap: var(--space-2); font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: var(--ls-mono); color: var(--ink-ghost); }
-.fc-preview__row > span { flex: none; width: 3em; }
-.fc-preview__time { flex: 1; accent-color: var(--ink); min-height: 24px; }
-.fc-preview__auto, .fc-preview__places button {
+.fc-preview__title { font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: var(--ls-mono); text-transform: uppercase; color: color-mix(in srgb, var(--ink-ghost) 75%, transparent); }
+.fc-preview__row { display: flex; align-items: center; gap: var(--space-3); }
+.fc-preview__k { flex: none; width: 3.2em; font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: var(--ls-mono); color: var(--ink-ghost); }
+.fc-preview__time { flex: 1; min-width: 0; accent-color: var(--ink); min-height: 24px; }
+.fc-preview__chips { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; min-width: 0; }
+.fc-preview button:not(.fc-preview__hr) {
   font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: var(--ls-mono); text-transform: uppercase;
   color: var(--ink-ghost); background: none; border: 1px solid var(--hairline); border-radius: var(--radius-tag);
-  padding: 3px 6px; min-height: 26px; cursor: pointer;
+  padding: 3px 7px; min-height: 26px; cursor: pointer; transition: color var(--dur-180) var(--ease-react), border-color var(--dur-180) var(--ease-react);
 }
-.fc-preview__hr { flex: none; font-family: var(--font-mono); font-size: 0.625rem; color: var(--ink); min-width: 4.5em; text-align: right; }
-.fc-preview__places { flex-wrap: wrap; gap: 4px; }
-.fc-preview__auto:hover, .fc-preview__places button:hover { color: var(--ink); border-color: var(--ink); }
-.fc-preview__places button[aria-pressed="true"] { color: var(--ink); border-color: var(--ink); background: var(--field-1); }
+.fc-preview button:not(.fc-preview__hr):hover { color: var(--ink); border-color: var(--ink); }
+.fc-preview button[aria-pressed="true"] { color: var(--ink); border-color: var(--ink); background: var(--field-1); }
+.fc-preview__hr { flex: none; background: none; border: none; cursor: pointer; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--ink); min-width: 4.2em; text-align: right; padding: 0; }
+.fc-preview__hr:hover { color: var(--signal-deep); }
+.fc-preview__info { margin: 0; font-family: var(--font-mono); font-size: 0.625rem; letter-spacing: var(--ls-mono); text-transform: uppercase; color: var(--ink-ghost); border-top: 1px solid var(--hairline); padding-top: var(--space-3); }
 @media print { .fc-intensity { display: none; } }
 
 /* ===== ASK THE FIELD (V5.3) — a small, always-present inline chat dock =====
@@ -2388,10 +2387,13 @@ html.fc-boost .fc-intensity__glyph {
   width: min(340px, calc(100vw - 2 * var(--space-4)));
   font-family: var(--font-body);
 }
-/* EMBED (home centerpiece): in-flow under the hero CTAs — a void card that READS,
-   prominent and inviting, echoing the void band. Always open, input ready. */
+/* EMBED (home centerpiece) — V6 redesign (owner: "muy cuadriculado y duro, roto,
+   sin espacio"): NOT a boxed widget. It dissolves INTO the page — no border, no panel
+   bg, no shadow. Just an eyebrow, the assistant's invitation as flowing prose, and one
+   clean editorial input whose underline is the red thread (faint at rest, the signal on
+   focus). Vertical rhythm is φ/Fibonacci (the --space scale's bold jumps). */
 .wn-chat--embed {
-  display: block; width: 100%; max-width: 62ch; margin-top: var(--space-10);
+  display: block; width: 100%; max-width: 58ch; margin-top: var(--space-12);
   font-family: var(--font-body);
 }
 .wn-chat--embed .wn-chat__eyebrow {
@@ -2400,15 +2402,25 @@ html.fc-boost .fc-intensity__glyph {
   text-transform: uppercase; color: var(--ink-ghost); margin: 0 0 var(--space-4);
 }
 .wn-chat--embed .wn-chat__dot { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--sun); transform: scale(calc(1 + var(--fc-breath, 0) * 0.55)); }
-/* roomier, calmer: the embed should breathe (owner: "colapsado, tosco") */
-.wn-chat--embed .wn-chat__panel { max-height: none; box-shadow: 0 1px 0 var(--hairline); }
-.wn-chat--embed .wn-chat__log { max-height: 340px; padding: var(--space-8); gap: var(--space-6); }
+.wn-chat--embed .wn-chat__panel { max-height: none; background: none; border: none; box-shadow: none; overflow: visible; }
+.wn-chat--embed .wn-chat__thread { display: none; } /* the input underline IS the thread here */
+.wn-chat--embed .wn-chat__log { max-height: 42vh; padding: 0; gap: var(--space-6); }
 .wn-chat--embed .wn-chat__log:empty { display: none; }
-.wn-chat--embed .wn-chat__msg p { max-width: 52ch; }
-.wn-chat--embed .wn-chat__form { padding: var(--space-5) var(--space-8); gap: var(--space-3); }
-.wn-chat--embed .wn-chat__input { font-size: var(--text-cta); }
-.wn-chat--embed .wn-chat__send { min-width: 46px; min-height: 46px; }
-.wn-chat--embed .wn-chat__hint { padding: 0 var(--space-8) var(--space-5); }
+.wn-chat--embed .wn-chat__msg p { max-width: 55ch; color: var(--ink); }
+.wn-chat--embed .wn-chat__msg--field:first-child p { color: var(--ink-ghost); } /* the opening invitation reads as a soft whisper */
+/* one editorial input line — the red thread lives in its underline */
+.wn-chat--embed .wn-chat__form { border: none; padding: var(--space-6) 0 0; margin-top: var(--space-6); gap: var(--space-4); align-items: baseline; position: relative; }
+.wn-chat--embed .wn-chat__input {
+  font-size: var(--text-h2); font-family: var(--font-display); font-weight: var(--weight-ui);
+  letter-spacing: var(--ls-h2); color: var(--ink); min-height: 48px;
+  border-bottom: 2px solid var(--hairline); padding: 0 0 var(--space-3);
+}
+.wn-chat--embed .wn-chat__input::placeholder { color: var(--ink-ghost); font-family: var(--font-display); }
+.wn-chat--embed .wn-chat__input:focus-visible { border-bottom-color: var(--signal); }
+.wn-chat--embed .wn-chat__send { border: none; color: var(--ink-ghost); font-size: var(--text-h2); min-width: auto; min-height: 48px; padding: 0 var(--space-2); }
+.wn-chat--embed .wn-chat__send:hover, .wn-chat--embed .wn-chat__send:focus-visible { border: none; color: var(--signal-deep); }
+.wn-chat--embed .wn-chat__hint { padding: var(--space-3) 0 0; }
+.wn-chat--embed.is-thinking .wn-chat__input { border-bottom-color: var(--signal); }
 /* the tab — always visible, quiet (the breathing dot says it's alive) */
 .wn-chat__tab {
   order: 2; /* the panel sits ABOVE the tab */

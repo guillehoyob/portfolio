@@ -366,20 +366,8 @@ main { flex: 1 0 auto; }
   @starting-style { .ph-pop:popover-open { opacity: 0; } }
   .ph-pop { opacity: 0; }
 }
-/* the nav knows when it floats (BREAK-6 — scroll-state, Chrome 133+; the hairline
-   takes the hour's light; everyone else keeps the nav--scrolled look) */
-.nav { container-type: scroll-state; }
-@supports (container-type: scroll-state) {
-  .nav::after {
-    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
-    background: var(--hairline-lit, var(--hairline));
-    opacity: 0; transition: opacity var(--dur-420) var(--ease-run);
-    pointer-events: none;
-  }
-  @container scroll-state(stuck: top) {
-    .nav::after { opacity: 1; }
-  }
-}
+/* (the scroll-state(stuck) experiment was REMOVED — container-type interfered with the
+   sticky nav; the JS .nav--scrolled hairline already does this job reliably.) */
 
 /* artifacts — text links with access labels (§4.3) */
 .artifacts { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-4); }

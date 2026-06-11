@@ -45,15 +45,15 @@ export const main = `<header class="hero" id="hero">
       </h1>
       <p class="hero__sub">${e(hero.sub)}</p>
       <p class="hero__greet" data-greet><span class="greet-first">${e(hero.greet)}</span><span class="greet-return">${e(hero.greetReturn)}</span></p>
+      <!-- ASK THE FIELD — the centerpiece, right under the name (owner: "el chat debajo
+           del hero, mucho más estético; y debajo los CTAs"). ask.js fills it; JS off ⇒
+           hidden, and the CTAs below are the always-true affordance. -->
+      <div class="hero__ask" data-ask-embed hidden></div>
       <div class="hero__cta">
         <a class="wn-btn wn-btn--primary" href="/work"><span>${e(hero.ctaPrimary)}</span><span aria-hidden="true">→</span></a>
         <a class="wn-btn wn-btn--secondary" href="/method">${e(hero.ctaSecondary)}</a>
         <a class="wn-btn wn-btn--cv" href="/cv.pdf" download="Guillermo-Hoyo-Bravo-CV.pdf"><span class="wn-btn__dl" aria-hidden="true">↓</span>Download CV<span class="wn-btn__pdf">PDF</span></a>
       </div>
-      <!-- ASK THE FIELD — the centerpiece (the owner: "lo principal de mi página"):
-           a grounded chat about Guillermo, embedded right under the CTAs. ask.js
-           fills this in; with JS off it stays hidden (the dock never blocks anything). -->
-      <div class="hero__ask" data-ask-embed hidden></div>
     </div>
   </div>
   ${chevron()}

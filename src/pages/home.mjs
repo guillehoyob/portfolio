@@ -19,7 +19,7 @@ const contactBlock = `<div>
   <div class="contact__links">
     <a class="wn-signal-link" href="${identity.githubUrl}" rel="me">GitHub</a>
     <a class="wn-signal-link" href="${identity.linkedinUrl}" rel="me">LinkedIn</a>
-    <a class="wn-btn wn-btn--quiet" href="/cv">Download CV (PDF)</a>
+    <a class="wn-btn wn-btn--quiet" href="/cv.pdf" download="Guillermo-Hoyo-Bravo-CV.pdf">Download CV (PDF)</a>
   </div>
   <div class="contact__avail">
     <span class="prose prose--ghost" style="margin:0;max-width:48ch">${e(contact.avail)}</span>
@@ -48,7 +48,7 @@ export const main = `<header class="hero" id="hero">
       <div class="hero__cta">
         <a class="wn-btn wn-btn--primary" href="/work"><span>${e(hero.ctaPrimary)}</span><span aria-hidden="true">→</span></a>
         <a class="wn-btn wn-btn--secondary" href="/method">${e(hero.ctaSecondary)}</a>
-        <a class="wn-btn wn-btn--cv" href="/cv" download><span class="wn-btn__dl" aria-hidden="true">↓</span>Download CV<span class="wn-btn__pdf">PDF</span></a>
+        <a class="wn-btn wn-btn--cv" href="/cv.pdf" download="Guillermo-Hoyo-Bravo-CV.pdf"><span class="wn-btn__dl" aria-hidden="true">↓</span>Download CV<span class="wn-btn__pdf">PDF</span></a>
       </div>
       <!-- ASK THE FIELD — the centerpiece (the owner: "lo principal de mi página"):
            a grounded chat about Guillermo, embedded right under the CTAs. ask.js

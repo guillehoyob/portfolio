@@ -11,6 +11,7 @@
     "dev": "vite",
     "prebuild": "node scripts/build-pages.mjs",
     "build": "vite build",
+    "cv": "node scripts/make-cv-pdf.mjs",
     "preview": "vite preview",
     "living": "node tests/living.spec.js"
   },

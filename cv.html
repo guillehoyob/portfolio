@@ -2295,65 +2295,65 @@ html.fc-boost .fc-intensity__glyph {
 .wn-chat__caret { color: var(--ink-ghost); transition: transform var(--dur-180) var(--ease-react); }
 .wn-chat.is-open .wn-chat__caret { transform: rotate(180deg); }
 
-/* the panel — compact, void-styled, docked above the tab.
-   author display:flex beats the UA [hidden] rule, so collapse it explicitly. */
+/* the panel — V5.6 redesign (owner: "blend naturally to our style, simple, ma"):
+   LIGHT and calm, the same warm field as the page, a hairline frame and ONE red
+   thread at its top edge (the only red). Not a heavy dark box. Author display:flex
+   beats the UA [hidden] rule, so collapse it explicitly. */
 .wn-chat__panel[hidden] { display: none; }
 .wn-chat__panel {
   order: 1; position: relative; width: 100%;
   max-height: min(60vh, 460px); display: flex; flex-direction: column;
-  background: var(--void); color: var(--washi);
-  border: 1px solid color-mix(in srgb, var(--gold-deep) 45%, transparent); /* the byōbu frame */
-  box-shadow: 0 18px 48px -24px color-mix(in srgb, var(--void) 70%, transparent);
+  background: var(--field-0); color: var(--ink);
+  border: 1px solid var(--hairline);
+  box-shadow: 0 16px 44px -28px color-mix(in srgb, var(--ink) 28%, transparent);
   overflow: hidden;
   transform-origin: bottom left;
 }
+.wn-chat--embed .wn-chat__panel { background: color-mix(in srgb, var(--field-1) 60%, var(--field-0)); }
 @media (prefers-reduced-motion: no-preference) {
   .wn-chat.is-open .wn-chat__panel { animation: wn-chat-rise var(--dur-300) var(--ease-run); }
 }
 @keyframes wn-chat-rise { from { opacity: 0; transform: translateY(8px) scale(0.985); } to { opacity: 1; transform: none; } }
 /* the ONE red of the panel: the thinking thread, drawing while the answer finds its way */
-.wn-chat__thread { position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--signal); transform: scaleX(0); transform-origin: left; opacity: 0.9; }
-@media (prefers-reduced-motion: no-preference) { .wn-chat.is-thinking .wn-chat__thread { animation: wn-ask-think 1200ms var(--ease-run) infinite alternate; } }
-.wn-chat.is-thinking .wn-chat__thread { transform: scaleX(1); }
+.wn-chat__thread { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--signal); transform: scaleX(0); transform-origin: left; opacity: 0; transition: opacity var(--dur-300) var(--ease-run); }
+@media (prefers-reduced-motion: no-preference) { .wn-chat.is-thinking .wn-chat__thread { opacity: 0.85; animation: wn-ask-think 1200ms var(--ease-run) infinite alternate; } }
+.wn-chat.is-thinking .wn-chat__thread { opacity: 0.85; transform: scaleX(1); }
 @keyframes wn-ask-think { from { transform: scaleX(0.08); } to { transform: scaleX(1); } }
-.wn-chat__log { flex: 1; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
-/* P3 (@starting-style, score 8): each inserted message RISES in declaratively — no
-   JS arming, no is-in class. Unsupported engines paint it visible = Stage-0 honest. */
+.wn-chat__log { flex: 1; overflow-y: auto; padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-5); }
+/* P3 (@starting-style): each inserted message RISES in declaratively (no JS arming) */
 @media (prefers-reduced-motion: no-preference) {
-  .wn-chat__msg {
-    transition: opacity var(--dur-300) var(--ease-run), transform var(--dur-300) var(--ease-run);
-  }
+  .wn-chat__msg { transition: opacity var(--dur-300) var(--ease-run), transform var(--dur-300) var(--ease-run); }
   @starting-style { .wn-chat__msg { opacity: 0; transform: translateY(7px); } }
 }
-.wn-chat__msg p { margin: 0 0 var(--space-2); font-size: var(--text-body); line-height: var(--lh-body); }
-.wn-chat__msg--you { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--washi) 72%, transparent); }
-.wn-chat__who { color: color-mix(in srgb, var(--washi) 45%, transparent); }
-.wn-chat__msg--quiet p { color: color-mix(in srgb, var(--washi) 80%, transparent); }
-.wn-chat__where { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--gold) 75%, var(--washi)); margin: var(--space-3) 0 var(--space-2); }
-.wn-chat__srcs { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); }
+.wn-chat__msg p { margin: 0 0 var(--space-2); font-size: var(--text-body); line-height: var(--lh-body); color: var(--ink); }
+.wn-chat__msg--you { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); color: var(--ink-ghost); }
+.wn-chat__who { color: color-mix(in srgb, var(--ink-ghost) 70%, transparent); }
+.wn-chat__msg--quiet p { color: var(--ink-ghost); }
+.wn-chat__where { font-family: var(--font-mono); font-size: var(--text-micro); letter-spacing: var(--ls-mono); text-transform: uppercase; color: var(--ink-ghost); margin: var(--space-3) 0 var(--space-2); }
+.wn-chat__srcs { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); }
 .wn-chat__src {
-  color: var(--washi); text-decoration: none; font-size: var(--text-ui); padding-bottom: 2px;
-  border-bottom: 1px solid color-mix(in srgb, var(--gold-deep) 70%, transparent); /* gold underline: the kintsugi of the answer */
+  color: var(--ink); text-decoration: none; font-size: var(--text-ui); padding-bottom: 2px;
+  border-bottom: 1px solid var(--gold-deep); /* gold seam: the kintsugi of the answer (a trace, not the signal) */
 }
-.wn-chat__src:hover { border-bottom-color: var(--sun); color: var(--sun); }
-.wn-chat__form { display: flex; gap: var(--space-2); padding: 0 var(--space-6) var(--space-3); }
+.wn-chat__src:hover { border-bottom-color: var(--signal); color: var(--text-accent); }
+.wn-chat__form { display: flex; gap: var(--space-2); padding: 0 var(--space-6) var(--space-4); border-top: 1px solid var(--hairline); padding-top: var(--space-4); }
 .wn-chat__input {
   flex: 1; background: none; border: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--washi) 30%, transparent);
-  color: var(--washi); font-family: var(--font-body); font-size: var(--text-body);
+  border-bottom: 1px solid var(--hairline);
+  color: var(--ink); font-family: var(--font-body); font-size: var(--text-body);
   padding: var(--space-2) 0; min-height: 40px; outline-offset: 4px;
 }
-.wn-chat__input::placeholder { color: color-mix(in srgb, var(--washi) 40%, transparent); }
-.wn-chat__input:focus-visible { border-bottom-color: var(--sun); outline: none; }
+.wn-chat__input::placeholder { color: var(--ink-ghost); }
+.wn-chat__input:focus-visible { border-bottom-color: var(--signal-deep); outline: none; }
 .wn-chat__send {
-  background: none; border: 1px solid color-mix(in srgb, var(--washi) 30%, transparent);
-  color: var(--washi); font-size: var(--text-ui); cursor: pointer;
+  background: none; border: 1px solid var(--hairline);
+  color: var(--ink-ghost); font-size: var(--text-ui); cursor: pointer;
   min-width: 40px; min-height: 40px; border-radius: var(--radius-tag);
   transition: border-color var(--dur-180) var(--ease-react), color var(--dur-180) var(--ease-react);
 }
-.wn-chat__send:hover, .wn-chat__send:focus-visible { border-color: var(--sun); color: var(--sun); }
+.wn-chat__send:hover, .wn-chat__send:focus-visible { border-color: var(--ink); color: var(--ink); }
 .wn-chat__send:disabled { opacity: 0.4; cursor: wait; }
-.wn-chat__hint { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: var(--ls-mono); color: color-mix(in srgb, var(--washi) 35%, transparent); margin: 0; padding: 0 var(--space-6) var(--space-4); }
+.wn-chat__hint { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: var(--ls-mono); color: var(--ink-ghost); margin: 0; padding: var(--space-3) var(--space-6) var(--space-4); }
 @media print { .wn-chat { display: none; } }
 /* phones: the dock spans the bottom; the panel is a low sheet, never full-screen */
 @media (max-width: 560px) {
